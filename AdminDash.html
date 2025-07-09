@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+
+        .container {
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+
+        header {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #ffffff;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: #2346e3;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid #3d3d3d;
+        }
+
+        .card:hover {
+            background: #58b2fc;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .card h2 {
+            font-size: 22px;
+            margin-bottom: 10px;
+            color: #ffffff;
+        }
+
+        .card p {
+            color: #b0b0b0;
+            font-size: 15px;
+        }
+
+        .summary {
+            background: #2d2d2d;
+            padding: 25px;
+            border-radius: 10px;
+            border: 1px solid #3d3d3d;
+        }
+
+        .summary h2 {
+            font-size: 20px;
+            margin-bottom: 20px;
+            color: #ffffff;
+            text-align: center;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #3d3d3d;
+        }
+
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+
+        .summary-label {
+            color: #b0b0b0;
+        }
+
+        .summary-value {
+            font-weight: bold;
+            color: #ffffff;
+        }
+
+        .back-btn {
+            display: block;
+            margin-top: 30px;
+            padding: 10px 20px;
+            background-color: #3d3d3d;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            text-align: center;
+            transition: background-color 0.3s;
+        }
+
+        .back-btn:hover {
+            background-color: #4d4d4d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Admin Dashboard</h1>
+            <div id="welcomeMessage" style="color:#b0b0b0;"></div>
+        </header>
+
+        <div class="cards">
+            <div class="card" onclick="goToAdminCashbook()">
+                <h2>Accounts</h2>
+                <p>View and manage admin accounts</p>
+            </div>
+            <div class="card" onclick="navigateTo('daily_earnings.html')">
+                <h2>Daily Income</h2>
+                <p>View daily earnings reports</p>
+            </div>
+            <div class="card" onclick="navigateTo('Totalsales.html')">
+                <h2>Total Sales</h2>
+                <p>View total sales reports</p>
+            </div>
+             <div class="card" onclick="navigateTo('incomestatement.html')">
+                <h2>Income Statement</h2>
+                <p>View income statement</p>
+            </div>
+            
+            incomestatement
+        </div>
+
+        <div class="summary">
+            <h2>System Summary</h2>
+            <div class="summary-item">
+                <span class="summary-label">Total Balance</span>
+                <span class="summary-value">K 28,750.00</span>
+            </div>
+            <div class="summary-item">
+                <span class="summary-label">Today's Transactions</span>
+                <span class="summary-value">18</span>
+            </div>
+            <div class="summary-item">
+                <span class="summary-label">Active Users</span>
+                <span class="summary-value">3</span>
+            </div>
+            <div class="summary-item">
+                <span class="summary-label">System Status</span>
+                <span class="summary-value" style="color:#4CAF50;">Online</span>
+            </div>
+        </div>
+
+        <a href="dashboard.html" class="back-btn">Back to Main Menu</a>
+    </div>
+
+    <script>
+        // Display welcome message
+        const userName = localStorage.getItem('userName');
+        if (userName) {
+            document.getElementById('welcomeMessage').textContent = `Welcome, ${userName}`;
+        }
+
+        // Check admin permissions
+        const userPermissions = {
+            'chris': { admin: true },
+            'doro': { admin: false },
+            'fridah': { admin: false }
+        };
+
+        if (!userPermissions[userName?.toLowerCase()]?.admin) {
+            alert('Admin access required!');
+            window.location.href = 'dashboard.html';
+        }
+
+        function navigateTo(page) {
+            window.location.href = page;
+        }
+
+        function goToAdminCashbook() {
+            localStorage.setItem('branchId', 'admin'); // Set admin flag
+            window.location.href = 'cashbook.html';
+        }
+
+        // Inactivity timer
+        let inactivityTimer;
+        function resetTimer() {
+            clearTimeout(inactivityTimer);
+            inactivityTimer = setTimeout(() => {
+                alert("You have been inactive for 10 minutes. Redirecting to login.");
+                localStorage.removeItem('userName');
+                window.location.href = 'index.html';
+            }, 600000); // 10 minutes
+        }
+
+        // Set up event listeners
+        window.onload = resetTimer;
+        document.onmousemove = resetTimer;
+        document.onkeypress = resetTimer;
+    </script>
+</body>
+</html>

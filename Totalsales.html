@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firestore Data Tracker (ZMW)</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --text-color: #e0e0e0;
+            --primary-color: #8f8f8f;
+            --secondary-color: #ffffff;
+            --error-color: #ffffff;
+            --border-color: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            margin: 0 auto;
+        }
+
+        h1, h2, h3 {
+            color: var(--primary-color);
+        }
+
+        .total-display {
+            background-color: var(--card-bg);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .total-amount {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--secondary-color);
+            margin: 10px 0;
+        }
+
+        .form-container {
+            background-color: var(--card-bg);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+
+        .form-container.visible {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background-color: #2d2d2d;
+            color: var(--text-color);
+            font-size: 16px;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: background-color 0.3s;
+            margin-right: 10px;
+        }
+
+        button:hover {
+            background-color: #aca9af;
+        }
+
+        .toggle-form-btn {
+            margin-bottom: 20px;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .data-table th, .data-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .data-table th {
+            background-color: #2d2d2d;
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .data-table tr:hover {
+            background-color: #2a2a2a;
+        }
+
+        .currency {
+            font-size: 0.8em;
+            color: var(--secondary-color);
+            margin-left: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <button class="toggle-form-btn" id="toggleFormBtn">Show/Hide Form</button>
+        
+        <div class="total-display">
+            <h2>Total Amount</h2>
+            <div class="total-amount" id="totalAmount">ZMW 0.00</div>
+        </div>
+        
+        <div class="form-container" id="formContainer">
+            <h2>Add New Entry</h2>
+            <form id="dataForm">
+                <div class="form-group">
+                    <label for="date">Date</label>
+                    <input type="date" id="date" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="branch">Branch</label>
+                    <select id="branch" required>
+                        <option value="">Select Branch</option>
+                        <option value="Makeni">Makeni</option>
+                        <option value="Kabanana">Kabanana</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="reference">Reference</label>
+                    <input type="text" id="reference" placeholder="e.g. sales, purchase, etc." required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="amount">Amount (ZMW)</label>
+                    <input type="number" id="amount" placeholder="Enter amount" step="0.01" required>
+                </div>
+                
+                <button type="submit">Add Entry</button>
+            </form>
+        </div>
+
+        <h2>Filter Options</h2>
+        <div class="form-group">
+            <label for="monthFilter">Select Month</label>
+            <select id="monthFilter">
+                <option value="">All Months</option>
+                <option value="01">January</option>
+                <option value="02">February</option>
+                <option value="03">March</option>
+                <option value="04">April</option>
+                <option value="05">May</option>
+                <option value="06">June</option>
+                <option value="07">July</option>
+                <option value="08">August</option>
+                <option value="09">September</option>
+                <option value="10">October</option>
+                <option value="11">November</option>
+                <option value="12">December</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="branchFilter">Filter by Branch</label>
+            <select id="branchFilter">
+                <option value="">All Branches</option>
+                <option value="Makeni">Makeni</option>
+                <option value="Kabanana">Kabanana</option>
+            </select>
+        </div>
+        
+        <h2>Transaction History</h2>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Branch</th>
+                    <th>Reference</th>
+                    <th>Amount (ZMW)</th>
+                </tr>
+            </thead>
+            <tbody id="dataTableBody">
+                <!-- Data will be inserted here dynamically -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, where, orderBy } from "https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js";
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyB-lm7Y3r1F6Vv8PKvY8glLabZDbJsHM1k",
+            authDomain: "trismartstores.firebaseapp.com",
+            projectId: "trismartstores",
+            storageBucket: "trismartstores.appspot.com",
+            messagingSenderId: "416692703333",
+            appId: "1:416692703333:web:d4b60292621435c748f68c",
+            measurementId: "G-NJPQ7L3QWJ"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Reference to the collection
+        const transactionsRef = collection(db, "transactions");
+
+        // DOM elements
+        const dataForm = document.getElementById('dataForm');
+        const dataTableBody = document.getElementById('dataTableBody');
+        const totalAmountElement = document.getElementById('totalAmount');
+        const toggleFormBtn = document.getElementById('toggleFormBtn');
+        const formContainer = document.getElementById('formContainer');
+        const monthFilter = document.getElementById('monthFilter');
+        const branchFilter = document.getElementById('branchFilter');
+
+        // Load saved filters from localStorage
+        const savedMonthFilter = localStorage.getItem('monthFilter');
+        const savedBranchFilter = localStorage.getItem('branchFilter');
+        
+        if (savedMonthFilter) {
+            monthFilter.value = savedMonthFilter;
+        }
+        if (savedBranchFilter) {
+            branchFilter.value = savedBranchFilter;
+        }
+
+        // Toggle form visibility
+        toggleFormBtn.addEventListener('click', () => {
+            formContainer.classList.toggle('visible');
+        });
+
+        // Format currency as ZMW
+        function formatCurrency(amount) {
+            return `ZMW ${amount.toFixed(2)}`;
+        }
+
+        // Form submission handler
+        dataForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const date = document.getElementById('date').value;
+            const branch = document.getElementById('branch').value;
+            const reference = document.getElementById('reference').value;
+            const amount = parseFloat(document.getElementById('amount').value);
+            
+            try {
+                await addDoc(transactionsRef, {
+                    date: date,
+                    branch: branch,
+                    reference: reference,
+                    amount: amount,
+                    createdAt: new Date()
+                });
+                
+                // Reset form
+                dataForm.reset();
+            } catch (error) {
+                console.error("Error adding document: ", error);
+            }
+        });
+
+        // Function to fetch and display data based on filters
+        function fetchData(month = '', branch = '') {
+            let q;
+            const conditions = [];
+            
+            if (month) {
+                const year = new Date().getFullYear();
+                const startDate = `${year}-${month}-01`;
+                const endDate = `${year}-${month}-31`;
+                conditions.push(where('date', '>=', startDate));
+                conditions.push(where('date', '<=', endDate));
+            }
+            
+            if (branch) {
+                conditions.push(where('branch', '==', branch));
+            }
+            
+            // Always sort by date in ascending order
+            conditions.push(orderBy('date', 'asc'));
+            
+            q = query(transactionsRef, ...conditions);
+
+            onSnapshot(q, (snapshot) => {
+                let total = 0;
+                dataTableBody.innerHTML = '';
+                
+                snapshot.docs.forEach(doc => {
+                    const data = doc.data();
+
+                    // Default undefined branch to "Makeni"
+                    const branchName = data.branch || "Makeni";
+
+                    total += data.amount;
+
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${data.date}</td>
+                        <td>${branchName}</td>
+                        <td>${data.reference}</td>
+                        <td>${formatCurrency(data.amount)}</td>
+                    `;
+                    dataTableBody.appendChild(row);
+                });
+                
+                // Update total amount with ZMW currency
+                totalAmountElement.textContent = formatCurrency(total);
+            });
+        }
+
+        // Month filter change handler
+        monthFilter.addEventListener('change', () => {
+            const selectedMonth = monthFilter.value;
+            const selectedBranch = branchFilter.value;
+            localStorage.setItem('monthFilter', selectedMonth);
+            fetchData(selectedMonth, selectedBranch);
+        });
+
+        // Branch filter change handler
+        branchFilter.addEventListener('change', () => {
+            const selectedBranch = branchFilter.value;
+            const selectedMonth = monthFilter.value;
+            localStorage.setItem('branchFilter', selectedBranch);
+            fetchData(selectedMonth, selectedBranch);
+        });
+
+        // Initial data load with saved filters
+        fetchData(savedMonthFilter || '', savedBranchFilter || '');
+    </script>
+</body>
+</html>

@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Accounts</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    body { font-family: 'Open Sans', Arial, sans-serif; background: #f4f7fa; margin: 0; }
+    .panel { background: #fff; border-radius: 8px; box-shadow: 0 2px 10px rgba(44,62,80,0.04); margin: 40px auto; padding: 30px;}
+    .panel-heading { background: #666363; color: #fff; padding: 18px 24px; font-size: 1.16rem; font-weight: bold; border-radius: 8px 8px 0 0; margin: -30px -30px 24px -30px; }
+    #toggle-form-btn {
+      margin-bottom: 16px; background: #1976d2; color: #fff; border: none;
+      font-size: 15px; padding: 8px 20px; border-radius: 4px; cursor: pointer; font-weight: bold;
+      transition: background 0.2s;
+    }
+    #toggle-form-btn:hover { background: #125195; }
+    form { display: flex; flex-wrap: wrap; gap: 14px 18px; align-items: flex-end; margin-bottom: 22px; }
+    form label { font-weight: bold; }
+    form input, form select, form button { padding: 7px 12px; font-size: 15px; border-radius: 4px; border: 1px solid #bbb; }
+    form input[type="date"] { min-width: 140px;}
+    form input[type="text"], form input[type="number"], form select { min-width: 120px;}
+    form button { background: #1976d2; color: #fff; border: none; cursor: pointer; font-weight: bold;}
+    form button:hover { background: #0d47a1;}
+    .table-responsive { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; background: #fff; }
+    th, td { padding: 14px 12px; text-align: left; font-size: 15px; }
+    th { font-weight: 700; }
+    tr:nth-child(even) { background: #f7fafc; }
+    tr:hover { background: #eafaf1; }
+    .hide { display: none !important; }
+    .account-filter-bar {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+    .account-filter-btns {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+    .account-btn {
+      background: #e3e8ef;
+      border: none;
+      color: #1976d2;
+      font-weight: bold;
+      padding: 8px 24px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 15px;
+      transition: background 0.18s, color 0.18s;
+      outline: none;
+    }
+    .account-btn.selected,
+    .account-btn:focus {
+      background: #1976d2;
+      color: #fff;
+    }
+    .filter-bar {
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+    .filter-bar label {
+      font-weight: bold;
+    }
+    #expense-form-error { color: #c00; font-size: 0.97rem; margin-bottom: 7px; }
+    .report-btn {
+      background: #4caf50;
+      color: #fff;
+      font-weight: bold;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 25px;
+      margin-bottom: 10px;
+      width: 200px;
+      display: block;
+    }
+    .report-btn:hover {
+      background: #388e3c;
+    }
+    @media (max-width: 900px) {
+      .panel { padding: 5vw 2vw; }
+      .account-filter-bar { flex-direction: column; gap: 10px; }
+      .account-filter-btns { gap: 8px; }
+      .filter-bar { flex-direction: column; gap: 8px; }
+      table th, table td { white-space: nowrap; }
+      .report-btn { width: 100%; }
+    }
+    .transfer-fields { display:none; }
+    .transfer-active .transfer-fields { display: block; }
+    .transfer-active .normal-fields { display: none; }
+  </style>
+</head>
+<body>
+  <div class="panel">
+    <div class="panel-heading">Trismart Stores</div>
+    <button id="toggle-form-btn" type="button">Add transaction</button>
+    <form id="expense-form" autocomplete="off" class="hide">
+      <div>
+        <label for="exp-date">Date</label><br>
+        <input type="date" id="exp-date" required>
+      </div>
+      <div class="normal-fields">
+        <label for="exp-account">Account</label><br>
+        <select id="exp-account" required>
+          <option value="">--Choose--</option>
+          <option value="Cash account">Cash account</option>
+          <option value="Bank account">Bank account</option>
+          <option value="Airtel money">Airtel money</option>
+        </select>
+      </div>
+      <div class="normal-fields">
+        <label for="exp-reference">Reference</label><br>
+        <input type="text" id="exp-reference" required placeholder="Reference Number">
+      </div>
+      <div>
+        <label for="exp-type">Type</label><br>
+        <select id="exp-type" required>
+          <option value="">--Select Type--</option>
+          <option value="debit">Debit</option>
+          <option value="credit">Credit</option>
+          <option value="transfer">Transfer</option>
+        </select>
+      </div>
+      <div class="normal-fields">
+        <label for="exp-amount">Amount</label><br>
+        <input type="number" min="0" id="exp-amount" required placeholder="Amount">
+      </div>
+      <div class="transfer-fields">
+        <label for="exp-from">From Account</label><br>
+        <select id="exp-from">
+          <option value="">--From--</option>
+          <option value="Cash account">Cash account</option>
+          <option value="Bank account">Bank account</option>
+          <option value="Airtel money">Airtel money</option>
+        </select>
+        <label for="exp-to">To Account</label><br>
+        <select id="exp-to">
+          <option value="">--To--</option>
+          <option value="Cash account">Cash account</option>
+          <option value="Bank account">Bank account</option>
+          <option value="Airtel money">Airtel money</option>
+        </select>
+        <label for="exp-transfer-ref">Reference</label><br>
+        <input type="text" id="exp-transfer-ref" placeholder="Transfer Reference">
+        <label for="exp-transfer-amount">Amount</label><br>
+        <input type="number" min="0" id="exp-transfer-amount" placeholder="Amount">
+      </div>
+      <div style="align-self: flex-end;">
+        <button type="submit">Add</button>
+      </div>
+      <div id="expense-form-error"></div>
+    </form>
+
+    <div class="account-filter-bar">
+      <div class="account-filter-btns" id="account-btns">
+        <button type="button" class="account-btn" data-account="Cash account">Cash account</button>
+        <button type="button" class="account-btn" data-account="Bank account">Bank account</button>
+        <button type="button" class="account-btn" data-account="Airtel money">Airtel money</button>
+      </div>
+      <div class="filter-bar">
+        <label for="month-filter">Month:</label>
+        <input type="month" id="month-filter">
+      </div>
+    </div>
+
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Account</th>
+            <th>Reference</th>
+            <th>Type</th>
+            <th>Amount</th>
+            <th>Balance</th>
+          </tr>
+        </thead>
+        <tbody id="expenses-table-body"></tbody>
+      </table>
+    </div>
+    <button class="report-btn" id="download-pdf-btn" type="button">Download PDF Report</button>
+  </div>
+
+  <!-- Firebase App and Analytics script -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-analytics.js";
+    const firebaseConfig = {
+      apiKey: "AIzaSyB-lm7Y3r1F6Vv8PKvY8glLabZDbJsHM1k",
+      authDomain: "trismartstores.firebaseapp.com",
+      projectId: "trismartstores",
+      storageBucket: "trismartstores.firebasestorage.app",
+      messagingSenderId: "416692703333",
+      appId: "1:416692703333:web:d4b60292621435c748f68c",
+      measurementId: "G-NJPQ7L3QWJ"
+    };
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+  </script>
+  <script type="module">
+    import {
+      getFirestore,
+      collection,
+      addDoc,
+      onSnapshot,
+      serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-app.js";
+
+    const app = initializeApp({
+      apiKey: "AIzaSyB-lm7Y3r1F6Vv8PKvY8glLabZDbJsHM1k",
+      authDomain: "trismartstores.firebaseapp.com",
+      projectId: "trismartstores",
+      storageBucket: "trismartstores.firebasestorage.app",
+      messagingSenderId: "416692703333",
+      appId: "1:416692703333:web:d4b60292621435c748f68c",
+      measurementId: "G-NJPQ7L3QWJ"
+    });
+
+    const db = getFirestore(app);
+
+    function saveExpensesLocal(expenses) {
+      try { localStorage.setItem("expenses", JSON.stringify(expenses)); } catch {}
+    }
+    function getExpensesLocal() {
+      try { return JSON.parse(localStorage.getItem("expenses") || "[]"); } catch { return []; }
+    }
+
+    function setPersistedMonthFilter(month) {
+      localStorage.setItem("shop_month_filter", month || "");
+    }
+    function getPersistedMonthFilter() {
+      return localStorage.getItem("shop_month_filter") || "";
+    }
+    function setPersistedAccountFilter(account) {
+      localStorage.setItem("shop_account_filter", account ?? "");
+    }
+    function getPersistedAccountFilter() {
+      return localStorage.getItem("shop_account_filter") || "";
+    }
+
+    const expenseForm = document.getElementById("expense-form");
+    const expensesTableBody = document.getElementById("expenses-table-body");
+    const formError = document.getElementById("expense-form-error");
+    const toggleFormBtn = document.getElementById("toggle-form-btn");
+    const accountSelect = document.getElementById("exp-account");
+    const referenceInput = document.getElementById("exp-reference");
+    const dateInput = document.getElementById("exp-date");
+    const typeSelect = document.getElementById("exp-type");
+    const amountInput = document.getElementById("exp-amount");
+    const fromSelect = document.getElementById("exp-from");
+    const toSelect = document.getElementById("exp-to");
+    const transferRefInput = document.getElementById("exp-transfer-ref");
+    const transferAmountInput = document.getElementById("exp-transfer-amount");
+    const accountBtns = document.querySelectorAll(".account-btn");
+    const monthFilter = document.getElementById("month-filter");
+    const downloadPdfBtn = document.getElementById("download-pdf-btn");
+
+    let selectedMonth = getPersistedMonthFilter();
+    if (selectedMonth) {
+      monthFilter.value = selectedMonth;
+    } else {
+      const now = new Date();
+      const defaultMonth = now.toISOString().substring(0, 7);
+      monthFilter.value = defaultMonth;
+      selectedMonth = defaultMonth;
+      setPersistedMonthFilter(defaultMonth);
+    }
+    monthFilter.addEventListener("change", function() {
+      selectedMonth = monthFilter.value;
+      setPersistedMonthFilter(selectedMonth);
+      renderTable();
+    });
+
+    let selectedAccount = getPersistedAccountFilter();
+    function updateAccountBtnStates() {
+      accountBtns.forEach(btn => {
+        if (btn.getAttribute("data-account") === selectedAccount) {
+          btn.classList.add("selected");
+        } else {
+          btn.classList.remove("selected");
+        }
+      });
+    }
+    updateAccountBtnStates();
+    accountBtns.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        accountBtns.forEach(b => b.classList.remove("selected"));
+        btn.classList.add("selected");
+        selectedAccount = btn.getAttribute("data-account");
+        setPersistedAccountFilter(selectedAccount);
+        renderTable();
+      });
+    });
+
+    let formVisible = false;
+    expenseForm.classList.add("hide");
+    toggleFormBtn.textContent = "Add transaction";
+    toggleFormBtn.onclick = function() {
+      formVisible = !formVisible;
+      expenseForm.classList.toggle("hide", !formVisible);
+      toggleFormBtn.textContent = formVisible ? "Hide Form" : "Add transaction";
+    };
+
+    typeSelect.addEventListener("change", function() {
+      if (typeSelect.value === "transfer") {
+        expenseForm.classList.add("transfer-active");
+        accountSelect.required = false;
+        referenceInput.required = false;
+        amountInput.required = false;
+        fromSelect.required = true;
+        toSelect.required = true;
+        transferRefInput.required = true;
+        transferAmountInput.required = true;
+      } else {
+        expenseForm.classList.remove("transfer-active");
+        accountSelect.required = true;
+        referenceInput.required = true;
+        amountInput.required = true;
+        fromSelect.required = false;
+        toSelect.required = false;
+        transferRefInput.required = false;
+        transferAmountInput.required = false;
+      }
+    });
+
+    expenseForm.onsubmit = async function(e) {
+      e.preventDefault();
+      formError.textContent = "";
+
+      if(typeSelect.value === "transfer") {
+        const dateVal = dateInput.value;
+        const fromVal = fromSelect.value;
+        const toVal = toSelect.value;
+        const transferRef = transferRefInput.value.trim();
+        const amountVal = parseFloat(transferAmountInput.value);
+
+        if (!fromVal || !toVal || fromVal === toVal || !dateVal || !transferRef || isNaN(amountVal) || amountVal < 0) {
+          formError.textContent = "Please fill all transfer fields correctly (cannot transfer to same account).";
+          return;
+        }
+
+        const transferGroup = Date.now() + Math.random().toString(36).substring(2,8);
+
+        const debitEntry = {
+          date: dateVal,
+          account: fromVal,
+          reference: transferRef + " (To: " + toVal + ")",
+          type: "debit",
+          amount: amountVal,
+          transferGroup,
+          createdAt: Date.now()
+        };
+        const creditEntry = {
+          date: dateVal,
+          account: toVal,
+          reference: transferRef + " (From: " + fromVal + ")",
+          type: "credit",
+          amount: amountVal,
+          transferGroup,
+          createdAt: Date.now() + 1
+        };
+
+        try {
+          await addDoc(collection(db, "Shop transactions"), { ...debitEntry, createdAt: serverTimestamp() });
+          await addDoc(collection(db, "Shop transactions"), { ...creditEntry, createdAt: serverTimestamp() });
+        } catch (err) {}
+
+        let allExpenses = getExpensesLocal();
+        allExpenses.push(debitEntry, creditEntry);
+        saveExpensesLocal(allExpenses);
+
+        expenseForm.reset();
+        expenseForm.classList.remove("transfer-active");
+        typeSelect.value = "";
+        renderTable();
+        return;
+      }
+
+      const dateVal = dateInput.value;
+      const accountVal = accountSelect.value;
+      const referenceVal = referenceInput.value.trim();
+      const typeVal = typeSelect.value;
+      const amountVal = parseFloat(amountInput.value);
+
+      if (!accountVal || !dateVal || !referenceVal || !typeVal || isNaN(amountVal) || amountVal < 0) {
+        formError.textContent = "Please fill all fields correctly.";
+        return;
+      }
+
+      const entry = {
+        date: dateVal,
+        account: accountVal,
+        reference: referenceVal,
+        type: typeVal,
+        amount: amountVal,
+        createdAt: Date.now()
+      };
+
+      try {
+        await addDoc(collection(db, "Shop transactions"), {
+          ...entry,
+          createdAt: serverTimestamp()
+        });
+      } catch (err) {}
+
+      let allExpenses = getExpensesLocal();
+      allExpenses.push(entry);
+      saveExpensesLocal(allExpenses);
+
+      expenseForm.reset();
+      renderTable();
+    };
+
+    let allExpenses = [];
+    function loadExpensesFromLocal() {
+      allExpenses = getExpensesLocal();
+      renderTable();
+    }
+    function loadExpensesFromFirestore() {
+      try {
+        onSnapshot(
+          collection(db, "Shop transactions"),
+          (snapshot) => {
+            allExpenses = [];
+            snapshot.forEach(docSnap => {
+              const exp = docSnap.data();
+              allExpenses.push({
+                ...exp,
+                createdAt: exp.createdAt?.seconds
+                  ? exp.createdAt.seconds * 1000
+                  : Date.now()
+              });
+            });
+            saveExpensesLocal(allExpenses);
+            renderTable();
+          },
+          (err) => {
+            loadExpensesFromLocal();
+          }
+        );
+      } catch {
+        loadExpensesFromLocal();
+      }
+    }
+    loadExpensesFromFirestore();
+
+    function renderTable(pdfMode = false) {
+      let filtered = [...allExpenses];
+
+      if (selectedAccount !== "") {
+        filtered = filtered.filter(exp => exp.account === selectedAccount);
+      }
+
+      if (selectedMonth) {
+        filtered = filtered.filter(exp =>
+          exp.date && exp.date.substring(0, 7) === selectedMonth
+        );
+      }
+
+      filtered.sort((a, b) => {
+        if ((a.date || "") === (b.date || "")) {
+          return ((a.createdAt || 0) - (b.createdAt || 0));
+        }
+        return (a.date || "") < (b.date || "") ? -1 : 1;
+      });
+
+      if (!pdfMode) {
+        expensesTableBody.innerHTML = "";
+      }
+
+      let balanceMap = {};
+      let rows = [];
+      filtered.forEach(exp => {
+        const acc = exp.account || "-";
+        if (!(acc in balanceMap)) balanceMap[acc] = 0;
+        if (exp.type === "credit") {
+          balanceMap[acc] += exp.amount || 0;
+        } else if (exp.type === "debit") {
+          balanceMap[acc] -= exp.amount || 0;
+        }
+        const rowArr = [
+          exp.date ? formatDate(exp.date) : "-",
+          acc,
+          exp.reference || "-",
+          (exp.type || "-"),
+          typeof exp.amount === "number"
+            ? (exp.type === "debit"
+                ? "- "
+                : "+ ") +
+              Math.abs(exp.amount).toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+              })
+            : "-",
+          balanceMap[acc].toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})
+        ];
+        if (!pdfMode) {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${rowArr[0]}</td>
+            <td>${rowArr[1]}</td>
+            <td>${rowArr[2]}</td>
+            <td style="text-transform:capitalize">${rowArr[3]}</td>
+            <td>${rowArr[4]}</td>
+            <td>${rowArr[5]}</td>
+          `;
+          expensesTableBody.appendChild(tr);
+        }
+        rows.push(rowArr);
+      });
+
+      if (pdfMode) return rows;
+    }
+
+    downloadPdfBtn.addEventListener("click", function() {
+      const rows = renderTable(true);
+
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({
+        orientation: "landscape",
+        unit: "pt",
+        format: "a4"
+      });
+
+      const pageWidth = doc.internal.pageSize.getWidth();
+      doc.setFontSize(16);
+      doc.text("Trismart Stores", pageWidth/2, 35, {align: "center"});
+      doc.setFontSize(12);
+      doc.text("Shop Report" + (selectedMonth ? (" - " + selectedMonth) : ""), pageWidth/2, 55, {align: "center"});
+      doc.setFontSize(10);
+
+      const headers = [["Date", "Account", "Reference", "Type", "Amount", "Balance"]];
+      const data = headers.concat(rows);
+
+      let startY = 75;
+      let x = 20;
+      let colWidths = [80, 100, 140, 60, 80, 80];
+      data.forEach((row, rowIdx) => {
+        let colX = x;
+        row.forEach((cell, colIdx) => {
+          if (rowIdx === 0) doc.setFont(undefined, "bold");
+          else doc.setFont(undefined, "normal");
+          doc.text(String(cell), colX+2, startY+15);
+          colX += colWidths[colIdx];
+        });
+        startY += 22;
+        if (startY > doc.internal.pageSize.getHeight()-30) {
+          doc.addPage();
+          startY = 40;
+        }
+      });
+
+      doc.save("Shop_Report_" + (selectedMonth || "all") + ".pdf");
+    });
+
+    function formatDate(isoDateStr) {
+      const date = new Date(isoDateStr);
+      if (isNaN(date.getTime())) return isoDateStr;
+      const dd = String(date.getDate()).padStart(2, '0');
+      const mm = String(date.getMonth() + 1).padStart(2, '0');
+      const yyyy = date.getFullYear();
+      return `${dd}/${mm}/${yyyy}`;
+    }
+
+    renderTable();
+  </script>
+</body>
+</html>

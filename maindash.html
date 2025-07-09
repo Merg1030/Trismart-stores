@@ -1,0 +1,386 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trismart Stores - Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --dark-color: #121212;
+            --darker-color: #0a0a0a;
+            --light-color: #e0e0e0;
+            --lighter-color: #f5f5f5;
+            --text-color: #e0e0e0;
+            --text-light: #b0b0b0;
+            --success-color: #4cc9f0;
+            --warning-color: #f8961e;
+            --danger-color: #f94144;
+            --sidebar-width: 280px;
+            --header-height: 70px;
+            --card-bg: #1e1e1e;
+            --border-color: #333;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--dark-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        header {
+            background-color: var(--darker-color);
+            color: var(--text-color);
+            height: var(--header-height);
+            padding: 0 2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo i {
+            color: var(--primary-color);
+            font-size: 1.5rem;
+        }
+
+        .logo h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .menu-toggle {
+            display: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-color);
+        }
+
+        .sidebar {
+            height: 100vh;
+            width: var(--sidebar-width);
+            position: fixed;
+            top: var(--header-height);
+            left: 0;
+            background-color: var(--darker-color);
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+            padding: 2rem 0;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            z-index: 999;
+            border-right: 1px solid var(--border-color);
+        }
+
+        .sidebar a {
+            padding: 1rem 2rem;
+            text-decoration: none;
+            font-size: 1rem;
+            color: var(--text-light);
+            display: flex;
+            align-items: center;
+            transition: all 0.2s ease;
+            border-left: 4px solid transparent;
+            margin: 0.2rem 0;
+        }
+
+        .sidebar a:hover {
+            background-color: rgba(67, 97, 238, 0.1);
+            color: var(--primary-color);
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .sidebar a.active {
+            background-color: rgba(67, 97, 238, 0.1);
+            color: var(--primary-color);
+            border-left: 4px solid var(--primary-color);
+            font-weight: 500;
+        }
+
+        .sidebar a i {
+            margin-right: 15px;
+            font-size: 1.1rem;
+            width: 24px;
+            text-align: center;
+        }
+
+        main {
+            margin-left: var(--sidebar-width);
+            margin-top: var(--header-height);
+            padding: 2rem;
+            min-height: calc(100vh - var(--header-height));
+            transition: margin-left 0.3s ease;
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .dashboard-header h2 {
+            font-size: 1.8rem;
+            color: var(--text-color);
+            font-weight: 600;
+        }
+
+        .date-display {
+            color: var(--text-light);
+        }
+
+        .stats-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid var(--border-color);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .stat-card .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .stat-card .card-icon {
+            width: 100px;
+            height: 100px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .stat-card .card-icon.accounts {
+            background-color: var(--primary-color);
+        }
+
+        .stat-card .card-icon.warehouse {
+            background-color: var(--success-color);
+        }
+
+        .stat-card .card-icon.sales {
+            background-color: var(--warning-color);
+        }
+
+        .stat-card h3 {
+            font-size: 1rem;
+            color: var(--text-light);
+            font-weight: 500;
+        }
+
+        .stat-card .value {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: var(--text-color);
+            margin: 0.5rem 0;
+        }
+
+        .stat-card .change {
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .stat-card .change.positive {
+            color: #2ecc71;
+        }
+
+        .stat-card .change.negative {
+            color: #e74c3c;
+        }
+
+        .welcome-banner {
+            background: gray;
+            color: white;
+            border-radius: 10px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 20px rgba(67, 97, 238, 0.2);
+        }
+
+        .welcome-content h2 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .welcome-content p {
+            opacity: 0.9;
+            max-width: 600px;
+        }
+
+        @media (max-width: 992px) {
+            .menu-toggle {
+                display: block;
+            }
+            
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            
+            main {
+                margin-left: 0;
+            }
+        }
+
+        /* Animation for page load */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .dashboard-header, .stats-cards, .welcome-banner {
+            animation: fadeIn 0.6s ease forwards;
+        }
+
+        .stats-cards {
+            animation-delay: 0.2s;
+        }
+
+        .welcome-banner {
+            animation-delay: 0.4s;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="menu-toggle">
+            <i class="fas fa-bars"></i>
+        </div>
+        <div class="logo">
+            <i class="fas fa-store-alt"></i>
+            <h1>Trismart Stores</h1>
+        </div>
+        <div style="width: 40px;"></div> <!-- Spacer for alignment -->
+    </header>
+
+    <div class="sidebar">
+        <a href="cashbook.html" class="active"><i class="fas fa-user"></i> Accounts</a>
+         <a href="Airtel.html" class="active"><i class="fas fa-user"></i> Airtel money </a>
+        <a href="warehouse.html"><i class="fas fa-warehouse"></i> Warehouse</a>
+        <a href="sale.html"><i class="fas fa-chart-line"></i> Sales</a>
+         <a href="Todo.html"><i class="fas fa-to-do"></i> To-DO</a>
+    </div>
+
+    <main>
+        <div class="dashboard-header">
+            <h2>Dashboard Overview</h2>
+            <div class="date-display">Welcome Salome</div>
+        </div>
+
+        <div class="stats-cards">
+            <div class="stat-card">
+                <div class="card-header">
+                    <h3>Total Revenue</h3>
+                    <div class="card-icon accounts">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                </div>
+               
+            </div>
+            
+            <div class="stat-card">
+                <div class="card-header">
+                    <h3>Inventory Items</h3>
+                    <div class="card-icon warehouse">
+                        <i class="fas fa-boxes"></i>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="stat-card">
+                <div class="card-header">
+                    <h3>Today's Sales</h3>
+                    <div class="card-icon sales">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                </div>
+               
+            </div>
+        </div>
+
+        <div class="welcome-banner">
+            <div class="welcome-content">
+                <h2>Welcome to Trismart Stores</h2>
+                <p>Manage your store operations efficiently with our comprehensive dashboard.</p>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Mobile menu toggle
+            const menuToggle = document.querySelector('.menu-toggle');
+            const sidebar = document.querySelector('.sidebar');
+            
+            menuToggle.addEventListener('click', function() {
+                sidebar.classList.toggle('active');
+            });
+            
+            // Mark active menu item
+            const currentPage = window.location.pathname.split('/').pop();
+            if (currentPage) {
+                document.querySelectorAll('.sidebar a').forEach(link => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('href') === currentPage) {
+                        link.classList.add('active');
+                    }
+                });
+            }
+            
+            // Close sidebar when clicking outside on mobile
+            document.addEventListener('click', function(e) {
+                if (window.innerWidth <= 992) {
+                    if (!sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
+                        sidebar.classList.remove('active');
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

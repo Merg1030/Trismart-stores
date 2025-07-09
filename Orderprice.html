@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Prices</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background-color: #2e2e2e;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            margin: 20px auto;
+            background-color: #1e1e2d;
+            color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            max-height: 90vh; /* Limit container height to enable scrolling */
+            overflow-y: auto; /* Enable scrolling for large tables */
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 32px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #444;
+        }
+
+        th {
+            background-color: #444;
+            color: #fff;
+            position: sticky; /* Make the header sticky */
+            top: 0; /* Stick to the top of the container */
+            z-index: 100; /* Ensure it stays on top of other elements */
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #3e3e3e;
+        }
+
+        tbody tr:nth-child(odd) {
+            background-color: #2e2e2e;
+        }
+
+        tbody tr:hover {
+            background-color: #555;
+        }
+    </style>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-app.js";
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyB-lm7Y3r1F6Vv8PKvY8glLabZDbJsHM1k",
+            authDomain: "trismartstores.firebaseapp.com",
+            projectId: "trismartstores",
+            storageBucket: "trismartstores.firebasestorage.app",
+            messagingSenderId: "416692703333",
+            appId: "1:416692703333:web:d4b60292621435c748f68c",
+            measurementId: "G-NJPQ7L3QWJ"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        async function fetchOrderPrices() {
+            try {
+                const restockCollection = collection(db, 'restockHistory');
+                const snapshot = await getDocs(restockCollection);
+
+                const items = {};
+                snapshot.forEach(doc => {
+                    const entry = doc.data();
+                    const { code, name, price } = entry;
+
+                    // Track the latest price for each item
+                    if (!items[code] || items[code].price !== price) {
+                        items[code] = { name, price };
+                    }
+                });
+
+                displayOrderPrices(items);
+            } catch (error) {
+                console.error('Error fetching data from Firestore:', error);
+            }
+        }
+
+        function displayOrderPrices(items) {
+            const tableBody = document.querySelector('#orderPriceTable tbody');
+            tableBody.innerHTML = '';
+
+            if (Object.keys(items).length === 0) {
+                const emptyRow = document.createElement('tr');
+                emptyRow.innerHTML = `
+                    <td colspan="3" style="text-align: center;">No items found</td>
+                `;
+                tableBody.appendChild(emptyRow);
+                return;
+            }
+
+            Object.entries(items).forEach(([code, item]) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${code}</td>
+                    <td>${item.name}</td>
+                    <td>${item.price.toFixed(2)}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        window.onload = fetchOrderPrices;
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h2>Order Prices</h2>
+        <table id="orderPriceTable">
+            <thead>
+                <tr>
+                    <th>Product Code</th>
+                    <th>Product Name</th>
+                    <th>Order Price</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Data will be dynamically populated here -->
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

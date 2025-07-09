@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Account Cash & Float Manager</title>
+    <style>
+        :root {
+            --bg: #181A20;
+            --bg-alt: #23262F;
+            --card: #23262f;
+            --primary: #1F8EF1;
+            --primary-dark: #1766b0;
+            --text: #F5F6FA;
+            --text-light: #A5AFD7;
+            --border: #2C2F3A;
+            --input-bg: #20232E;
+            --input-border: #333647;
+            --success: #41B883;
+            --danger: #605d5d;
+            --warning: #FBC02D;
+        }
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Segoe UI', Arial, sans-serif;
+            min-height: 100vh;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 32px;
+            color: var(--text);
+            letter-spacing: 1px;
+        }
+        .balances {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+        }
+        .balance-box {
+            padding: 24px 38px;
+            background: var(--card);
+            border-radius: 14px;
+            box-shadow: 0 2px 16px 2px #0007;
+            min-width: 180px;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+        .balance-box strong {
+            display: block;
+            color: var(--text-light);
+            margin-bottom: 8px;
+            font-size: 1.08em;
+        }
+        .toggle-form-btn {
+            display: block;
+            margin: 0 auto 24px auto;
+            padding: 12px 28px;
+            font-size: 1em;
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .toggle-form-btn:hover {
+            background: var(--primary-dark);
+        }
+        form {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            background: var(--bg-alt);
+            padding: 20px 16px 12px 16px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px #0003;
+            border: 1px solid var(--border);
+        }
+        form select, form input {
+            padding: 8px 12px;
+            font-size: 1em;
+            border-radius: 6px;
+            border: 1px solid var(--input-border);
+            background: var(--input-bg);
+            color: var(--text);
+            outline: none;
+            margin-bottom: 8px;
+            transition: border 0.2s;
+        }
+        form select:focus, form input:focus {
+            border: 1.5px solid var(--primary);
+        }
+        .hidden {
+            display: none;
+        }
+        form button[type="submit"] {
+            padding: 10px 30px;
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 2px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            transition: background 0.2s;
+        }
+        form button[type="submit"]:hover {
+            background: var(--primary-dark);
+        }
+        .filters {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+        .filters label {
+            color: var(--text-light);
+            font-size: 1em;
+        }
+        .filters input, .filters select {
+            padding: 7px 12px;
+            font-size: 1em;
+            border-radius: 6px;
+            border: 1px solid var(--input-border);
+            background: var(--input-bg);
+            color: var(--text);
+            outline: none;
+            margin-left: 6px;
+        }
+        #clear-filters-btn {
+            background: var(--danger);
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 18px;
+            font-size: 1em;
+            font-weight: 500;
+            cursor: pointer;
+            margin-left: 8px;
+            transition: background 0.2s;
+        }
+        #clear-filters-btn:hover {
+            background: #3e3d3d;
+        }
+        table {
+            width: 100%;
+            background: var(--card);
+            border-collapse: collapse;
+            box-shadow: 0 2px 12px #0004;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 14px 10px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            font-size: 1em;
+        }
+        th {
+            background: #20232e;
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+            font-weight: 600;
+            font-size: 1.01em;
+        }
+        tr:last-child td {
+            border-bottom: none;
+        }
+        tr:hover td {
+            background: #23263b;
+        }
+        td[type="deposit"] { color: var(--success); }
+        td[type="withdraw"] { color: var(--danger); }
+        td[type="expense"] { color: var(--warning); }
+        td[type="payin"] { color: var(--primary); }
+        @media (max-width: 1200px) {
+            th, td { font-size: 0.93em; padding: 10px 6px; }
+        }
+        @media (max-width: 900px) {
+            .balances { gap: 18px; }
+            .balance-box { padding: 16px 10px; min-width: 120px; }
+            form { gap: 8px; }
+        }
+        @media (max-width: 700px) {
+            .balances { flex-direction: column; align-items: center; }
+            form { flex-direction: column; align-items: center; }
+            .filters { flex-direction: column; align-items: center; gap: 14px; }
+            table, th, td { font-size: 0.96em; }
+        }
+    </style>
+</head>
+<body>
+    <h1>Airtel Money</h1>
+
+    <div class="balances">
+        <div class="balance-box">
+            <strong>Cash Balance:</strong> <span id="cash-balance"></span>
+        </div>
+        <div class="balance-box">
+            <strong>Float Balance:</strong> <span id="float-balance"></span>
+        </div>
+        <div class="balance-box">
+            <strong>Total Money:</strong> <span id="total-balance"></span>
+        </div>
+        <div class="balance-box">
+            <strong>Commission:</strong> <span id="commission-balance">K0.00</span>
+        </div>
+    </div>
+
+    <div class="filters">
+        <div>
+            <label for="filter-date">Filter by Date: </label>
+            <input type="date" id="filter-date">
+        </div>
+        <div>
+            <label for="filter-month">Filter by Month: </label>
+            <input type="month" id="filter-month">
+        </div>
+        <button id="clear-filters-btn" type="button">Clear Filters</button>
+    </div>
+
+    <button class="toggle-form-btn" id="toggle-form-btn">Hide Form</button>
+    <form id="transaction-form" autocomplete="off">
+        <input type="text" id="person-name" placeholder="Name" required>
+        <select id="type" required>
+            <option value="deposit">Deposit</option>
+            <option value="withdraw">Withdraw</option>
+            <option value="expense">Expense out</option>
+            <option value="payin">Pay In</option>
+        </select>
+        <input type="number" id="amount" min="1" placeholder="Amount (K)" required>
+        <input type="text" id="transaction-number" placeholder="Transaction Number (10 digits, starts with 077 or 097)" required maxlength="10">
+        <select id="expense-source" class="hidden">
+            <option value="">Expense From</option>
+            <option value="cash">Cash</option>
+            <option value="float">Float</option>
+        </select>
+        <select id="payin-source" class="hidden">
+            <option value="">Pay In To</option>
+            <option value="cash">Cash</option>
+            <option value="float">Float</option>
+        </select>
+        <button type="submit">Add Transaction</button>
+    </form>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Transaction #</th>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Amount</th>
+                <th>Cash Balance</th>
+                <th>Float Balance</th>
+            </tr>
+        </thead>
+        <tbody id="transactions-body">
+        </tbody>
+    </table>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-app.js";
+        import {
+            getFirestore,
+            collection,
+            addDoc,
+            query,
+            orderBy,
+            onSnapshot,
+            serverTimestamp
+        } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-firestore.js";
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyB-lm7Y3r1F6VvY8PKvY8glLabZDbJsHM1k",
+            authDomain: "trismartstores.firebaseapp.com",
+            projectId: "trismartstores",
+            storageBucket: "trismartstores.appspot.com",
+            messagingSenderId: "416692703333",
+            appId: "1:416692703333:web:d4b60292621435c748f68c",
+            measurementId: "G-NJPQ7L3QWJ"
+        };
+
+        // Init Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // --- Local state fallback (for offline or before Firestore loads) ---
+        let cash = 500;
+        let float = 500;
+        let commission = 0;
+        let transactions = [];
+        let filters = { date: "", month: "" };
+
+        // --- DOM Elements ---
+        const cashBalanceEl = document.getElementById('cash-balance');
+        const floatBalanceEl = document.getElementById('float-balance');
+        const totalBalanceEl = document.getElementById('total-balance');
+        const commissionBalanceEl = document.getElementById('commission-balance');
+        const transactionsBody = document.getElementById('transactions-body');
+        const form = document.getElementById('transaction-form');
+        const expenseSource = document.getElementById('expense-source');
+        const payinSource = document.getElementById('payin-source');
+        const typeSelect = document.getElementById('type');
+        const toggleFormBtn = document.getElementById('toggle-form-btn');
+        const personNameInput = document.getElementById('person-name');
+        const transactionNumberInput = document.getElementById('transaction-number');
+        const filterDate = document.getElementById('filter-date');
+        const filterMonth = document.getElementById('filter-month');
+        const clearFiltersBtn = document.getElementById('clear-filters-btn');
+
+        // --- FILTERS: Persist in localStorage ---
+        const FILTERS_KEY = 'cfm-filters-v1';
+
+        function loadFiltersFromStorage() {
+            const stored = localStorage.getItem(FILTERS_KEY);
+            if (stored) {
+                try {
+                    const obj = JSON.parse(stored);
+                    if (obj && typeof obj === 'object') {
+                        filters = { ...filters, ...obj };
+                    }
+                } catch {}
+            }
+        }
+        function saveFiltersToStorage() {
+            localStorage.setItem(FILTERS_KEY, JSON.stringify(filters));
+        }
+        function setDefaultFilters() {
+            const now = new Date();
+            // Only set default if not already set/persisted
+            if (!filters.date) filters.date = now.toISOString().slice(0, 10);
+            if (!filters.month) filters.month = now.toISOString().slice(0, 7);
+            filterDate.value = filters.date;
+            filterMonth.value = filters.month;
+        }
+        // INIT FILTERS: load from storage first
+        loadFiltersFromStorage();
+        setDefaultFilters();
+
+        function formatNumber(n, decimals=0) {
+            return n.toLocaleString(undefined, {minimumFractionDigits:decimals, maximumFractionDigits:decimals});
+        }
+
+        function getDateTime() {
+            const now = new Date();
+            const date = now.toLocaleDateString('en-CA');
+            const time = now.toLocaleTimeString('en-GB', { hour12: false });
+            return { date, time, month: now.toISOString().slice(0,7) };
+        }
+
+        function transactionMatchesFilters(tx) {
+            if (filters.date && tx.date !== filters.date) return false;
+            if (filters.month && (!tx.date.startsWith(filters.month))) return false;
+            return true;
+        }
+
+        function renderTransactionsWithBalances() {
+            transactionsBody.innerHTML = "";
+            let runningCash = 0;
+            let runningFloat = 0;
+            let runningCommission = 0;
+            // Show in chronological order (oldest first)
+            const txs = transactions.slice().reverse();
+            for (const tx of txs) {
+                if (transactionMatchesFilters(tx)) {
+                    let typeLabel = tx.type.charAt(0).toUpperCase() + tx.type.slice(1);
+                    let color = (tx.type === 'deposit') ? 'var(--success)' : (tx.type === 'withdraw' ? 'var(--danger)' : (tx.type === 'payin' ? 'var(--primary)' : 'var(--warning)'));
+                    if(tx.type === 'expense') {
+                        typeLabel += ` (${tx.expenseSource.charAt(0).toUpperCase()+tx.expenseSource.slice(1)})`;
+                    }
+                    if(tx.type === 'payin') {
+                        typeLabel = 'Pay In (Money In For Good) ('+(tx.payinSource.charAt(0).toUpperCase()+tx.payinSource.slice(1))+')';
+                    }
+                    // Transaction effect
+                    const amount = Number(tx.amount) || 0;
+                    if (tx.type === 'withdraw') {
+                        runningCash -= amount;
+                        runningFloat += amount;
+                        runningCommission += amount * 0.01;
+                    } else if (tx.type === 'deposit') {
+                        runningCash += amount;
+                        runningFloat -= amount;
+                        runningCommission += amount * 0.005;
+                    } else if (tx.type === 'expense') {
+                        if (tx.expenseSource === 'cash') runningCash -= amount;
+                        else if (tx.expenseSource === 'float') runningFloat -= amount;
+                    } else if (tx.type === 'payin') {
+                        if (tx.payinSource === 'cash') runningCash += amount;
+                        else if (tx.payinSource === 'float') runningFloat += amount;
+                    }
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${tx.date}</td>
+                        <td>${tx.time}</td>
+                        <td>${tx.number}</td>
+                        <td>${tx.name}</td>
+                        <td style="color:${color}" type="${tx.type}">${typeLabel}</td>
+                        <td>K${formatNumber(amount)}</td>
+                        <td>K${formatNumber(runningCash)}</td>
+                        <td>K${formatNumber(runningFloat)}</td>
+                    `;
+                    transactionsBody.appendChild(tr);
+                } else {
+                    // Transaction not matching filter, but still updates running balances
+                    const amount = Number(tx.amount) || 0;
+                    if (tx.type === 'withdraw') {
+                        runningCash -= amount;
+                        runningFloat += amount;
+                    } else if (tx.type === 'deposit') {
+                        runningCash += amount;
+                        runningFloat -= amount;
+                    } else if (tx.type === 'expense') {
+                        if (tx.expenseSource === 'cash') runningCash -= amount;
+                        else if (tx.expenseSource === 'float') runningFloat -= amount;
+                    } else if (tx.type === 'payin') {
+                        if (tx.payinSource === 'cash') runningCash += amount;
+                        else if (tx.payinSource === 'float') runningFloat += amount;
+                    }
+                }
+            }
+        }
+
+        // ---- FIRESTORE DATA SYNC ----
+
+        // Listen to Firestore for transactions
+        function listenToTransactions() {
+            const q = query(
+                collection(db, 'cashfloat_transactions'),
+                orderBy('timestamp', 'desc')
+            );
+            onSnapshot(q, (snapshot) => {
+                transactions = [];
+                snapshot.forEach(doc => {
+                    transactions.push(doc.data());
+                });
+                computeBalances();
+                renderTransactionsWithBalances();
+            });
+        }
+
+        // Compute balances from all transactions in memory
+        function computeBalances() {
+            cash = 0;
+            float = 0;
+            commission = 0;
+            transactions.slice().forEach(tx => {
+                const type = tx.type;
+                const amount = Number(tx.amount) || 0;
+                if (type === 'withdraw') {
+                    cash -= amount;
+                    float += amount;
+                    commission += amount * 0.01;
+                } else if (type === 'deposit') {
+                    cash += amount;
+                    float -= amount;
+                    commission += amount * 0.005;
+                } else if (type === 'expense') {
+                    if (tx.expenseSource === 'cash') cash -= amount;
+                    else if (tx.expenseSource === 'float') float -= amount;
+                } else if (type === 'payin') {
+                    if (tx.payinSource === 'cash') cash += amount;
+                    else if (tx.payinSource === 'float') float += amount;
+                }
+            });
+            updateBalances();
+        }
+
+        function updateBalances() {
+            cashBalanceEl.textContent = `K${cash}`;
+            floatBalanceEl.textContent = `K${float}`;
+            totalBalanceEl.textContent = `K${cash + float}`;
+            commissionBalanceEl.textContent = `K${commission.toFixed(2)}`;
+        }
+
+        // --- Form Logic ---
+
+        typeSelect.addEventListener('change', function() {
+            if(typeSelect.value === 'expense') {
+                expenseSource.classList.remove('hidden');
+                expenseSource.required = true;
+                payinSource.classList.add('hidden');
+                payinSource.required = false;
+                payinSource.value = '';
+            } else if (typeSelect.value === 'payin') {
+                payinSource.classList.remove('hidden');
+                payinSource.required = true;
+                expenseSource.classList.add('hidden');
+                expenseSource.required = false;
+                expenseSource.value = '';
+            } else {
+                expenseSource.classList.add('hidden');
+                expenseSource.required = false;
+                expenseSource.value = '';
+                payinSource.classList.add('hidden');
+                payinSource.required = false;
+                payinSource.value = '';
+            }
+        });
+
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const type = typeSelect.value;
+            const amountInput = document.getElementById('amount');
+            const amount = parseInt(amountInput.value, 10);
+            const transactionNumber = transactionNumberInput.value.trim();
+            const expenseFrom = expenseSource.value;
+            const payinTo = payinSource.value;
+            const personName = personNameInput.value.trim();
+
+            // Transaction number: must be 10 digits starting with 077 or 097
+            const numberPattern = /^(077|097)\d{7}$/;
+            if (!numberPattern.test(transactionNumber)) {
+                alert("Transaction number must be 10 digits and start with 077 or 097.");
+                return;
+            }
+
+            if (!type || isNaN(amount) || amount <= 0 || !transactionNumber || !personName) {
+                alert("Please fill all fields with valid values.");
+                return;
+            }
+
+            let thisCommission = 0;
+            // Calculate local balance for warning only
+            let tmpCash = cash, tmpFloat = float;
+            if (type === 'withdraw') {
+                if (tmpCash < amount) {
+                    alert("Insufficient cash balance!");
+                    return;
+                }
+                tmpCash -= amount;
+                tmpFloat += amount;
+                thisCommission = amount * 0.01;
+            } else if (type === 'deposit') {
+                if (tmpFloat < amount) {
+                    alert("Insufficient float balance!");
+                    return;
+                }
+                tmpCash += amount;
+                tmpFloat -= amount;
+                thisCommission = amount * 0.005;
+            } else if (type === 'expense') {
+                if (!expenseFrom) {
+                    alert("Please select where the money is going out from (Cash or Float).");
+                    return;
+                }
+                if (expenseFrom === 'cash') {
+                    if (tmpCash < amount) {
+                        alert("Insufficient cash balance!");
+                        return;
+                    }
+                    tmpCash -= amount;
+                } else if (expenseFrom === 'float') {
+                    if (tmpFloat < amount) {
+                        alert("Insufficient float balance!");
+                        return;
+                    }
+                    tmpFloat -= amount;
+                }
+            } else if (type === 'payin') {
+                if (!payinTo) {
+                    alert("Please select where the money is coming into (Cash or Float).");
+                    return;
+                }
+                if (payinTo === 'cash') {
+                    tmpCash += amount;
+                } else if (payinTo === 'float') {
+                    tmpFloat += amount;
+                }
+            }
+
+            const { date, time, month } = getDateTime();
+            const tx = {
+                date,
+                month,
+                time,
+                number: transactionNumber,
+                name: personName,
+                type,
+                amount,
+                expenseSource: expenseFrom,
+                payinSource: payinTo,
+                timestamp: serverTimestamp()
+            };
+            try {
+                await addDoc(collection(db, 'cashfloat_transactions'), tx);
+            } catch (error) {
+                alert("Failed to save transaction: " + error.message);
+                return;
+            }
+
+            amountInput.value = '';
+            transactionNumberInput.value = '';
+            personNameInput.value = '';
+            typeSelect.value = '';
+            expenseSource.value = '';
+            expenseSource.classList.add('hidden');
+            payinSource.value = '';
+            payinSource.classList.add('hidden');
+        });
+
+        // Hide/unhide form functionality
+        toggleFormBtn.addEventListener('click', function() {
+            if (form.classList.contains('hidden')) {
+                form.classList.remove('hidden');
+                toggleFormBtn.textContent = "Hide Form";
+            } else {
+                form.classList.add('hidden');
+                toggleFormBtn.textContent = "Show Form";
+            }
+        });
+
+        // Filtering
+        function applyFiltersAndPersist() {
+            filters.date = filterDate.value;
+            filters.month = filterMonth.value;
+            saveFiltersToStorage();
+            renderTransactionsWithBalances();
+        }
+        filterDate.addEventListener('change', applyFiltersAndPersist);
+        filterMonth.addEventListener('change', applyFiltersAndPersist);
+        clearFiltersBtn.addEventListener('click', function() {
+            // Clear both filter fields and storage
+            filters.date = "";
+            filters.month = "";
+            saveFiltersToStorage();
+            setDefaultFilters();
+            renderTransactionsWithBalances();
+        });
+
+        // --- Main ---
+        listenToTransactions();
+    </script>
+</body>
+</html>

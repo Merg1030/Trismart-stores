@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restock History</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background-color: #2e2e2e;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            transition: background-color 0.3s, color 0.3s;
+            overflow: hidden;
+        }
+
+        .container {
+            width: 100%;
+           
+            margin: 20px auto;
+            background-color: #1e1e2d;
+            color: #ffffff;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            height: 90vh;
+        }
+
+        h2 {
+            text-align: center;
+            color: #ffffff;
+            margin-bottom: 20px;
+            background-color: #3e3e3e;
+            padding: 10px 0;
+            font-size: 40px;
+            font-weight: bolder;
+        }
+
+        .form-container {
+            display: none; /* Hidden by default */
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        input, select {
+            width: 200px;
+            padding: 10px;
+            box-sizing: border-box;
+            background-color: #3e3e3e;
+            color: #ffffff;
+            border: 1px solid #ffffff;
+            border-radius: 4px;
+        }
+
+        button {
+            background-color: #5e5e5e;
+            color: #ffffff;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #7e7e7e;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #5e5e5e;
+            color: #ffffff;
+            position: sticky;
+            top: 0;
+            z-index: 500;
+        }
+
+        tbody tr {
+            background-color: #3e3e3e;
+            transition: background-color 0.3s;
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #4e4e4e; /* Alternate row color */
+        }
+
+        tbody tr:hover {
+            background-color: #6e6e6e; /* Hover effect */
+        }
+
+        .scroll-container {
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        .toggle-button {
+            margin-bottom: 20px;
+            align-self: center;
+        }
+
+        /* Responsive styles */
+        @media (max-width: 768px) {
+            th, td {
+                font-size: 14px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            th, td {
+                font-size: 12px;
+            }
+        }
+    </style>
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-app.js";
+        import { getFirestore, collection, query, where, getDocs, addDoc, updateDoc, doc } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-firestore.js";
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyB-lm7Y3r1F6Vv8PKvY8glLabZDbJsHM1k",
+            authDomain: "trismartstores.firebaseapp.com",
+            projectId: "trismartstores",
+            storageBucket: "trismartstores.firebasestorage.app",
+            messagingSenderId: "416692703333",
+            appId: "1:416692703333:web:d4b60292621435c748f68c",
+            measurementId: "G-NJPQ7L3QWJ"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Retrieve the branch ID from localStorage
+        const branchId = localStorage.getItem('branchId');
+
+        if (!branchId) {
+            alert('Branch ID not found. Please select a branch from the dashboard.');
+            // Redirect to the dashboard if branch ID is not found
+            window.location.href = 'dashboard.html';
+        }
+
+        let inventory = [];
+        let restockHistory = [];
+
+        async function fetchInventory() {
+            const q = query(collection(db, 'inventory'), where('branchId', '==', branchId));
+            const inventorySnapshot = await getDocs(q);
+            inventory = inventorySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            populateProductFilter();
+            populateProductDropdown();
+        }
+
+        async function fetchRestockHistory() {
+            const q = query(collection(db, 'restockHistory'), where('branchId', '==', branchId));
+            const restockSnapshot = await getDocs(q);
+            restockHistory = restockSnapshot.docs.map(doc => doc.data());
+            displayRestockHistory();
+        }
+
+        async function restockInventory(event) {
+            event.preventDefault();
+
+            const code = document.getElementById('productDropdown').value;
+            const quantity = parseInt(document.getElementById('quantity').value);
+            const price = parseFloat(document.getElementById('price').value);
+            const date = new Date().toISOString().split('T')[0]; // Get current date in YYYY-MM-DD format
+            const total = (price * quantity).toFixed(2);
+
+            if (code && !isNaN(quantity) && !isNaN(price)) {
+                const item = inventory.find(item => item.code === code);
+                if (item) {
+                    item.stock += quantity;
+                    // Update item stock in Firestore
+                    const itemRef = doc(db, 'inventory', item.id);
+                    await updateDoc(itemRef, { stock: item.stock });
+
+                    const restockEntry = { date, code, name: item.name, price, quantity, total, branchId };
+                    // Add restock entry to Firestore
+                    await addDoc(collection(db, 'restockHistory'), restockEntry);
+                    restockHistory.push(restockEntry);
+                    displayRestockHistory();
+
+                    alert(`Restocked ${quantity} units of ${item.name} (${item.code}) at $${price} each. Total: $${total}`);
+                    document.getElementById('restockForm').reset();
+                } else {
+                    alert(`Item code ${code} not found!`);
+                }
+            } else {
+                alert("Invalid input. Please try again.");
+            }
+        }
+
+        function displayRestockHistory() {
+            const restockTableBody = document.querySelector('#restockTable tbody');
+            restockTableBody.innerHTML = '';
+
+            restockHistory.forEach(entry => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${entry.date}</td>
+                    <td>${entry.code}</td>
+                    <td>${entry.name}</td>
+                    <td>${entry.price}</td>
+                    <td>${entry.quantity}</td>
+                    <td>${entry.total}</td>
+                `;
+                restockTableBody.appendChild(row);
+            });
+        }
+
+        function toggleForm() {
+            const formContainer = document.querySelector('.form-container');
+            if (formContainer.style.display === 'none' || formContainer.style.display === '') {
+                formContainer.style.display = 'flex';
+                document.querySelector('.toggle-button').textContent = 'Hide Form';
+            } else {
+                formContainer.style.display = 'none';
+                document.querySelector('.toggle-button').textContent = 'Show Form';
+            }
+        }
+
+        function populateProductFilter() {
+            const productFilter = document.getElementById('productFilter');
+            inventory.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.code;
+                option.textContent = `${item.name} (${item.code})`;
+                productFilter.appendChild(option);
+            });
+        }
+
+        function populateProductDropdown() {
+            const productDropdown = document.getElementById('productDropdown');
+            inventory.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.code;
+                option.textContent = `${item.name} (${item.code})`;
+                productDropdown.appendChild(option);
+            });
+        }
+
+        function applyFilters() {
+            const productFilter = localStorage.getItem('productFilter');
+            const dateFilter = localStorage.getItem('dateFilter');
+
+            if (productFilter) {
+                document.getElementById('productFilter').value = productFilter;
+            }
+
+            if (dateFilter) {
+                document.getElementById('dateFilter').value = dateFilter;
+            }
+
+            displayRestockHistory();
+        }
+
+        function filterRestockHistory() {
+            const productCode = document.getElementById('productFilter').value;
+            const date = document.getElementById('dateFilter').value;
+
+            localStorage.setItem('productFilter', productCode);
+            localStorage.setItem('dateFilter', date);
+
+            const filteredHistory = restockHistory.filter(entry => {
+                return (productCode === '' || entry.code === productCode) &&
+                    (date === '' || entry.date === date);
+            });
+
+            const restockTableBody = document.querySelector('#restockTable tbody');
+            restockTableBody.innerHTML = '';
+
+            filteredHistory.forEach(entry => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${entry.date}</td>
+                    <td>${entry.code}</td>
+                    <td>${entry.name}</td>
+                    <td>${entry.price}</td>
+                    <td>${entry.quantity}</td>
+                    <td>${entry.total}</td>
+                `;
+                restockTableBody.appendChild(row);
+            });
+        }
+
+        function clearFilters() {
+            localStorage.removeItem('productFilter');
+            localStorage.removeItem('dateFilter');
+            document.getElementById('productFilter').value = '';
+            document.getElementById('dateFilter').value = '';
+            displayRestockHistory();
+        }
+
+        window.onload = () => {
+            fetchInventory();
+            fetchRestockHistory();
+        };
+        window.restockInventory = restockInventory;
+        window.toggleForm = toggleForm;
+        window.filterRestockHistory = filterRestockHistory;
+        window.clearFilters = clearFilters;
+    </script>
+</head>
+<body>
+   <body>
+    <div class="container">
+        <h2>Restock Inventory</h2>
+        <button class="toggle-button" onclick="toggleForm()">Show Form</button>
+        <div class="form-container">
+            <form id="restockForm" onsubmit="restockInventory(event);">
+                <select id="productDropdown" required>
+                    <option value="">Select product</option>
+                </select>
+                <input type="number" id="quantity" placeholder="Enter quantity" required>
+                <input type="number" id="price" placeholder="Enter price per unit" step="0.01" required>
+                <button type="submit">Restock</button>
+            </form>
+        </div>
+        <div>
+            <select id="productFilter" onchange="filterRestockHistory()">
+                <option value="">All Products</option>
+            </select>
+            <input type="date" id="dateFilter" onchange="filterRestockHistory()">
+            <button onclick="clearFilters()">Clear Filters</button>
+        </div>
+        <div class="scroll-container">
+            <table id="restockTable">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Product Code</th>
+                        <th>Product Name</th>
+                        <th>Price</th>
+                        <th>Quantity</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Restock history data will be populated here -->
+                </tbody>
+            </table>
+        </div>
+        <!-- New Button for Orderprice -->
+        <div style="text-align: center; margin-top: 20px;">
+            <button onclick="window.location.href='Orderprice.html'">Order Price</button>
+        </div>
+    </div>
+</body>
+</html>

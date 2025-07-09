@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profit Display</title>
+    <style>
+       * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background-color: #2e2e2e;
+    color: #ffffff;
+    min-height: 100vh;
+    padding: 0;
+}
+
+.container {
+    width: 100vw;
+    height: 100vh;
+    background-color: #1e1e2d;
+    color: #ffffff;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 32px;
+}
+
+.filter-container {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    background-color: #2e2e3e;
+    padding: 15px;
+    border-radius: 5px;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+label {
+    font-weight: bold;
+    font-size: 14px;
+}
+
+input[type="date"], select {
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #444;
+    background-color: #3e3e3e;
+    color: white;
+}
+
+button {
+    padding: 8px 15px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    align-self: flex-end;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: #45a049;
+}
+
+.table-container {
+    overflow-y: auto;
+    flex-grow: 1;
+    height: calc(100vh - 200px); /* Adjust based on your header/filter height */
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+th, td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #444;
+}
+
+th {
+    background-color: #444;
+    color: #fff;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+tbody tr:nth-child(even) {
+    background-color: #3e3e3e;
+}
+
+tbody tr:nth-child(odd) {
+    background-color: #2e2e2e;
+}
+
+tbody tr:hover {
+    background-color: #555;
+}
+
+.totals-row {
+    font-weight: bold;
+    background-color: #4e4e4e !important;
+    position: sticky;
+    bottom: 0;
+}
+
+.totals-row td {
+    border-top: 2px solid #666;
+}
+
+.no-data {
+    text-align: center;
+    padding: 20px;
+    font-style: italic;
+    color: #aaa;
+}
+    </style>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-app.js";
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyB-lm7Y3r1F6Vv8PKvY8glLabZDbJsHM1k",
+            authDomain: "trismartstores.firebaseapp.com",
+            projectId: "trismartstores",
+            storageBucket: "trismartstores.appspot.com",
+            messagingSenderId: "416692703333",
+            appId: "1:416692703333:web:d4b60292621435c748f68c",
+            measurementId: "G-NJPQ7L3QWJ"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Global variable to store all profit data
+        let allProfitData = [];
+        let branches = new Set();
+
+        async function fetchProfitData() {
+            try {
+                const salesSnapshot = await getDocs(collection(db, 'sales'));
+                const restockSnapshot = await getDocs(collection(db, 'restockHistory'));
+
+                const orderPrices = {};
+                restockSnapshot.forEach(doc => {
+                    const { code, price } = doc.data();
+                    orderPrices[code] = price;
+                });
+
+                const profits = [];
+                salesSnapshot.forEach(doc => {
+                    const sale = doc.data();
+                    const { code, name, price, quantity, date, branchId } = sale;
+
+                    if (orderPrices[code] !== undefined) {
+                        const costPrice = orderPrices[code];
+                        const profit = (price - costPrice) * quantity;
+                        profits.push({
+                            date: date || 'No date',
+                            branch: branchId || 'Unknown Branch',
+                            code,
+                            name,
+                            orderPrice: costPrice,
+                            quantity,
+                            totalProfit: profit,
+                            totalSales: price * quantity
+                        });
+                        branches.add(branchId || 'Unknown Branch');
+                    }
+                });
+
+                // Store all data for filtering and sort by date (ascending order)
+                allProfitData = profits.sort((a, b) => new Date(a.date) - new Date(b.date));
+                
+                // Populate branch filter dropdown
+                populateBranchFilter();
+                
+                // Display all data initially
+                displayProfitData(allProfitData);
+                setupFilters();
+            } catch (error) {
+                console.error('Error fetching profit data:', error);
+                document.querySelector('#profitTable tbody').innerHTML = 
+                    `<tr><td colspan="8" class="no-data">Error loading data. Please try again.</td></tr>`;
+            }
+        }
+
+        function populateBranchFilter() {
+            const branchSelect = document.getElementById('branchSelect');
+            branchSelect.innerHTML = `<option value="">All Branches</option>`;
+            branches.forEach(branch => {
+                const option = document.createElement('option');
+                option.value = branch;
+                option.textContent = branch;
+                branchSelect.appendChild(option);
+            });
+        }
+
+        function displayProfitData(profits) {
+            const tableBody = document.querySelector('#profitTable tbody');
+            tableBody.innerHTML = '';
+
+            if (profits.length === 0) {
+                const emptyRow = document.createElement('tr');
+                emptyRow.innerHTML = `<td colspan="8" class="no-data">No data available for selected filters</td>`;
+                tableBody.appendChild(emptyRow);
+                
+                // Clear totals row
+                const totalsRow = document.querySelector('#profitTable tfoot');
+                if (totalsRow) {
+                    totalsRow.innerHTML = '';
+                }
+                return;
+            }
+
+            // Calculate totals
+            let totalQuantity = 0;
+            let totalSales = 0;
+            let totalProfit = 0;
+
+            profits.forEach(data => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${data.date}</td>
+                    <td>${data.branch}</td>
+                    <td>${data.code}</td>
+                    <td>${data.name}</td>
+                    <td>ZMW ${data.orderPrice.toFixed(2)}</td>
+                    <td>${data.quantity}</td>
+                    <td>ZMW ${data.totalSales.toFixed(2)}</td>
+                    <td>ZMW ${data.totalProfit.toFixed(2)}</td>
+                `;
+                tableBody.appendChild(row);
+
+                // Add to totals
+                totalQuantity += data.quantity;
+                totalSales += data.totalSales;
+                totalProfit += data.totalProfit;
+            });
+
+            // Add totals row
+            const tfoot = document.querySelector('#profitTable tfoot');
+            tfoot.innerHTML = `
+                <tr class="totals-row">
+                    <td colspan="5">TOTAL</td>
+                    <td>${totalQuantity}</td>
+                    <td>ZMW ${totalSales.toFixed(2)}</td>
+                    <td>ZMW ${totalProfit.toFixed(2)}</td>
+                </tr>
+            `;
+        }
+
+        function setupFilters() {
+            const filterBtn = document.getElementById('filterBtn');
+            const startDateInput = document.getElementById('startDate');
+            const endDateInput = document.getElementById('endDate');
+            const branchSelect = document.getElementById('branchSelect');
+            
+            // Set default dates (last 30 days)
+            const endDate = new Date();
+            const startDate = new Date();
+            startDate.setDate(startDate.getDate() - 30);
+            
+            startDateInput.valueAsDate = startDate;
+            endDateInput.valueAsDate = endDate;
+            
+            filterBtn.addEventListener('click', () => {
+                const startDate = startDateInput.value;
+                const endDate = endDateInput.value;
+                const selectedBranch = branchSelect.value;
+                
+                let filteredData = allProfitData;
+
+                if (startDate && endDate) {
+                    const filterStart = new Date(startDate);
+                    const filterEnd = new Date(endDate);
+                    filterEnd.setDate(filterEnd.getDate() + 1);
+                    
+                    filteredData = filteredData.filter(item => {
+                        const itemDate = new Date(item.date);
+                        return itemDate >= filterStart && itemDate < filterEnd;
+                    });
+                }
+
+                if (selectedBranch) {
+                    filteredData = filteredData.filter(item => item.branch === selectedBranch);
+                }
+
+                displayProfitData(filteredData);
+            });
+            
+            // Add reset button functionality
+            const resetBtn = document.getElementById('resetBtn');
+            resetBtn.addEventListener('click', () => {
+                startDateInput.value = '';
+                endDateInput.value = '';
+                branchSelect.value = '';
+                displayProfitData(allProfitData);
+            });
+        }
+
+        window.onload = fetchProfitData;
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h2>Profit Display</h2>
+        
+        <div class="filter-container">
+            <div class="filter-group">
+                <label for="startDate">From Date:</label>
+                <input type="date" id="startDate">
+            </div>
+            
+            <div class="filter-group">
+                <label for="endDate">To Date:</label>
+                <input type="date" id="endDate">
+            </div>
+
+            <div class="filter-group">
+                <label for="branchSelect">Branch:</label>
+                <select id="branchSelect"></select>
+            </div>
+            
+            <button id="filterBtn">Filter</button>
+            <button id="resetBtn" style="background-color: #f44336;">Reset</button>
+        </div>
+        
+        <div class="table-container">
+            <table id="profitTable">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Branch</th>
+                        <th>Product Code</th>
+                        <th>Product Name</th>
+                        <th>Order Price</th>
+                        <th>Quantity</th>
+                        <th>Total Sales</th>
+                        <th>Total Profit</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Data will be dynamically populated here -->
+                </tbody>
+                <tfoot>
+                    <!-- Totals row will be added here -->
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</body>
+</html>
