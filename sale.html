@@ -230,8 +230,7 @@
             color: #ff6b6b;
         }
 
-        .date-filter,
-        .product-filter {
+        .date-filter {
             display: flex;
             gap: 10px;
             margin-bottom: 12px;
@@ -241,14 +240,12 @@
             box-sizing: border-box;
         }
 
-        .date-filter input,
-        .product-filter select {
+        .date-filter input {
             margin-bottom: 0;
             flex: 1;
         }
 
-        .date-filter button,
-        .product-filter button {
+        .date-filter button {
             width: auto;
             padding: 10px 12px;
             margin-top: 0;
@@ -275,18 +272,18 @@
             th, td { font-size: 0.97rem; }
         }
         @media (max-width: 700px) {
-            .container, .data-container, .main-controls, .date-filter, .product-filter { width: 100vw; }
+            .container, .data-container, .main-controls, .date-filter { width: 100vw; }
             table { min-width: 350px; }
             .main-controls { flex-direction: column; gap: 6px; }
             .control-group { min-width: 100%; }
             th, td { padding: 8px 7px; font-size: 0.92rem; }
-            .date-filter, .product-filter { flex-direction: column; gap: 6px; }
+            .date-filter { flex-direction: column; gap: 6px; }
             .header-info-container { flex-direction: column; width: 100%; gap: 5px; }
             .btn-warning { width: 100%; }
             h2 { font-size: 1.12rem; }
         }
         @media (max-width: 500px) {
-            .container, .data-container, .main-controls, .date-filter, .product-filter { width: 100vw; padding: 0; }
+            .container, .data-container, .main-controls, .date-filter { width: 100vw; padding: 0; }
             .sale-form { padding: 0; }
             table { min-width: 240px; font-size: 0.8rem; }
             th, td { padding: 5px 2px; font-size: 0.8rem; }
@@ -311,15 +308,6 @@
             <input type="date" id="filterDate">
             <button class="btn-primary" onclick="filterSales()">
                 Filter Sales by Date
-            </button>
-        </div>
-
-        <div class="product-filter">
-            <select id="filterProduct">
-                <option value="">Select Product to Filter</option>
-            </select>
-            <button class="btn-primary" onclick="filterByProduct()">
-                Filter Sales by Product
             </button>
         </div>
         
@@ -452,7 +440,6 @@
                     price: Number(doc.data().price) || 0
                 }));
                 populateProductOptions();
-                populateProductFilterOptions();
             }, (error) => {
                 console.error("Inventory listener error:", error);
                 alert("Error loading inventory updates. Please refresh the page.");
@@ -469,18 +456,6 @@
                 option.textContent = `${item.name} (${item.code}) - ZMW ${item.price.toFixed(2)} - Stock: ${item.stock}`;
                 option.disabled = item.stock <= 0;
                 productSelect.appendChild(option);
-            });
-        }
-
-        function populateProductFilterOptions() {
-            const filterProduct = document.getElementById('filterProduct');
-            filterProduct.innerHTML = '<option value="">Select Product to Filter</option>';
-            
-            inventory.forEach(item => {
-                const option = document.createElement('option');
-                option.value = item.code;
-                option.textContent = `${item.name} (${item.code})`;
-                filterProduct.appendChild(option);
             });
         }
 
@@ -510,45 +485,6 @@
                 console.error("Sales listener error:", error);
                 alert("Error loading sales updates. Please refresh the page.");
             });
-        }
-
-        async function filterByProduct() {
-            const productCode = document.getElementById('filterProduct').value;
-            
-            if (!productCode) {
-                alert("Please select a product to filter");
-                return;
-            }
-            
-            try {
-                isFilteringByProduct = true;
-                const salesQuery = query(
-                    collection(db, 'sales'), 
-                    where('branchId', '==', branchId),
-                    where('code', '==', productCode)
-                );
-                
-                const querySnapshot = await getDocs(salesQuery);
-                
-                sales = [];
-                const salesTableBody = document.querySelector('#salesTable tbody');
-                salesTableBody.innerHTML = '';
-                
-                querySnapshot.forEach((doc) => {
-                    const sale = { id: doc.id, ...doc.data() };
-                    sales.push(sale);
-                    addSaleToTable(sale);
-                });
-                
-                if (sales.length === 0) {
-                    salesTableBody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No sales found for this product</td></tr>';
-                }
-                
-                updateTotalSales();
-            } catch (error) {
-                console.error("Error filtering by product:", error);
-                alert(`Error filtering sales by product: ${error.message}`);
-            }
         }
 
         function addSaleToTable(sale) {
@@ -625,11 +561,6 @@
                 // Clear form and hide it
                 document.getElementById('quantity').value = '';
                 toggleSaleForm();
-                
-                // Refresh view if we're currently filtering by product
-                if (isFilteringByProduct && productCode === document.getElementById('filterProduct').value) {
-                    await filterByProduct();
-                }
             } catch (error) {
                 console.error("Error recording sale:", error);
                 alert(`Error recording sale: ${error.message}`);
@@ -697,13 +628,7 @@
                     }
                 }
                 alert("Selected sales reversed successfully.");
-                
-                // Refresh the current view
-                if (isFilteringByProduct) {
-                    await filterByProduct();
-                } else {
-                    filterSales();
-                }
+                filterSales();
             } catch (error) {
                 console.error("Error reversing sales:", error);
                 alert(`Error reversing sales: ${error.message}`);
@@ -726,7 +651,6 @@
         window.makeSale = makeSale;
         window.reverseSales = reverseSales;
         window.filterSales = filterSales;
-        window.filterByProduct = filterByProduct;
         window.toggleReverseButton = toggleReverseButton;
         window.toggleSaleForm = toggleSaleForm;
     </script>
