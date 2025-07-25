@@ -1,179 +1,196 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: Arial, sans-serif;
-        }
-        body {
-            background-color: #000000;
-            color: #ffffff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            transition: background-color 0.3s, color 0.3s;
-            overflow: hidden;
-        }
-        .container {
-            width: 100%;
-            max-width: 600px;
-            margin: 20px auto;
-            background-color:#1b1a1a;
-            color: #ffffff;
-            padding: 20px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        h1 {
-            text-align: center;
-            color: #ffffff;
-            margin-bottom: 20px;
-            background-color: #3e3e3e;
-            padding: 10px 0;
-            font-size: 30px;
-            font-weight: bold;
-        }
-        button {
-            background-color: #1b1a1a;
-            color: #ffffff;
-            border: none;
-            padding: 15px 30px;
-            cursor: pointer;
-            border-radius: 5px;
-            margin: 10px;
-            transition: background-color 0.3s;
-            font-size: 16px;
-            font-weight: bold;
-        }
-        button:hover {
-            background-color: #424242;
-        }
-        button:focus {
-            outline: none;
-            background-color: #9e9e9e;
-        }
-        .admin-button {
-            background-color: #609ee0;
-        }
-        .admin-button:hover {
-            background-color: #7ec1ff;
-        }
-        .admin-button:focus {
-            background-color: #ff9e9e;
-        }
-        .hidden {
-            display: none;
-        }
-        .welcome-message {
-            margin-bottom: 20px;
-            font-size: 18px;
-            color: #cccccc;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Trismart Dashboard</title>
+  <style>
+    :root {
+      --primary: #4361ee;
+      --accent: #4cc9f0;
+      --bg: #141726;
+      --card-bg: #232447cc;
+      --border: #35377a;
+      --text: #e0e0e0;
+      --fade: #b0b0b0;
+      --radius: 18px;
+      --shadow: 0 8px 32px #0004;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', Arial, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(115deg, var(--primary) 0%, #4cc9f022 100%), var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .dashboard {
+      background: var(--card-bg);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 30px 24px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: var(--shadow);
+      text-align: center;
+      animation: fadeIn .5s ease-in-out;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      color: var(--primary);
+      margin-bottom: 20px;
+    }
+
+    .welcome-message {
+      color: var(--fade);
+      font-size: 1rem;
+      margin-bottom: 20px;
+    }
+
+    button {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      border: none;
+      color: white;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s ease-in-out;
+      box-shadow: 0 2px 8px #4361ee30;
+    }
+
+    button:hover {
+      background: linear-gradient(90deg, var(--accent), var(--primary));
+    }
+
+    .admin-button {
+      background: linear-gradient(90deg, #609ee0, #7ec1ff);
+    }
+
+    .admin-button:hover {
+      background: linear-gradient(90deg, #7ec1ff, #609ee0);
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: none;
+      }
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div class="welcome-message" id="welcomeMessage"></div>
-        <button id="kabananaBtn" onclick="selectBranch('kabanana')">Kabanana Branch</button>
-        <button id="makeniBtn" onclick="selectBranch('makeni')">Makeni Branch</button>
-        <button id="adminBtn" class="admin-button" onclick="goToAdmin()">Admin</button>
-    </div>
+  <div class="dashboard">
+    <h1>Trismart Dashboard</h1>
+    <div class="welcome-message" id="welcomeMessage"></div>
+    <button id="kabananaBtn" onclick="selectBranch('kabanana')">Kabanana Branch</button>
+    <button id="makeniBtn" onclick="selectBranch('makeni')">Makeni Branch</button>
+    <button id="adminBtn" class="admin-button" onclick="goToAdmin()">Admin Panel</button>
+  </div>
 
-    <script>
-        // User access permissions
-        const userPermissions = {
-            'chris': {
-                branches: ['kabanana', 'makeni'],
-                admin: true
-            },
-            'doro': {
-                branches: ['makeni'],
-                admin: false
-            },
-            'fridah': {
-                branches: ['kabanana'],
-                admin: false
-            }
-        };
+  <script>
+    const userPermissions = {
+      'chris': {
+        branches: ['kabanana', 'makeni'],
+        admin: true
+      },
+      'doro': {
+        branches: ['makeni'],
+        admin: false
+      },
+      'fridah': {
+        branches: ['kabanana'],
+        admin: false
+      }
+    };
 
-        // Check if user is logged in
-        function checkAuth() {
-            const userName = localStorage.getItem('userName');
-            if (!userName) {
-                window.location.href = 'index.html';
-                return;
-            }
-            document.getElementById('welcomeMessage').textContent = `Welcome, ${userName}`;
-            
-            const user = userPermissions[userName.toLowerCase()];
-            if (!user) {
-                document.getElementById('kabananaBtn').classList.add('hidden');
-                document.getElementById('makeniBtn').classList.add('hidden');
-                document.getElementById('adminBtn').classList.add('hidden');
-                return;
-            }
-            
-            if (!user.branches.includes('kabanana')) {
-                document.getElementById('kabananaBtn').classList.add('hidden');
-            }
-            if (!user.branches.includes('makeni')) {
-                document.getElementById('makeniBtn').classList.add('hidden');
-            }
-            if (!user.admin) {
-                document.getElementById('adminBtn').classList.add('hidden');
-            }
-        }
+    function checkAuth() {
+      const userName = localStorage.getItem('userName');
+      if (!userName) {
+        window.location.href = 'index.html';
+        return;
+      }
 
-        // SWAPPED BRANCH LOGIC
-        function selectBranch(branchId) {
-            // Swap the branch IDs
-            const swappedBranchId = branchId === 'kabanana' ? 'makeni' : 'kabanana';
-            localStorage.setItem('branchId', swappedBranchId);
-            window.location.href = 'maindash.html';
-        }
+      document.getElementById('welcomeMessage').textContent = `Welcome, ${userName}`;
 
-        function goToAdmin() {
-            const userName = localStorage.getItem('userName');
-            const user = userPermissions[userName.toLowerCase()];
-            if (user && user.admin) {
-                window.location.href = 'AdminDash.html';
-            } else {
-                alert('You do not have admin privileges.');
-            }
-        }
+      const user = userPermissions[userName.toLowerCase()];
+      if (!user) {
+        ['kabananaBtn', 'makeniBtn', 'adminBtn'].forEach(id => document.getElementById(id).classList.add('hidden'));
+        return;
+      }
 
-        // Inactivity detection
-        let inactivityTime = function () {
-            let time;
-            window.onload = resetTimer;
-            document.onmousemove = resetTimer;
-            document.onkeypress = resetTimer;
-            function logout() {
-                alert("You have been inactive for 10 minutes. Redirecting to login page.");
-                localStorage.removeItem('userName');
-                localStorage.removeItem('branchId');
-                window.location.href = 'index.html';
-            }
-            function resetTimer() {
-                clearTimeout(time);
-                time = setTimeout(logout, 600000); // 10 minutes
-            }
-        };
+      if (!user.branches.includes('kabanana')) {
+        document.getElementById('kabananaBtn').classList.add('hidden');
+      }
+      if (!user.branches.includes('makeni')) {
+        document.getElementById('makeniBtn').classList.add('hidden');
+      }
+      if (!user.admin) {
+        document.getElementById('adminBtn').classList.add('hidden');
+      }
+    }
 
-        window.onload = function() {
-            checkAuth();
-            inactivityTime();
-        };
-    </script>
+    function selectBranch(branchId) {
+      const swappedBranchId = branchId === 'kabanana' ? 'makeni' : 'kabanana';
+      localStorage.setItem('branchId', swappedBranchId);
+      window.location.href = 'maindash.html';
+    }
+
+    function goToAdmin() {
+      const userName = localStorage.getItem('userName');
+      const user = userPermissions[userName.toLowerCase()];
+      if (user && user.admin) {
+        window.location.href = 'AdminDash.html';
+      } else {
+        alert('You do not have admin privileges.');
+      }
+    }
+
+    function inactivityTime() {
+      let time;
+      window.onload = resetTimer;
+      document.onmousemove = resetTimer;
+      document.onkeypress = resetTimer;
+
+      function logout() {
+        alert("You have been inactive for 10 minutes. Redirecting to login page.");
+        localStorage.removeItem('userName');
+        localStorage.removeItem('branchId');
+        window.location.href = 'index.html';
+      }
+
+      function resetTimer() {
+        clearTimeout(time);
+        time = setTimeout(logout, 600000); // 10 minutes
+      }
+    }
+
+    window.onload = function () {
+      checkAuth();
+      inactivityTime();
+    };
+  </script>
 </body>
 </html>
