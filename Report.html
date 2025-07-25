@@ -165,6 +165,158 @@
         }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyB-lm7Y3r1F6VvY8PKvY8glLabZDbJsHM1k",
+            authDomain: "trismartstores.firebaseapp.com",
+            projectId: "trismartstores",
+            storageBucket: "trismartstores.appspot.com",
+            messagingSenderId: "416692703333",
+            appId: "1:416692703333:web:d4b60292621435c748f68c",
+            measurementId: "G-NJPQ7L3QWJ"
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let reportsCache = [];
+
+        function formatDateDisplay(dt) {
+            if (!dt) return '';
+            let [y, m, d] = dt.split('-');
+            if (!y || !m || !d) return dt;
+            const months = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+            return `${Number(d)} ${months[Number(m)-1]} ${y}`;
+        }
+
+        async function listReports() {
+            const reportTableDiv = document.getElementById('reportTableDiv');
+            reportTableDiv.innerHTML = "<em style='color:#b0b0b0;'>Loading...</em>";
+            const q = query(collection(db, 'dailyCashReports'), orderBy('date', 'desc'));
+            const snapshot = await getDocs(q);
+            reportsCache = [];
+            if (snapshot.empty) {
+                reportTableDiv.innerHTML = "<em style='color:#b0b0b0;'>No reports found.</em>";
+                return;
+            }
+            let table = `<table class="report-table">
+                <thead>
+                    <tr>
+                        <th style="width:1%;">#</th>
+                        <th style="width:1%;">Pick</th>
+                        <th>Report</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+            let i = 0;
+            snapshot.forEach(doc => {
+                const r = doc.data();
+                reportsCache.push(r);
+                const reportTitle = "Report - " + formatDateDisplay(r.date);
+                table += `<tr>
+                    <td>${i+1}</td>
+                    <td><input type="checkbox" class="pdf-checkbox" data-idx="${i}"></td>
+                    <td style="text-align:left;"><b>${reportTitle}</b></td>
+                </tr>`;
+                i++;
+            });
+            table += "</tbody></table>";
+            reportTableDiv.innerHTML = table;
+        }
+
+        window.onload = listReports;
+
+        // Form toggle logic (hidden by default)
+        const reportForm = document.getElementById('reportForm');
+        reportForm.style.display = 'none';
+        let formVisible = false;
+        document.getElementById('toggleFormBtn').onclick = function () {
+            formVisible = !formVisible;
+            reportForm.style.display = formVisible ? 'block' : 'none';
+            this.textContent = formVisible ? "Hide Form" : "Add New Report";
+        };
+
+        document.getElementById('reportForm').onsubmit = async function(e) {
+            e.preventDefault();
+            const report = {
+                date: document.getElementById('reportDate').value,
+                openingCash: document.getElementById('openingCash').value,
+                openingFloat: document.getElementById('openingFloat').value,
+                openingTotal: document.getElementById('openingTotal').value,
+                closingCash: document.getElementById('closingCash').value,
+                closingFloat: document.getElementById('closingFloat').value,
+                closingTotal: document.getElementById('closingTotal').value,
+                deductions: document.getElementById('deductions').value,
+                totalDeduction: document.getElementById('totalDeduction').value,
+                totalSales: document.getElementById('totalSales').value
+            };
+            if (!report.date) { alert("Please enter a date."); return; }
+            try {
+                await addDoc(collection(db, 'dailyCashReports'), report);
+                await listReports();
+                clearForm();
+                formVisible = false;
+                reportForm.style.display = 'none';
+                document.getElementById('toggleFormBtn').textContent = "Add New Report";
+            } catch (e) {
+                alert('Error saving report: ' + e.message);
+            }
+        };
+
+        window.clearForm = function() {
+            document.getElementById('reportForm').reset();
+        };
+
+        document.getElementById('downloadBtn').onclick = function () {
+            const checkboxes = document.querySelectorAll('.pdf-checkbox');
+            let toDownload = [];
+            checkboxes.forEach(cb => {
+                if (cb.checked) {
+                    const idx = parseInt(cb.getAttribute('data-idx'));
+                    if (!isNaN(idx) && reportsCache[idx]) toDownload.push(reportsCache[idx]);
+                }
+            });
+            if (toDownload.length === 0) {
+                alert("Please check at least one report to download.");
+                return;
+            }
+            toDownload.forEach((data) => {
+                const doc = new window.jspdf.jsPDF();
+                let y = 18;
+                doc.setFontSize(16);
+                doc.text(`Report - ${formatDateDisplay(data.date)}`, 14, y); y += 12;
+                doc.setFontSize(12);
+
+                doc.text("Opening", 14, y); y += 8;
+                doc.text(`Cash k${data.openingCash}`, 18, y); y += 8;
+                doc.text(`Float k${data.openingFloat}`, 18, y); y += 8;
+                doc.text(`Total k${data.openingTotal}`, 18, y); y += 12;
+
+                doc.text("Closing", 14, y); y += 8;
+                doc.text(`Cash k${data.closingCash}`, 18, y); y += 8;
+                doc.text(`Float k${data.closingFloat}`, 18, y); y += 8;
+                doc.text(`Total k${data.closingTotal}`, 18, y); y += 12;
+
+                doc.text("Deduction", 14, y); y += 8;
+                if (data.deductions && data.deductions.trim() !== "") {
+                    let dedArr = data.deductions.split('\n').filter(Boolean);
+                    dedArr.forEach(line => { doc.text(line, 18, y); y += 8; });
+                } else {
+                    doc.text("-", 18, y); y += 8;
+                }
+
+                doc.text("Total deduction", 14, y); y += 8;
+                doc.text(`k${data.totalDeduction}`, 18, y); y += 12;
+
+                doc.text("Total sales", 14, y); y += 8;
+                doc.text(`k${data.totalSales}`, 18, y);
+
+                doc.save(`Report_${data.date}.pdf`);
+            });
+        };
+    </script>
 </head>
 <body>
 <div class="container">
@@ -227,133 +379,5 @@
         </div>
     </div>
 </div>
-<script>
-let reportsCache = [];
-
-function formatDateDisplay(dt) {
-    if (!dt) return '';
-    let [y, m, d] = dt.split('-');
-    if (!y || !m || !d) return dt;
-    const months = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
-    return `${Number(d)} ${months[Number(m)-1]} ${y}`;
-}
-
-function listReports() {
-    const reportTableDiv = document.getElementById('reportTableDiv');
-    if (!reportsCache.length) {
-        reportTableDiv.innerHTML = "<em style='color:#b0b0b0;'>No reports found.</em>";
-        return;
-    }
-    let table = `<table class="report-table">
-        <thead>
-            <tr>
-                <th style="width:1%;">#</th>
-                <th style="width:1%;">Pick</th>
-                <th>Report</th>
-            </tr>
-        </thead>
-        <tbody>`;
-    for (let i = 0; i < reportsCache.length; i++) {
-        const r = reportsCache[i];
-        const reportTitle = "Report - " + formatDateDisplay(r.date);
-        table += `<tr>
-            <td>${i+1}</td>
-            <td><input type="checkbox" class="pdf-checkbox" data-idx="${i}"></td>
-            <td style="text-align:left;"><b>${reportTitle}</b></td>
-        </tr>`;
-    }
-    table += "</tbody></table>";
-    reportTableDiv.innerHTML = table;
-}
-
-window.onload = listReports;
-
-// Form toggle logic (hidden by default)
-const reportForm = document.getElementById('reportForm');
-reportForm.style.display = 'none';
-let formVisible = false;
-document.getElementById('toggleFormBtn').onclick = function () {
-    formVisible = !formVisible;
-    reportForm.style.display = formVisible ? 'block' : 'none';
-    this.textContent = formVisible ? "Hide Form" : "Add New Report";
-};
-
-document.getElementById('reportForm').onsubmit = function(e) {
-    e.preventDefault();
-    const report = {
-        date: document.getElementById('reportDate').value,
-        openingCash: document.getElementById('openingCash').value,
-        openingFloat: document.getElementById('openingFloat').value,
-        openingTotal: document.getElementById('openingTotal').value,
-        closingCash: document.getElementById('closingCash').value,
-        closingFloat: document.getElementById('closingFloat').value,
-        closingTotal: document.getElementById('closingTotal').value,
-        deductions: document.getElementById('deductions').value,
-        totalDeduction: document.getElementById('totalDeduction').value,
-        totalSales: document.getElementById('totalSales').value
-    };
-    if (!report.date) { alert("Please enter a date."); return; }
-    reportsCache.unshift(report);
-    listReports();
-    clearForm();
-    // Optionally, hide the form after save:
-    formVisible = false;
-    reportForm.style.display = 'none';
-    document.getElementById('toggleFormBtn').textContent = "Add New Report";
-};
-
-window.clearForm = function() {
-    document.getElementById('reportForm').reset();
-};
-
-document.getElementById('downloadBtn').onclick = function () {
-    const checkboxes = document.querySelectorAll('.pdf-checkbox');
-    let toDownload = [];
-    checkboxes.forEach(cb => {
-        if (cb.checked) {
-            const idx = parseInt(cb.getAttribute('data-idx'));
-            if (!isNaN(idx) && reportsCache[idx]) toDownload.push(reportsCache[idx]);
-        }
-    });
-    if (toDownload.length === 0) {
-        alert("Please check at least one report to download.");
-        return;
-    }
-    toDownload.forEach((data) => {
-        const doc = new window.jspdf.jsPDF();
-        let y = 18;
-        doc.setFontSize(16);
-        doc.text(`Report - ${formatDateDisplay(data.date)}`, 14, y); y += 12;
-        doc.setFontSize(12);
-
-        doc.text("Opening", 14, y); y += 8;
-        doc.text(`Cash k${data.openingCash}`, 18, y); y += 8;
-        doc.text(`Float k${data.openingFloat}`, 18, y); y += 8;
-        doc.text(`Total k${data.openingTotal}`, 18, y); y += 12;
-
-        doc.text("Closing", 14, y); y += 8;
-        doc.text(`Cash k${data.closingCash}`, 18, y); y += 8;
-        doc.text(`Float k${data.closingFloat}`, 18, y); y += 8;
-        doc.text(`Total k${data.closingTotal}`, 18, y); y += 12;
-
-        doc.text("Deduction", 14, y); y += 8;
-        if (data.deductions && data.deductions.trim() !== "") {
-            let dedArr = data.deductions.split('\n').filter(Boolean);
-            dedArr.forEach(line => { doc.text(line, 18, y); y += 8; });
-        } else {
-            doc.text("-", 18, y); y += 8;
-        }
-
-        doc.text("Total deduction", 14, y); y += 8;
-        doc.text(`k${data.totalDeduction}`, 18, y); y += 12;
-
-        doc.text("Total sales", 14, y); y += 8;
-        doc.text(`k${data.totalSales}`, 18, y);
-
-        doc.save(`Report_${data.date}.pdf`);
-    });
-};
-
-</script>
 </body>
 </html>
