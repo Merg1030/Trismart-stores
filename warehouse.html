@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Warehouse Inventory | Trismart Stores</title>
+    <title>Warehouse Inventory</title>
     <style>
         :root {
             --primary: #4361ee;
@@ -61,7 +61,7 @@
             padding: 0;
             margin: 0;
             overflow: hidden;
-            max-width: 1400px;
+           
             margin: 0 auto;
         }
 
@@ -111,7 +111,7 @@
         }
 
         button {
-            color: #fff;
+            color: #2e55e2;
             border: none;
             padding: 12px 20px;
             cursor: pointer;
@@ -121,6 +121,7 @@
             font-size: 1rem;
             min-width: 180px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            background-color:  #81c4d9;
         }
 
         .btn-primary {
@@ -165,6 +166,7 @@
             border: 1px solid var(--border);
             box-shadow: var(--shadow);
         }
+        .action-button{background-color: #78cce6;}
 
         .transfer-form h3 {
             margin-bottom: 15px;
@@ -186,7 +188,7 @@
             background: var(--bg-light);
             color: var(--accent);
             border: 1px solid var(--border);
-            display: block;
+            display: inline-block;
         }
 
         .toggle-transfer-btn:hover {
@@ -372,11 +374,11 @@
             if (formContainer.style.display === 'none' || formContainer.style.display === '') {
                 formContainer.style.display = 'block';
                 toggleBtn.textContent = 'Hide Transfer Form';
-                toggleBtn.style.backgroundColor = var(--bg-lighter);
+                toggleBtn.style.backgroundColor = '#3a3a3a';
             } else {
                 formContainer.style.display = 'none';
                 toggleBtn.textContent = 'Show Transfer Form';
-                toggleBtn.style.backgroundColor = var(--bg-light);
+                toggleBtn.style.backgroundColor = '#3a3a3a';
             }
         }
 
@@ -429,7 +431,7 @@
                     infoDiv.innerHTML = `
                         <p>Product: <strong>${item.name}</strong></p>
                         <p>Current Stock: <strong>${item.stock}</strong></p>
-                        <p>Price: <strong>ZMW ${item.price.toFixed(2)}</strong></p>
+                        <p>Price: <strong>${item.price.toFixed(2)}</strong></p>
                     `;
                 } else {
                     infoDiv.innerHTML = '<p>Product not found in inventory</p>';
@@ -529,18 +531,17 @@
                 row.innerHTML = `
                     <td>${item.code}</td>
                     <td>${item.name}</td>
-                    <td>ZMW ${item.price.toFixed(2)}</td>
+                    <td>${item.price.toFixed(2)}</td>
                     <td>${item.stock}</td>
                     <td>${item.sold || 0}</td>
-                    <td>ZMW ${stockValue.toFixed(2)}</td>
+                    <td>${stockValue.toFixed(2)}</td>
                 `;
                 inventoryTableBody.appendChild(row);
             });
             const totalRow = document.createElement('tr');
-            totalRow.className = 'total-row';
             totalRow.innerHTML = `
-                <td colspan="5" style="text-align: right;">Total Stock Value:</td>
-                <td>ZMW ${totalStockValue.toFixed(2)}</td>
+                <td colspan="5" style="text-align: right;"><strong>Total Stock Value:</strong></td>
+                <td><strong>${totalStockValue.toFixed(2)}</strong></td>
             `;
             inventoryTableBody.appendChild(totalRow);
         }
@@ -596,24 +597,23 @@
                 row.innerHTML = `
                     <td>${item.code}</td>
                     <td>${item.name}</td>
-                    <td>ZMW ${item.price.toFixed(2)}</td>
+                    <td>${item.price.toFixed(2)}</td>
                     <td>${item.stock}</td>
                     <td>${item.sold || 0}</td>
-                    <td>ZMW ${stockValue.toFixed(2)}</td>
+                    <td>${stockValue.toFixed(2)}</td>
                 `;
                 inventoryTableBody.appendChild(row);
             });
             const totalRow = document.createElement('tr');
-            totalRow.className = 'total-row';
             totalRow.innerHTML = `
-                <td colspan="5" style="text-align: right;">Total Stock Value:</td>
-                <td>ZMW ${totalStockValue.toFixed(2)}</td>
+                <td colspan="5" style="text-align: right;"><strong>Total Stock Value:</strong></td>
+                <td><strong>${totalStockValue.toFixed(2)}</strong></td>
             `;
             inventoryTableBody.appendChild(totalRow);
         }
 
         window.onload = async function() {
-            document.querySelector('h2').textContent = `Warehouse Inventory - ${getCurrentBranchName()}`;
+            document.querySelector('h2.HEADER').textContent = `Warehouse - ${getCurrentBranchName()}`;
             setupInventoryListener();
             setupCodeAutocomplete();
         };
@@ -626,46 +626,38 @@
 </head>
 <body>
     <div class="container">
-        <h2>Warehouse Inventory</h2>
-        
-        <div class="header-actions">
-            <input type="text" id="searchInput" class="search-bar" onkeyup="searchInventory()" placeholder="Search products by name or code...">
-            <button class="btn-primary" onclick="addNewInventory()">Add New Product</button>
-            <a href="Restock.html"><button class="btn-warning">View Restock History</button></a>
+        <h2 class="HEADER">Warehouse</h2>
+        <div class="buttons">
+            <input type="text" id="searchInput" class="search-bar" onkeyup="searchInventory()" placeholder="Search for products..">
+            <button class="action-button" onclick="addNewInventory()">Add New Inventory</button>
+            <a href="Restock.html"><button class="action-button">Go to Restock History</button></a>
+            <button id="toggleTransferBtn" class="toggle-transfer-btn" onclick="toggleTransferForm()">Show Transfer Form</button>
         </div>
-        
-        <button id="toggleTransferBtn" class="toggle-transfer-btn" onclick="toggleTransferForm()">Show Transfer Form</button>
         
         <div class="transfer-form-container">
             <div class="transfer-form">
-                <h3>Transfer Inventory Between Branches</h3>
+                <h3>Transfer Inventory</h3>
                 <form id="transferForm" onsubmit="transferInventory(event);">
-                    <div class="form-grid">
-                        <div>
-                            <label for="transferCode">Product Code</label>
-                            <input type="text" id="transferCode" required list="productCodes" placeholder="Enter product code">
-                            <datalist id="productCodes"></datalist>
-                            <div id="productInfo" class="product-info"></div>
-                        </div>
-                        <div>
-                            <label for="transferQuantity">Quantity</label>
-                            <input type="number" id="transferQuantity" min="1" required placeholder="Enter quantity">
-                        </div>
-                        <div>
-                            <label for="transferBranch">Destination Branch</label>
-                            <select id="transferBranch" required>
-                                <option value="">Select Destination Branch</option>
-                            </select>
-                        </div>
+                    <div>
+                        <label for="transferCode">Product Code:</label>
+                        <input type="text" id="transferCode" required list="productCodes" placeholder="Enter product code">
+                        <datalist id="productCodes"></datalist>
+                        <div id="productInfo" style="margin-top: 10px; color: #84adff;"></div>
                     </div>
-                    <div class="form-actions">
-                        <button type="submit" class="btn-primary">Transfer Inventory</button>
-                        <button type="reset" class="btn-danger">Clear Form</button>
+                    <div>
+                        <label for="transferQuantity">Quantity:</label>
+                        <input type="number" id="transferQuantity" min="1" required placeholder="Enter quantity">
                     </div>
+                    <div>
+                        <label for="transferBranch">Destination Branch:</label>
+                        <select id="transferBranch" required>
+                            <option value="">Select Destination Branch</option>
+                        </select>
+                    </div>
+                    <button type="submit">Transfer Inventory</button>
                 </form>
             </div>
         </div>
-        
         <div class="scroll-container">
             <table id="inventoryTable">
                 <thead>
