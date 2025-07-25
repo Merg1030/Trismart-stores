@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Daily Cash Report</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        html, body {
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            background: #191c24;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            width: 100vw;
+            min-height: 100vh;
+        }
+        .container {
+            width: 100vw;
+            min-height: 100vh;
+            background: #232332;
+            border-radius: 0;
+            padding: 0;
+            margin: 0;
+        }
+        .main-content {
+            max-width: 520px;
+            margin: 0 auto;
+            padding: 20px 4vw 24px 4vw;
+        }
+        h2 {
+            text-align: center;
+            color: #84adff;
+            margin-bottom: 18px;
+        }
+        label {
+            display: block;
+            margin-top: 12px;
+            font-weight: bold;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 1em;
+            background: #191c24;
+            color: #fff;
+        }
+        textarea { min-height: 48px; resize: vertical;}
+        .button-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        button, input[type="submit"] {
+            background: #84adff;
+            color: #222;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 18px;
+            font-size: 1em;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover, input[type="submit"]:hover { background: #3ea6ff;}
+        .clear-btn { background: #f44336; color: #fff;}
+        .clear-btn:hover { background: #c62828;}
+        .toggle-btn {
+            background: #333e79;
+            color: #fff;
+            margin-bottom: 12px;
+            margin-right: 8px;
+        }
+        .toggle-btn.active { background: #84adff; color: #222; }
+        .hide { display: none !important; }
+        .report-table-container {
+            margin-top: 2em;
+            background: #232332;
+            border-radius: 8px;
+            padding: 10px 6px 24px 6px;
+            box-shadow: 0 3px 10px #0005;
+            width: 100%;
+        }
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 1em;
+            margin: 0;
+        }
+        .report-table th, .report-table td {
+            border: 1px solid #3a3a3a;
+            padding: 9px 7px;
+            text-align: center;
+        }
+        .report-table th {
+            background: #3a3a50;
+            color: #84adff;
+            font-weight: bold;
+        }
+        .report-table td { background: #1e2232; }
+        .report-table input[type="checkbox"] {
+            accent-color: #84adff;
+            transform: scale(1.2);
+        }
+        @media (max-width: 800px) {
+            .main-content { max-width: 99vw; padding: 8px 2vw 24px 2vw;}
+            .report-table th, .report-table td { font-size: 0.97em; padding: 5px 2px; }
+        }
+        @media (max-width: 520px) {
+            .main-content { padding: 2vw 1vw 18px 1vw; }
+            .report-table-container { padding: 2vw 2vw 5vw 2vw;}
+        }
+        @media (max-width: 420px) {
+            .main-content { padding: 1vw 0.5vw 5vw 0.5vw; }
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+<div class="container">
+    <div class="main-content">
+        <h2>Daily Cash Report</h2>
+        <button type="button" id="toggleFormBtn" class="toggle-btn">Hide Form</button>
+        <form id="reportForm" autocomplete="off" onsubmit="event.preventDefault();">
+            <label for="reportDate">Date</label>
+            <input type="date" id="reportDate" required>
+
+            <div style="margin-top:18px; font-weight:bold; color:#52e0b6;">Opening</div>
+            <label for="openingCash">Cash</label>
+            <input type="number" id="openingCash" required>
+            <label for="openingFloat">Float</label>
+            <input type="number" id="openingFloat" required>
+            <label for="openingTotal">Total</label>
+            <input type="number" id="openingTotal" required>
+
+            <div style="margin-top:18px; font-weight:bold; color:#52e0b6;">Closing</div>
+            <label for="closingCash">Cash</label>
+            <input type="number" id="closingCash" required>
+            <label for="closingFloat">Float</label>
+            <input type="number" id="closingFloat" required>
+            <label for="closingTotal">Total</label>
+            <input type="number" id="closingTotal" required>
+
+            <div style="margin-top:18px; font-weight:bold; color:#52e0b6;">Deduction</div>
+            <label for="deductions">Details (e.g. mercy k15, chris k20 - one per line)</label>
+            <textarea id="deductions"></textarea>
+
+            <label for="totalDeduction" style="margin-top:12px;">Total Deduction</label>
+            <input type="number" id="totalDeduction" required>
+
+            <label for="totalSales">Total Sales</label>
+            <input type="number" id="totalSales" required>
+
+            <div class="button-row">
+                <input type="submit" value="Save Report">
+                <button type="button" class="clear-btn" onclick="clearForm()">Clear</button>
+            </div>
+        </form>
+
+        <div class="report-table-container">
+            <button type="button" id="toggleReportsBtn" class="toggle-btn active">Hide Reports</button>
+            <h3 style="margin-bottom: 10px;">Saved Reports (check to select for PDF)</h3>
+            <div id="reportTableDiv"></div>
+            <div class="button-row" style="margin-top:10px;">
+                <button type="button" id="downloadBtn">Download Checked as PDF</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-firestore.js";
+
+// Use the same Firebase config as file warehouse audit
+const firebaseConfig = {
+    apiKey: "AIzaSyB-lm7Y3r1F6VvY8PKvY8glLabZDbJsHM1k",
+    authDomain: "trismartstores.firebaseapp.com",
+    projectId: "trismartstores",
+    storageBucket: "trismartstores.appspot.com",
+    messagingSenderId: "416692703333",
+    appId: "1:416692703333:web:d4b60292621435c748f68c",
+    measurementId: "G-NJPQ7L3QWJ"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+let reportsCache = [];
+
+function formatDateDisplay(dt) {
+    if (!dt) return '';
+    let [y, m, d] = dt.split('-');
+    if (!y || !m || !d) return dt;
+    const months = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+    return `${Number(d)} ${months[Number(m)-1]} ${y}`;
+}
+
+async function listReports() {
+    const reportTableDiv = document.getElementById('reportTableDiv');
+    reportTableDiv.innerHTML = "Loading...";
+    const q = query(collection(db, 'dailyCashReports'), orderBy('date', 'desc'));
+    const snapshot = await getDocs(q);
+    reportsCache = [];
+    if (snapshot.empty) {
+        reportTableDiv.innerHTML = "<em>No reports found.</em>";
+        return;
+    }
+    let table = `<table class="report-table">
+        <thead>
+            <tr>
+                <th style="width:32px;">#</th>
+                <th>Select</th>
+                <th>Report</th>
+            </tr>
+        </thead>
+        <tbody>`;
+    let i = 0;
+    snapshot.forEach(doc => {
+        const r = doc.data();
+        reportsCache.push(r);
+        const reportTitle = "Report - " + formatDateDisplay(r.date);
+        table += `<tr>
+            <td>${i+1}</td>
+            <td class="checkbox-cell">
+                <input type="checkbox" class="pdf-checkbox" data-idx="${i}">
+            </td>
+            <td><b>${reportTitle}</b></td>
+        </tr>`;
+        i++;
+    });
+    table += "</tbody></table>";
+    reportTableDiv.innerHTML = table;
+}
+window.onload = listReports;
+
+document.getElementById('reportForm').onsubmit = async function(e) {
+    e.preventDefault();
+    const report = {
+        date: document.getElementById('reportDate').value,
+        openingCash: document.getElementById('openingCash').value,
+        openingFloat: document.getElementById('openingFloat').value,
+        openingTotal: document.getElementById('openingTotal').value,
+        closingCash: document.getElementById('closingCash').value,
+        closingFloat: document.getElementById('closingFloat').value,
+        closingTotal: document.getElementById('closingTotal').value,
+        deductions: document.getElementById('deductions').value,
+        totalDeduction: document.getElementById('totalDeduction').value,
+        totalSales: document.getElementById('totalSales').value
+    };
+    if (!report.date) { alert("Please enter a date."); return; }
+    try {
+        await addDoc(collection(db, 'dailyCashReports'), report);
+        listReports();
+        clearForm();
+    } catch (e) {
+        alert('Error saving report: ' + e.message);
+    }
+};
+
+window.clearForm = function() {
+    document.getElementById('reportForm').reset();
+};
+
+document.getElementById('downloadBtn').onclick = function () {
+    const checkboxes = document.querySelectorAll('.pdf-checkbox');
+    let toDownload = [];
+    checkboxes.forEach(cb => {
+        if (cb.checked) {
+            const idx = parseInt(cb.getAttribute('data-idx'));
+            if (!isNaN(idx) && reportsCache[idx]) toDownload.push(reportsCache[idx]);
+        }
+    });
+    if (toDownload.length === 0) {
+        alert("Please check at least one report to download.");
+        return;
+    }
+    toDownload.forEach((data) => {
+        const doc = new window.jspdf.jsPDF();
+        let y = 18;
+        doc.setFontSize(16);
+        doc.text(`Report - ${formatDateDisplay(data.date)}`, 14, y); y += 12;
+        doc.setFontSize(12);
+
+        doc.text("Opening", 14, y); y += 8;
+        doc.text(`Cash k${data.openingCash}`, 18, y); y += 8;
+        doc.text(`Float k${data.openingFloat}`, 18, y); y += 8;
+        doc.text(`Total k${data.openingTotal}`, 18, y); y += 12;
+
+        doc.text("Closing", 14, y); y += 8;
+        doc.text(`Cash k${data.closingCash}`, 18, y); y += 8;
+        doc.text(`Float k${data.closingFloat}`, 18, y); y += 8;
+        doc.text(`Total k${data.closingTotal}`, 18, y); y += 12;
+
+        doc.text("Deduction", 14, y); y += 8;
+        if (data.deductions && data.deductions.trim() !== "") {
+            let dedArr = data.deductions.split('\n').filter(Boolean);
+            dedArr.forEach(line => { doc.text(line, 18, y); y += 8; });
+        } else {
+            doc.text("-", 18, y); y += 8;
+        }
+
+        doc.text("Total deduction", 14, y); y += 8;
+        doc.text(`k${data.totalDeduction}`, 18, y); y += 12;
+
+        doc.text("Total sales", 14, y); y += 8;
+        doc.text(`k${data.totalSales}`, 18, y);
+
+        doc.save(`Report_${data.date}.pdf`);
+    });
+};
+
+document.getElementById('toggleFormBtn').onclick = function () {
+    const form = document.getElementById('reportForm');
+    if (form.classList.contains('hide')) {
+        form.classList.remove('hide');
+        this.textContent = "Hide Form";
+        this.classList.add('active');
+    } else {
+        form.classList.add('hide');
+        this.textContent = "Show Form";
+        this.classList.remove('active');
+    }
+};
+
+document.getElementById('toggleReportsBtn').onclick = function () {
+    const reportTableDiv = document.getElementById('reportTableDiv');
+    if (reportTableDiv.classList.contains('hide')) {
+        reportTableDiv.classList.remove('hide');
+        this.textContent = "Hide Reports";
+        this.classList.add('active');
+    } else {
+        reportTableDiv.classList.add('hide');
+        this.textContent = "Show Reports";
+        this.classList.remove('active');
+    }
+};
+</script>
+</body>
+</html>
