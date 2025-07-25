@@ -5,32 +5,39 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sales Pos</title>
     <style>
-        :root {
-            --primary: #4CAF50;
-            --primary-hover: #45a049;
-            --danger: #f44336;
-            --danger-hover: #d32f2f;
-            --warning: #ff9800;
+             :root {
+            --primary: #4361ee;
+            --primary-hover: #3a56d4;
+            --accent: #4cc9f0;
+            --danger: #f72585;
+            --danger-hover: #e5177b;
+            --warning: #f8961e;
             --warning-hover: #e68a00;
-            --neutral: #5e5e5e;
-            --neutral-hover: #7e7e7e;
-            --bg-dark: #1d1c1c;
-            --bg-medium: #2e2e2e;
-            --bg-light: #3e3e3e;
-            --bg-lighter: #4e4e4e;
-            --text-light: #ffffff;
+            --success: #4cc9f0;
+            --success-hover: #3ab7de;
+            --bg-dark: #141726;
+            --bg-medium: #1a1d35;
+            --bg-light: #232447;
+            --bg-lighter: #2d2f5a;
+            --border: #35377a;
+            --text-light: #e0e0e0;
+            --text-fade: #b0b0b0;
+            --radius: 12px;
+            --shadow: 0 8px 32px #0004;
         }
 
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
         html, body {
             height: 100%;
             width: 100%;
+            background: var(--bg-dark);
+            color: var(--text-light);
         }
 
         body {
@@ -38,34 +45,33 @@
             min-width: 100vw;
             width: 100vw;
             height: 100vh;
-            background-color: var(--bg-medium);
-            color: var(--text-light);
             display: flex;
             justify-content: center;
             align-items: stretch;
             padding: 0;
+            background: linear-gradient(135deg, #4361ee10 0%, #4cc9f005 100%), var(--bg-dark);
         }
 
         .container {
-            width: 100vw;
+           
             height: 100vh;
             background-color: var(--bg-dark);
             padding: 0;
-            border-radius: 0;
-            box-shadow: none;
             display: flex;
             flex-direction: column;
             min-height: 100vh;
+        
         }
 
         h2 {
             text-align: center;
-            margin-bottom: 10px;
-            padding: 18px 0 10px 0;
-            font-size: 2.2rem;
-            font-weight: 600;
-            color: var(--primary);
+            margin: 10px 0;
+            padding: 20px 0 10px 0;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent);
             width: 100%;
+            letter-spacing: 0.5px;
         }
 
         .header-info {
@@ -73,37 +79,46 @@
             justify-content: flex-end;
             margin-bottom: 14px;
             width: 100vw;
+            padding: 0 15px;
         }
 
         .header-info-container {
             display: flex;
-            gap: 10px;
+            gap: 15px;
             align-items: center;
             width: 100%;
+        
+            margin: 0 auto;
         }
 
         .total-sales {
             padding: 12px 20px;
-            background-color: var(--neutral);
-            border-radius: 6px;
+            background-color: var(--bg-light);
+            border-radius: var(--radius);
             font-size: 1.1rem;
-            font-weight: bold;
-            min-width: 130px;
+            font-weight: 600;
+            
             text-align: center;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            color: var(--success);
         }
 
         .btn-warning {
-            background-color: var(--warning);
-            color: var(--text-light);
+            background: linear-gradient(90deg, var(--warning) 0%, #f9c74f 100%);
+            color: #fff;
             border: none;
-            border-radius: 5px;
-            padding: 10px 15px;
+            border-radius: var(--radius);
+            padding: 12px 20px;
             font-weight: 600;
             font-size: 1rem;
-            width: auto;
+            cursor: pointer;
+            box-shadow: 0 2px 8px #f8961e30;
+            transition: all 0.2s;
         }
         .btn-warning:hover {
-            background-color: var(--warning-hover);
+            background: linear-gradient(90deg, #f9c74f 0%, var(--warning) 100%);
+            transform: translateY(-1px);
         }
 
         .main-controls {
@@ -113,65 +128,77 @@
             flex-wrap: wrap;
             width: 100vw;
             box-sizing: border-box;
-            padding: 0 8px;
+            padding: 0 15px;
+          
+            margin: 0 auto;
         }
 
         .control-group {
             flex: 1;
-            min-width: 230px;
+          
             background-color: var(--bg-light);
-            padding: 15px;
-            border-radius: 8px;
+            padding: 20px;
+            border-radius: var(--radius);
             display: flex;
             flex-direction: column;
-            max-width: 100vw;
+         
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
         }
 
         .control-group h3 {
-            margin-bottom: 10px;
-            color: var(--primary);
+            margin-bottom: 15px;
+            color: var(--accent);
             font-size: 1.1rem;
+            font-weight: 600;
         }
 
         input, select {
-            width: 100%;
-            padding: 10px 12px;
+          
+            padding: 12px 15px;
             background-color: var(--bg-lighter);
             color: var(--text-light);
-            border: 1px solid var(--neutral);
-            border-radius: 5px;
-            margin-bottom: 10px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            margin-bottom: 15px;
             font-size: 1rem;
+            transition: all 0.2s;
         }
 
         input:focus, select:focus {
             outline: none;
             border-color: var(--primary);
+            box-shadow: 0 0 0 2px #4361ee40;
         }
 
         button {
-            color: var(--text-light);
+            color: #fff;
             border: none;
-            padding: 10px 15px;
+            padding: 12px 20px;
             cursor: pointer;
-            border-radius: 5px;
+            border-radius: var(--radius);
             transition: all 0.2s;
             font-weight: 600;
             font-size: 1rem;
-            width: 200px;
-            margin-top: 5px;
+            width: 100%;
+            margin-top: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
         .btn-primary {
-            background-color: var(--primary);
+            background: linear-gradient(90deg, var(--primary) 60%, var(--accent) 100%);
+            box-shadow: 0 2px 8px #4361ee30;
         }
         .btn-primary:hover {
-            background-color: var(--primary-hover);
+            background: linear-gradient(90deg, var(--accent) 0%, var(--primary) 100%);
+            transform: translateY(-1px);
         }
         .btn-danger {
-            background-color: var(--danger);
+            background: linear-gradient(90deg, var(--danger) 0%, #f7258570 100%);
+            box-shadow: 0 2px 8px #f7258530;
         }
         .btn-danger:hover {
-            background-color: var(--danger-hover);
+            background: linear-gradient(90deg, #f7258570 0%, var(--danger) 100%);
+            transform: translateY(-1px);
         }
 
         .data-container {
@@ -180,42 +207,49 @@
             display: flex;
             flex-direction: column;
             background-color: var(--bg-light);
-            border-radius: 8px;
-            padding: 5px 8px 8px 8px;
+            border-radius: var(--radius);
+            padding: 15px;
             width: 100vw;
             box-sizing: border-box;
+           
+            margin: 0 auto;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
         }
 
         .table-container {
             overflow-y: auto;
             flex-grow: 1;
             max-height: 500px;
-            margin-top: 8px;
+            margin-top: 15px;
             width: 100%;
+            border-radius: var(--radius);
         }
 
         table {
             width: 100%;
-            min-width: 700px;
+            
             border-collapse: collapse;
         }
 
         th, td {
-            padding: 12px 15px;
+            padding: 15px;
             text-align: left;
-            border-bottom: 1px solid var(--neutral);
+            border-bottom: 1px solid var(--border);
             font-size: 1rem;
         }
 
         th {
-            background-color: var(--neutral);
+            background-color: var(--bg-lighter);
             position: sticky;
             top: 0;
             font-weight: 600;
+            color: var(--accent);
         }
 
         tbody tr {
             background-color: var(--bg-light);
+            transition: all 0.2s;
         }
 
         tbody tr:nth-child(even) {
@@ -223,71 +257,99 @@
         }
 
         tbody tr:hover {
-            background-color: var(--neutral);
+            background-color: var(--primary);
+            color: white;
         }
 
         .product-select option:disabled {
-            color: #ff6b6b;
+            color: var(--danger);
         }
 
         .date-filter {
             display: flex;
-            gap: 10px;
-            margin-bottom: 12px;
+            gap: 15px;
+            margin-bottom: 20px;
             align-items: center;
             width: 100vw;
-            padding: 0 8px;
+            padding: 0 15px;
             box-sizing: border-box;
+           
+            margin: 0 auto;
         }
 
         .date-filter input {
             margin-bottom: 0;
             flex: 1;
+            max-width: 300px;
         }
 
         .date-filter button {
             width: auto;
-            padding: 10px 12px;
+            padding: 12px 25px;
             margin-top: 0;
         }
 
         .sale-form {
             display: none;
-            margin-top: 10px;
+            margin-top: 15px;
+            animation: fadeIn 0.3s ease-out;
         }
 
         .sale-form.show {
             display: block;
         }
 
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-buttons button {
+            width: 300px;
+        }
+
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         @media (max-width: 1200px) {
-            h2 { font-size: 2rem; }
+            h2 { font-size: 1.8rem; }
             table { min-width: 550px; }
         }
         @media (max-width: 900px) {
-            .main-controls { padding: 0 2px; }
-            .data-container { padding: 5px 2px 2px 2px; }
+            .main-controls { padding: 0 10px; }
+            .data-container { padding: 10px; }
             table { min-width: 410px; }
             h2 { font-size: 1.6rem; }
-            th, td { font-size: 0.97rem; }
+            th, td { font-size: 0.97rem; padding: 12px; }
         }
         @media (max-width: 700px) {
             .container, .data-container, .main-controls, .date-filter { width: 100vw; }
             table { min-width: 350px; }
-            .main-controls { flex-direction: column; gap: 6px; }
+            .main-controls { flex-direction: column; gap: 15px; }
             .control-group { min-width: 100%; }
-            th, td { padding: 8px 7px; font-size: 0.92rem; }
-            .date-filter { flex-direction: column; gap: 6px; }
-            .header-info-container { flex-direction: column; width: 100%; gap: 5px; }
+            th, td { padding: 10px; font-size: 0.92rem; }
+            .date-filter { flex-direction: column; gap: 10px; }
+            .date-filter input { max-width: 100%; }
+            .header-info-container { flex-direction: column; width: 100%; gap: 10px; }
             .btn-warning { width: 100%; }
-            h2 { font-size: 1.12rem; }
+            h2 { font-size: 1.4rem; }
+            .action-buttons { flex-direction: column; }
         }
         @media (max-width: 500px) {
-            .container, .data-container, .main-controls, .date-filter { width: 100vw; padding: 0; }
+            .container, .data-container, .main-controls, .date-filter { width: 100vw; padding: 0 10px; }
             .sale-form { padding: 0; }
-            table { min-width: 240px; font-size: 0.8rem; }
-            th, td { padding: 5px 2px; font-size: 0.8rem; }
-            h2 { font-size: 0.95rem; }
+            table { min-width: 240px; }
+            th, td { padding: 8px; font-size: 0.85rem; }
+            h2 { font-size: 1.2rem; padding-top: 15px; }
+            button, input, select { padding: 10px 12px; }
         }
     </style>
 </head>
