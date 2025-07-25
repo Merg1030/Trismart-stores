@@ -23,7 +23,7 @@
             width: 100vw;
         }
         .container {
-            max-width: 360px;
+            max-width: 400px;
             margin: 32px auto;
             padding: 18px 8px 28px 8px;
         }
@@ -52,6 +52,32 @@
         }
         .toggle-btn:hover {
             background: linear-gradient(90deg, var(--accent) 0%, var(--primary) 100%);
+        }
+        .filter-row {
+            background: var(--card-bg);
+            border-radius: 9px;
+            margin-bottom: 12px;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            justify-content: space-between;
+            box-shadow: 0 1px 8px #0001;
+        }
+        .filter-row label {
+            color: var(--label);
+            font-size: 0.95em;
+            font-weight: 500;
+            margin-bottom: 0;
+            margin-right: 4px;
+        }
+        .filter-row select {
+            border-radius: 6px;
+            background: #1a1c2b;
+            color: var(--text);
+            border: 1px solid #33394c;
+            padding: 6px 8px;
+            font-size: 1em;
         }
         .form-card {
             background: var(--card-bg);
@@ -158,6 +184,7 @@
             .container { padding: 2px 1vw; }
             .form-card, .report-table-container { padding: 5vw 2vw;}
             h2 { font-size: 1.1rem;}
+            .filter-row { flex-direction: column; align-items: flex-start; gap: 3px; }
         }
         @keyframes fadeIn {
             from { opacity:0; transform: translateY(25px);}
@@ -182,6 +209,51 @@
         const db = getFirestore(app);
 
         let reportsCache = [];
+        let selectedMonth = "";
+        let selectedYear = "";
+
+        // --- Persisted filter logic ---
+        const filterKey = "cashReportFilters";
+        function loadFilters() {
+            const filter = localStorage.getItem(filterKey);
+            if (filter) {
+                try {
+                    const { month, year } = JSON.parse(filter);
+                    selectedMonth = month;
+                    selectedYear = year;
+                } catch {}
+            } else {
+                // Default to current month/year
+                const now = new Date();
+                selectedMonth = String(now.getMonth() + 1).padStart(2, '0');
+                selectedYear = String(now.getFullYear());
+            }
+        }
+        function saveFilters() {
+            localStorage.setItem(filterKey, JSON.stringify({ month: selectedMonth, year: selectedYear }));
+        }
+        // Populate month/year select
+        function setupMonthYearSelect() {
+            const monthSel = document.getElementById('filterMonth');
+            const yearSel = document.getElementById('filterYear');
+            monthSel.innerHTML = "";
+            yearSel.innerHTML = "";
+            for (let m = 1; m <= 12; m++) {
+                const opt = document.createElement('option');
+                opt.value = String(m).padStart(2, '0');
+                opt.textContent = new Date(2000, m - 1, 1).toLocaleString('en-US', { month: 'short' });
+                monthSel.appendChild(opt);
+            }
+            const thisYear = new Date().getFullYear();
+            for (let y = thisYear; y >= thisYear - 5; y--) {
+                const opt = document.createElement('option');
+                opt.value = String(y);
+                opt.textContent = String(y);
+                yearSel.appendChild(opt);
+            }
+            monthSel.value = selectedMonth;
+            yearSel.value = selectedYear;
+        }
 
         function formatDateDisplay(dt) {
             if (!dt) return '';
@@ -213,6 +285,12 @@
             let i = 0;
             snapshot.forEach(doc => {
                 const r = doc.data();
+                // Filter here for month/year
+                if (selectedMonth && selectedYear) {
+                    if (!r.date || r.date.length < 7) return;
+                    const [y, m] = r.date.split('-');
+                    if (y !== selectedYear || m !== selectedMonth) return;
+                }
                 reportsCache.push(r);
                 const reportTitle = "Report - " + formatDateDisplay(r.date);
                 table += `<tr>
@@ -223,12 +301,30 @@
                 i++;
             });
             table += "</tbody></table>";
-            reportTableDiv.innerHTML = table;
+            reportTableDiv.innerHTML = reportsCache.length ? table : "<em style='color:#b0b0b0;'>No reports found for selected month.</em>";
         }
 
-        window.onload = listReports;
+        function handleFilterChange() {
+            selectedMonth = document.getElementById('filterMonth').value;
+            selectedYear = document.getElementById('filterYear').value;
+            saveFilters();
+            listReports();
+        }
 
-        // Form toggle logic (hidden by default)
+        // --- Form toggle logic (hidden by default) ---
+        window.onload = () => {
+            loadFilters();
+            setupMonthYearSelect();
+            document.getElementById('filterMonth').value = selectedMonth;
+            document.getElementById('filterYear').value = selectedYear;
+            listReports();
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('filterMonth').addEventListener('change', handleFilterChange);
+            document.getElementById('filterYear').addEventListener('change', handleFilterChange);
+        });
+
         const reportForm = document.getElementById('reportForm');
         reportForm.style.display = 'none';
         let formVisible = false;
@@ -242,6 +338,8 @@
             e.preventDefault();
             const report = {
                 date: document.getElementById('reportDate').value,
+                timeIn: document.getElementById('timeIn').value,
+                timeOut: document.getElementById('timeOut').value,
                 openingCash: document.getElementById('openingCash').value,
                 openingFloat: document.getElementById('openingFloat').value,
                 openingTotal: document.getElementById('openingTotal').value,
@@ -289,6 +387,9 @@
                 doc.text(`Report - ${formatDateDisplay(data.date)}`, 14, y); y += 12;
                 doc.setFontSize(12);
 
+                doc.text(`Time In: ${data.timeIn || '-'}`, 14, y); y += 8;
+                doc.text(`Time Out: ${data.timeOut || '-'}`, 14, y); y += 12;
+
                 doc.text("Opening", 14, y); y += 8;
                 doc.text(`Cash k${data.openingCash}`, 18, y); y += 8;
                 doc.text(`Float k${data.openingFloat}`, 18, y); y += 8;
@@ -321,11 +422,25 @@
 <body>
 <div class="container">
     <h2>Daily Cash Report</h2>
+    <div class="filter-row">
+        <label for="filterMonth">Month:</label>
+        <select id="filterMonth"></select>
+        <label for="filterYear">Year:</label>
+        <select id="filterYear"></select>
+    </div>
     <button type="button" id="toggleFormBtn" class="toggle-btn">Add New Report</button>
     <form id="reportForm" class="form-card" autocomplete="off" onsubmit="event.preventDefault();">
         <div class="form-group">
             <label for="reportDate">Date</label>
             <input type="date" id="reportDate" required>
+        </div>
+        <div class="form-group">
+            <label for="timeIn">Time In</label>
+            <input type="time" id="timeIn" required>
+        </div>
+        <div class="form-group">
+            <label for="timeOut">Time Out</label>
+            <input type="time" id="timeOut" required>
         </div>
         <div class="form-divider">Opening</div>
         <div class="form-group">
