@@ -2,506 +2,760 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Shop To-Do (Repeating Cleaning Task, Mobile-Optimized)</title>
+  <title>Daily Shop Checklist</title>
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Segoe+UI:400,600&display=swap">
   <style>
+    :root {
+      --primary-color: #2c3e50;
+      --secondary-color: #3498db;
+      --accent-color: #e74c3c;
+      --text-color: #2c3e50;
+      --light-gray: #ecf0f1;
+      --medium-gray: #bdc3c7;
+      --dark-gray: #7f8c8d;
+      --done-color: #27ae60;
+    }
+    
     html, body {
       margin: 0; padding: 0; height: 100%;
-      background: #f6f6f6;
+      background: var(--light-gray);
       font-family: 'Segoe UI', Arial, sans-serif;
       width: 100vw; min-height: 100vh; box-sizing: border-box;
       overscroll-behavior: none;
       -webkit-tap-highlight-color: transparent;
+      color: var(--text-color);
     }
+    
     body { min-height: 100vh; }
-    .todo-container {
-      display: flex; min-height: 100vh; width: 100vw;
+    
+    .dashboard-container {
+      display: flex; 
+      min-height: 100vh; 
+      width: 100vw;
       box-sizing: border-box;
       flex-direction: row;
     }
+    
     .sidebar {
-      width: 230px; background: #212a34; color: #fff; padding: 2em 1em 1em 1.2em;
-      display: flex; flex-direction: column; gap: 1.3em; min-width: 135px;
-      box-shadow: 2px 0 10px #0001;
+      width: 280px; 
+      background: var(--primary-color); 
+      color: white; 
+      padding: 2em 1.5em;
+      display: flex; 
+      flex-direction: column; 
+      gap: 1.5em;
+      box-shadow: 3px 0 15px rgba(0,0,0,0.1);
       z-index: 2;
-      transition: left 0.2s;
     }
-    .sidebar h1 { margin: 0 0 1em 0; font-weight: 600; font-size: 1.3em; letter-spacing: .5px; }
-    .sidebar-list { list-style: none; padding: 0; margin: 0; }
+    
+    .sidebar-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 2rem;
+    }
+    
+    .sidebar-header h1 {
+      margin: 0; 
+      font-weight: 600; 
+      font-size: 1.5rem;
+    }
+    
+    .sidebar-list { 
+      list-style: none; 
+      padding: 0; 
+      margin: 0; 
+    }
+    
     .sidebar-item {
-      padding: 0.6em 1em; border-radius: 8px; cursor: pointer;
-      margin-bottom: 0.15em; font-size: 1.04em; font-weight: 500;
-      transition: background .15s, color .15s;
-      display: flex; align-items: center; gap: 0.5em;
+      padding: 0.8em 1.2em; 
+      border-radius: 8px; 
+      cursor: pointer;
+      margin-bottom: 0.5em; 
+      font-size: 1.05em; 
+      font-weight: 500;
+      transition: all 0.15s ease;
+      display: flex; 
+      align-items: center; 
+      gap: 0.8em;
       user-select: none;
-      touch-action: manipulation;
     }
-    .sidebar-item.active { background: #e5f4ff; color: #1565c0; }
-    .sidebar-item .emoji { font-size: 1.12em; }
-    .sidebar-section-label { font-size: 0.9em; color: #b1b1b1; margin: 1em 0 0.4em 0; }
-    .sidebar-addcat-row { display: flex; gap: 6px; margin-top: 0.7em; }
+    
+    .sidebar-item:hover {
+      background: rgba(255,255,255,0.1);
+    }
+    
+    .sidebar-item.active { 
+      background: white; 
+      color: var(--primary-color);
+      font-weight: 600;
+    }
+    
+    .sidebar-section-label {
+      font-size: 0.85em; 
+      color: var(--medium-gray); 
+      margin: 1.5em 0 0.8em 0;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    .sidebar-addcat-row { 
+      display: flex; 
+      gap: 8px; 
+      margin-top: 1em; 
+    }
+    
     .sidebar-addcat-row input {
-      flex: 1; border-radius: 5px; border: none; padding: 0.33em 0.6em; font-size: 1em;
+      flex: 1; 
+      border-radius: 6px; 
+      border: none; 
+      padding: 0.5em 0.8em; 
+      font-size: 0.95em;
       outline: none;
+      background: rgba(255,255,255,0.9);
     }
+    
     .sidebar-addcat-row button {
-      background: #e5f4ff; color: #1565c0; border: none; border-radius: 5px; font-weight: bold;
-      cursor: pointer; padding: 0.36em 0.8em; font-size: 1em;
-    }
-    .sidebar-item .remove-cat-btn {
-      color: #e3342f; background: none; border: none; font-size: 1em; cursor: pointer;
-      margin-left: 3px; padding: 0 2px; border-radius: 3px;
-      transition: background .16s;
-    }
-    .sidebar-item .remove-cat-btn:hover { background: #ffeaea; }
-    .main {
-      flex: 1; padding: 1.5em 0.7em 1.5em 0.7em; min-width: 0;
-      background: #f6f6f6; display: flex; flex-direction: column;
-      width: 100vw; box-sizing: border-box;
-    }
-    .main-header {
-      font-size: 1.3em; color: #166534; font-weight: 600; margin: 0 0 0.8em 0;
-      display: flex; align-items: center; gap: 0.7em;
-    }
-    .main-header .main-emoji { font-size: 1.05em; }
-    .add-task-row { display: flex; gap: 7px; margin-bottom: 1.1em; flex-wrap: wrap; }
-    .add-task-row input {
-      flex: 1; padding: 0.7em 1em; border: 1px solid #cdd5df; border-radius: 7px;
-      font-size: 1em; outline: none; background: #fff;
-      transition: border .2s; min-width: 0;
-    }
-    .add-task-row input:focus { border-color: #1976d2; }
-    .add-task-row select {
-      padding: 0.5em; border-radius: 6px; border: 1px solid #cdd5df;
-      background: #fff; font-size: 1em;
-    }
-    .add-task-row button {
-      padding: 0.7em 1.1em; background: #1976d2; color: #fff; border: none; border-radius: 7px;
-      font-size: 1em; cursor: pointer; font-weight: 600; box-shadow: 0 2px 6px #1976d222;
-      transition: background .18s;
-    }
-    .add-task-row button:active { background: #1565c0; }
-    .todo-list { list-style: none; padding: 0; margin: 0.45em 0 0 0; }
-    .todo-item {
-      display: flex; align-items: center; gap: 0.7em; padding: 0.8em 0.7em; margin-bottom: 0.5em;
-      background: #fff; border-radius: 8px; box-shadow: 0 2px 8px #0001;
-      transition: background .2s; position: relative; min-height: 48px;
+      background: var(--secondary-color); 
+      color: white; 
+      border: none; 
+      border-radius: 6px; 
+      font-weight: bold;
+      cursor: pointer; 
+      padding: 0.5em 1em; 
       font-size: 1em;
+      transition: background 0.2s;
     }
-    .todo-item.done {
-      background: #e7fce9; opacity: 0.67; text-decoration: line-through; color: #6b9080;
+    
+    .sidebar-addcat-row button:hover {
+      background: #2980b9;
     }
-    .todo-checkbox {
-      appearance: none; width: 24px; height: 24px;
-      border: 2px solid #1976d2; border-radius: 50%; position: relative; outline: none;
-      cursor: pointer; background: #fff; transition: border .15s;
-      margin-right: 0.18em; flex-shrink: 0;
-      display: inline-block;
+    
+    .main {
+      flex: 1; 
+      padding: 2em; 
+      background: var(--light-gray); 
+      display: flex; 
+      flex-direction: column;
+      width: 100vw; 
+      box-sizing: border-box;
     }
-    .todo-checkbox:checked {
-      background: #1976d2;
-      border-color: #1976d2;
+    
+    .main-header {
+      font-size: 1.5em; 
+      color: var(--primary-color); 
+      font-weight: 600; 
+      margin: 0 0 1.2em 0;
+      display: flex; 
+      align-items: center; 
+      gap: 0.8em;
     }
-    .todo-checkbox:checked::after {
-      content: '';
+    
+    .add-task-row { 
+      display: flex; 
+      gap: 10px; 
+      margin-bottom: 1.5em; 
+      flex-wrap: wrap; 
+    }
+    
+    .add-task-row input {
+      flex: 1; 
+      min-width: 250px;
+      padding: 0.8em 1.2em; 
+      border: 1px solid var(--medium-gray); 
+      border-radius: 8px;
+      font-size: 1em; 
+      outline: none; 
+      background: #fff;
+      transition: border 0.2s;
+    }
+    
+    .add-task-row input:focus { 
+      border-color: var(--secondary-color); 
+    }
+    
+    .add-task-row select {
+      padding: 0.7em; 
+      border-radius: 6px; 
+      border: 1px solid var(--medium-gray);
+      background: #fff; 
+      font-size: 1em;
+      min-width: 180px;
+    }
+    
+    .add-task-row button {
+      padding: 0.8em 1.5em; 
+      background: var(--secondary-color); 
+      color: #fff; 
+      border: none; 
+      border-radius: 8px;
+      font-size: 1em; 
+      cursor: pointer; 
+      font-weight: 600; 
+      box-shadow: 0 2px 8px rgba(52,152,219,0.2);
+      transition: all 0.2s;
+    }
+    
+    .add-task-row button:hover {
+      background: #2980b9;
+      transform: translateY(-1px);
+    }
+    
+    .checklist {
+      list-style: none; 
+      padding: 0; 
+      margin: 0.5em 0 0 0; 
+    }
+    
+    .checklist-item {
+      display: flex; 
+      align-items: center; 
+      gap: 1em; 
+      padding: 1em 1em; 
+      margin-bottom: 0.8em;
+      background: white; 
+      border-radius: 10px; 
+      box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+      transition: all 0.2s; 
+      position: relative;
+      border-left: 4px solid transparent;
+    }
+    
+    .checklist-item.done {
+      background: rgba(39, 174, 96, 0.1);
+      opacity: 0.9; 
+      text-decoration: line-through; 
+      color: var(--dark-gray);
+      border-left-color: var(--done-color);
+    }
+    
+    .checklist-item.important {
+      border-left-color: var(--accent-color);
+    }
+    
+    .checklist-checkbox {
+      appearance: none; 
+      width: 24px; 
+      height: 24px;
+      border: 2px solid var(--medium-gray); 
+      border-radius: 6px; 
+      position: relative; 
+      outline: none;
+      cursor: pointer; 
+      background: #fff; 
+      transition: all 0.15s;
+      flex-shrink: 0;
+    }
+    
+    .checklist-checkbox:checked {
+      background: var(--done-color);
+      border-color: var(--done-color);
+    }
+    
+    .checklist-checkbox:checked::after {
+      content: '✓';
       position: absolute;
-      left: 6px; top: 3px; width: 6px; height: 12px;
-      border: solid #fff; border-width: 0 3px 3px 0;
-      transform: rotate(45deg);
+      left: 50%; top: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+      font-size: 14px;
+      font-weight: bold;
     }
-    .todo-text {
-      flex: 1; font-size: 1em; cursor: pointer; user-select: none;
-      transition: color .16s; word-break: break-word;
+    
+    .checklist-text {
+      flex: 1; 
+      font-size: 1.05em; 
+      cursor: pointer; 
+      user-select: none;
+      transition: color 0.16s; 
+      word-break: break-word;
     }
+    
+    .action-btn {
+      background: none; 
+      border: none; 
+      font-size: 1.15em;
+      cursor: pointer; 
+      border-radius: 50%; 
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+    
+    .action-btn:hover {
+      background: rgba(0,0,0,0.05);
+    }
+    
     .remove-btn {
-      color: #d0002a; background: none; border: none; font-size: 1.15em;
-      margin-left: 7px; cursor: pointer; border-radius: 4px; padding: 0 0.2em;
-      transition: background .16s;
-      touch-action: manipulation;
+      color: var(--accent-color);
     }
-    .remove-btn:active { background: #ffeaea; }
-    .no-tasks { color: #909090; text-align: center; margin: 1.5em 0 0 0; font-size: 1em; }
+    
+    .important-btn {
+      color: var(--accent-color);
+      margin-right: -5px;
+    }
+    
+    .no-tasks { 
+      color: var(--dark-gray); 
+      text-align: center; 
+      margin: 2em 0 0 0; 
+      font-size: 1.1em;
+      padding: 1.5em;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+    }
+    
+    .priority-badge {
+      padding: 0.25em 0.6em;
+      border-radius: 12px;
+      font-size: 0.8em;
+      font-weight: 600;
+      margin-left: 0.5em;
+    }
+    
+    .high-priority {
+      background: rgba(231, 76, 60, 0.1);
+      color: var(--accent-color);
+    }
+    
+    .medium-priority {
+      background: rgba(241, 196, 15, 0.1);
+      color: #f39c12;
+    }
+    
+    .task-due {
+      font-size: 0.85em;
+      color: var(--dark-gray);
+      margin-top: 0.3em;
+      display: flex;
+      align-items: center;
+      gap: 0.3em;
+    }
+    
+    .task-due::before {
+      content: '⏱';
+      font-size: 0.9em;
+    }
+    
+    /* Responsive styles */
     @media (max-width: 950px) {
-      .sidebar { padding-left: 0.7em; }
-    }
-    @media (max-width: 700px) {
-      .todo-container { flex-direction: column; height: 100vh; width: 100vw; }
-      .sidebar {
-        flex-direction: row; width: 100vw; min-width: 0;
-        padding: 1.1em 0.2em 1em 0.2em; box-shadow: none;
-        overflow-x: auto; overflow-y: hidden;
-        gap: 0.7em;
+      .sidebar { 
+        width: 240px; 
+        padding: 1.5em 1em; 
       }
-      .sidebar-list { flex-direction: row; display: flex; gap: 0.2em;}
-      .sidebar-item { margin: 0 0.1em 0 0; padding: 0.45em 0.7em; font-size: 0.99em;}
-      .sidebar-section-label { margin: 0.5em 0 0.2em 0; font-size: 0.88em;}
-      .main { padding: 1em 0.2em 1em 0.2em; min-width: 0;}
-      .main-header { font-size: 1.08em; }
-      .add-task-row input { font-size: .97em; }
     }
+    
+    @media (max-width: 768px) {
+      .dashboard-container { 
+        flex-direction: column; 
+      }
+      
+      .sidebar {
+        width: 100%; 
+        padding: 1em 1.5em;
+        flex-direction: row;
+        overflow-x: auto;
+        gap: 0.8em;
+      }
+      
+      .sidebar-header {
+        margin-bottom: 0;
+        margin-right: 1em;
+      }
+      
+      .sidebar-list {
+        display: flex;
+        gap: 0.5em;
+      }
+      
+      .sidebar-item {
+        margin: 0; 
+        white-space: nowrap;
+      }
+      
+      .sidebar-section-label {
+        display: none;
+      }
+      
+      .sidebar-addcat-row {
+        margin-top: 0;
+        margin-left: auto;
+        min-width: 200px;
+      }
+      
+      .main {
+        padding: 1.5em;
+      }
+    }
+    
     @media (max-width: 500px) {
-      html, body { font-size: 15px; }
-      .sidebar { padding: 0.4em 0.1em 0.5em 0.1em; }
-      .main-header { margin-bottom: 0.5em; font-size: 1em;}
-      .todo-item { font-size: 0.97em; padding: 0.6em 0.4em;}
-      .add-task-row button { padding: 0.5em 0.7em; font-size: 0.96em;}
-      .add-task-row input, .add-task-row select { font-size: 0.95em;}
-    }
-    @media (max-width: 400px) {
-      html, body { font-size: 13px; }
-      .sidebar { min-width: 95px; }
+      html, body { 
+        font-size: 15px; 
+      }
+      
+      .add-task-row {
+        gap: 8px;
+      }
+      
+      .add-task-row input,
+      .add-task-row select,
+      .add-task-row button {
+        width: 100%;
+      }
     }
   </style>
 </head>
 <body>
-<div class="todo-container">
+<div class="dashboard-container">
   <nav class="sidebar">
-    <h1>Shop To-Do</h1>
+    <div class="sidebar-header">
+      <h1>Shop Checklist</h1>
+    </div>
+    
     <div>
       <ul class="sidebar-list" id="special-list">
-        <li class="sidebar-item" data-section="myday"><span class="emoji">🌞</span> My Day</li>
-        <li class="sidebar-item" data-section="mon"><span class="emoji">📅</span> Monday</li>
-        <li class="sidebar-item" data-section="tue"><span class="emoji">📅</span> Tuesday</li>
-        <li class="sidebar-item" data-section="wed"><span class="emoji">📅</span> Wednesday</li>
-        <li class="sidebar-item" data-section="thu"><span class="emoji">📅</span> Thursday</li>
-        <li class="sidebar-item" data-section="fri"><span class="emoji">📅</span> Friday</li>
-        <li class="sidebar-item" data-section="sat"><span class="emoji">📅</span> Saturday</li>
-        <li class="sidebar-item" data-section="sun"><span class="emoji">📅</span> Sunday</li>
+        <li class="sidebar-item active" data-section="daily"><span class="emoji">📋</span> Daily Tasks</li>
+        <li class="sidebar-item" data-section="opening"><span class="emoji">🌅</span> Opening Duties</li>
+        <li class="sidebar-item" data-section="closing"><span class="emoji">🌙</span> Closing Duties</li>
       </ul>
     </div>
+    
     <div>
-      <div class="sidebar-section-label">CATEGORIES</div>
-      <ul class="sidebar-list" id="category-list"></ul>
+      <div class="sidebar-section-label">DEPARTMENTS</div>
+      <ul class="sidebar-list" id="department-list">
+        <li class="sidebar-item" data-section="inventory"><span class="emoji">📦</span> Inventory</li>
+        <li class="sidebar-item" data-section="cleaning"><span class="emoji">🧹</span> Cleaning</li>
+        <li class="sidebar-item" data-section="cashier"><span class="emoji">💵</span> Cashier</li>
+      </ul>
+    </div>
+    
+    <div>
+      <div class="sidebar-section-label">CUSTOM CHECKLISTS</div>
+      <ul class="sidebar-list" id="custom-list"></ul>
       <form class="sidebar-addcat-row" id="add-category-form" autocomplete="off">
-        <input type="text" id="new-category" placeholder="Add category..." required maxlength="40"/>
+        <input type="text" id="new-category" placeholder="New checklist..." required maxlength="40"/>
         <button type="submit">+</button>
       </form>
     </div>
   </nav>
+  
   <main class="main">
     <div class="main-header" id="main-header">
-      <span class="main-emoji" id="main-emoji">🌞</span>
-      <span id="main-title">My Day</span>
+      <span id="main-title">Daily Tasks</span>
     </div>
+    
     <form class="add-task-row" id="add-task-form" autocomplete="off">
-      <input type="text" id="new-task" placeholder="Add a task..." required maxlength="120"/>
-      <select id="task-day-option" style="display:none">
-        <option value="">Assign to day (optional)</option>
-        <option value="mon">Monday</option>
-        <option value="tue">Tuesday</option>
-        <option value="wed">Wednesday</option>
-        <option value="thu">Thursday</option>
-        <option value="fri">Friday</option>
-        <option value="sat">Saturday</option>
-        <option value="sun">Sunday</option>
+      <input type="text" id="new-task" placeholder="Add a new task..." required maxlength="120"/>
+      <select id="task-priority">
+        <option value="">Priority</option>
+        <option value="low">Low</option>
+        <option value="medium">Medium</option>
+        <option value="high">High</option>
       </select>
-      <button type="submit">Add</button>
+      <button type="submit">Add Task</button>
     </form>
-    <ul class="todo-list" id="todo-list"></ul>
-    <div class="no-tasks" id="no-tasks-message" style="display:none;">No tasks here yet.</div>
+    
+    <ul class="checklist" id="checklist">
+      <!-- Daily Tasks -->
+      <li class="checklist-item">
+        <input type="checkbox" class="checklist-checkbox">
+        <span class="checklist-text">Check and restock shelves</span>
+        <button class="action-btn important-btn" title="Mark as important">★</button>
+        <button class="action-btn remove-btn" title="Remove task">×</button>
+      </li>
+      <li class="checklist-item">
+        <input type="checkbox" class="checklist-checkbox">
+        <span class="checklist-text">Inventory count for high-demand items</span>
+        <span class="priority-badge high-priority">High</span>
+        <button class="action-btn important-btn" title="Mark as important">★</button>
+        <button class="action-btn remove-btn" title="Remove task">×</button>
+      </li>
+      <li class="checklist-item">
+        <input type="checkbox" class="checklist-checkbox">
+        <span class="checklist-text">Check expiration dates on perishables</span>
+        <button class="action-btn important-btn" title="Mark as important">★</button>
+        <button class="action-btn remove-btn" title="Remove task">×</button>
+      </li>
+      <li class="checklist-item done">
+        <input type="checkbox" class="checklist-checkbox" checked>
+        <span class="checklist-text">Morning cleaning (sweep and mop floors)</span>
+        <button class="action-btn important-btn" title="Mark as important">★</button>
+        <button class="action-btn remove-btn" title="Remove task">×</button>
+      </li>
+      <li class="checklist-item">
+        <input type="checkbox" class="checklist-checkbox">
+        <span class="checklist-text">Update display window</span>
+        <span class="priority-badge medium-priority">Medium</span>
+        <div class="task-due">Before 2 PM</div>
+        <button class="action-btn important-btn" title="Mark as important">★</button>
+        <button class="action-btn remove-btn" title="Remove task">×</button>
+      </li>
+      <li class="checklist-item">
+        <input type="checkbox" class="checklist-checkbox">
+        <span class="checklist-text">Review sales for the day</span>
+        <button class="action-btn important-btn" title="Mark as important">★</button>
+        <button class="action-btn remove-btn" title="Remove task">×</button>
+      </li>
+    </ul>
+    
+    <div class="no-tasks" id="no-tasks-message" style="display:none;">
+      No tasks in this checklist yet. Add your first task above!
+    </div>
   </main>
 </div>
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-app.js";
-import { getFirestore, collection, addDoc, doc, deleteDoc, onSnapshot, updateDoc, serverTimestamp, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-firestore.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyB-lm7Y3r1F6Vv8PKvY8glLabZDbJsHM1k",
-  authDomain: "trismartstores.firebaseapp.com",
-  projectId: "trismartstores",
-  storageBucket: "trismartstores.firebasestorage.app",
-  messagingSenderId: "416692703333",
-  appId: "1:416692703333:web:d4b60292621435c748f68c",
-  measurementId: "G-NJPQ7L3QWJ"
-};
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-const addCatForm = document.getElementById('add-category-form');
-const newCatInput = document.getElementById('new-category');
-const categoryList = document.getElementById('category-list');
-const specialList = document.getElementById('special-list');
-const addTaskForm = document.getElementById('add-task-form');
-const todoInput = document.getElementById('new-task');
-const todoList = document.getElementById('todo-list');
-const mainTitle = document.getElementById('main-title');
-const mainEmoji = document.getElementById('main-emoji');
-const noTasksMsg = document.getElementById('no-tasks-message');
-const taskDayOption = document.getElementById('task-day-option');
-
-let currentSection = { type: 'special', value: 'myday' };
-let categories = [];
-let unsubscribeTodos = null;
-
-// For Getting next Monday 8am
-function getNextMonday8AM(fromDate) {
-  const date = new Date(fromDate);
-  const day = date.getDay();
-  const diff = ((8 - day) % 7 || 7);
-  date.setDate(date.getDate() + diff);
-  date.setHours(8, 0, 0, 0);
-  return date;
-}
-
-// Sidebar navigation
-function setActiveSidebarItem() {
-  document.querySelectorAll('.sidebar-item').forEach(item => item.classList.remove('active'));
-  let selector = '';
-  if (currentSection.type === 'special') selector = `.sidebar-item[data-section="${currentSection.value}"]`;
-  else selector = `.sidebar-item[data-category="${currentSection.value}"]`;
-  const el = document.querySelector(selector);
-  if (el) el.classList.add('active');
-}
-specialList.onclick = (e) => {
-  const item = e.target.closest('.sidebar-item');
-  if (!item) return;
-  currentSection = { type: 'special', value: item.getAttribute('data-section') };
-  updateSection();
-};
-function renderCategory(catDoc, isActive) {
-  const li = document.createElement('li');
-  li.className = 'sidebar-item' + (isActive ? ' active' : '');
-  li.setAttribute('data-category', catDoc.id);
-  li.innerHTML = `<span class="emoji">📂</span> ${catDoc.name}`;
-  const btn = document.createElement('button');
-  btn.className = "remove-cat-btn";
-  btn.innerHTML = "&times;";
-  btn.title = "Delete category and all its to-dos";
-  btn.onclick = async (e) => {
-    e.stopPropagation();
-    if (confirm(`Delete category "${catDoc.name}" and all its tasks?`)) {
-      const todosRef = collection(db, "shop-categories", catDoc.id, "todos");
-      onSnapshot(todosRef, (snapshot) => {
-        snapshot.forEach(taskDoc => deleteDoc(doc(db, "shop-categories", catDoc.id, "todos", taskDoc.id)));
-      });
-      await deleteDoc(doc(db, "shop-categories", catDoc.id));
-      if (currentSection.type === 'category' && currentSection.value === catDoc.id) {
-        setCurrentSection('special', 'myday');
-      }
+<script>
+// Basic functionality for the checklist
+document.addEventListener('DOMContentLoaded', function() {
+  const checklist = document.getElementById('checklist');
+  const addTaskForm = document.getElementById('add-task-form');
+  const newTaskInput = document.getElementById('new-task');
+  const prioritySelect = document.getElementById('task-priority');
+  const addCategoryForm = document.getElementById('add-category-form');
+  const newCategoryInput = document.getElementById('new-category');
+  const customList = document.getElementById('custom-list');
+  const sidebarItems = document.querySelectorAll('.sidebar-item');
+  
+  // Toggle task completion
+  checklist.addEventListener('change', function(e) {
+    if (e.target.classList.contains('checklist-checkbox')) {
+      const item = e.target.closest('.checklist-item');
+      item.classList.toggle('done', e.target.checked);
     }
-  };
-  li.appendChild(btn);
-  li.onclick = (e) => {
-    if (e.target === btn) return;
-    currentSection = { type: 'category', value: catDoc.id, name: catDoc.name };
-    updateSection();
-  };
-  return li;
-}
-onSnapshot(query(collection(db, "shop-categories"), orderBy("created", "asc")), (snapshot) => {
-  categories = [];
-  categoryList.innerHTML = '';
-  snapshot.forEach(docSnap => {
-    const data = docSnap.data();
-    const catObj = { ...data, id: docSnap.id };
-    categories.push(catObj);
-    const li = renderCategory(catObj, currentSection.type === 'category' && currentSection.value === catObj.id);
-    categoryList.appendChild(li);
   });
-  if (currentSection.type === 'category' && !categories.find(c => c.id === currentSection.value)) {
-    setCurrentSection('special', 'myday');
+  
+  // Mark task as important
+  checklist.addEventListener('click', function(e) {
+    if (e.target.classList.contains('important-btn')) {
+      e.preventDefault();
+      const item = e.target.closest('.checklist-item');
+      item.classList.toggle('important');
+    }
+  });
+  
+  // Remove task
+  checklist.addEventListener('click', function(e) {
+    if (e.target.classList.contains('remove-btn')) {
+      e.preventDefault();
+      if (confirm('Are you sure you want to remove this task?')) {
+        e.target.closest('.checklist-item').remove();
+        updateNoTasksMessage();
+      }
+    }
+  });
+  
+  // Add new task
+  addTaskForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const taskText = newTaskInput.value.trim();
+    const priority = prioritySelect.value;
+    
+    if (taskText) {
+      const li = document.createElement('li');
+      li.className = 'checklist-item';
+      
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.className = 'checklist-checkbox';
+      
+      const textSpan = document.createElement('span');
+      textSpan.className = 'checklist-text';
+      textSpan.textContent = taskText;
+      
+      const importantBtn = document.createElement('button');
+      importantBtn.className = 'action-btn important-btn';
+      importantBtn.title = 'Mark as important';
+      importantBtn.innerHTML = '★';
+      
+      const removeBtn = document.createElement('button');
+      removeBtn.className = 'action-btn remove-btn';
+      removeBtn.title = 'Remove task';
+      removeBtn.innerHTML = '×';
+      
+      li.appendChild(checkbox);
+      li.appendChild(textSpan);
+      
+      if (priority === 'high') {
+        const badge = document.createElement('span');
+        badge.className = 'priority-badge high-priority';
+        badge.textContent = 'High';
+        li.appendChild(badge);
+      } else if (priority === 'medium') {
+        const badge = document.createElement('span');
+        badge.className = 'priority-badge medium-priority';
+        badge.textContent = 'Medium';
+        li.appendChild(badge);
+      }
+      
+      li.appendChild(importantBtn);
+      li.appendChild(removeBtn);
+      
+      checklist.appendChild(li);
+      newTaskInput.value = '';
+      prioritySelect.value = '';
+      
+      updateNoTasksMessage();
+    }
+  });
+  
+  // Add new custom checklist category
+  addCategoryForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const categoryName = newCategoryInput.value.trim();
+    
+    if (categoryName) {
+      const li = document.createElement('li');
+      li.className = 'sidebar-item';
+      li.innerHTML = `<span class="emoji">📝</span> ${categoryName}`;
+      li.setAttribute('data-section', categoryName.toLowerCase().replace(/\s+/g, '-'));
+      customList.appendChild(li);
+      newCategoryInput.value = '';
+      
+      // Add click handler for the new category
+      li.addEventListener('click', function() {
+        sidebarItems.forEach(item => item.classList.remove('active'));
+        this.classList.add('active');
+        document.getElementById('main-title').textContent = categoryName;
+        
+        // In a real app, you would load tasks for this category
+        checklist.innerHTML = '';
+        document.getElementById('no-tasks-message').style.display = 'block';
+      });
+    }
+  });
+  
+  // Switch between checklists
+  sidebarItems.forEach(item => {
+    item.addEventListener('click', function() {
+      sidebarItems.forEach(i => i.classList.remove('active'));
+      this.classList.add('active');
+      document.getElementById('main-title').textContent = 
+        this.querySelector('.emoji').nextSibling.textContent.trim();
+      
+      // In a real app, you would load tasks for the selected section
+      // For now, we'll just show different sample tasks
+      updateSampleTasks(this.getAttribute('data-section'));
+      updateNoTasksMessage();
+    });
+  });
+  
+  function updateNoTasksMessage() {
+    const noTasksMsg = document.getElementById('no-tasks-message');
+    noTasksMsg.style.display = checklist.children.length === 0 ? 'block' : 'none';
   }
+  
+  function updateSampleTasks(section) {
+    // Clear existing tasks
+    checklist.innerHTML = '';
+    
+    // Add sample tasks based on the selected section
+    const sampleTasks = {
+      'daily': [
+        { text: 'Check and restock shelves', priority: '' },
+        { text: 'Inventory count for high-demand items', priority: 'high' },
+        { text: 'Check expiration dates on perishables', priority: '' },
+        { text: 'Morning cleaning (sweep and mop floors)', priority: '', done: true },
+        { text: 'Update display window', priority: 'medium', due: 'Before 2 PM' },
+        { text: 'Review sales for the day', priority: '' }
+      ],
+      'opening': [
+        { text: 'Unlock doors and disable alarm', priority: 'high' },
+        { text: 'Turn on lights and equipment', priority: '' },
+        { text: 'Prepare cash registers', priority: 'medium' },
+        { text: 'Check overnight deliveries', priority: '' },
+        { text: 'Set up fresh displays', priority: '' }
+      ],
+      'closing': [
+        { text: 'Count and reconcile cash drawers', priority: 'high' },
+        { text: 'Complete daily sales report', priority: 'high' },
+        { text: 'Secure back entrance', priority: '' },
+        { text: 'Turn off unnecessary equipment', priority: '' },
+        { text: 'Final cleaning sweep', priority: 'medium' }
+      ],
+      'inventory': [
+        { text: 'Check stock levels', priority: 'high' },
+        { text: 'Process new deliveries', priority: 'medium' },
+        { text: 'Organize storage room', priority: '' },
+        { text: 'Update inventory records', priority: 'high' },
+        { text: 'Identify low stock items', priority: '' }
+      ],
+      'cleaning': [
+        { text: 'Sweep and mop floors', priority: 'medium' },
+        { text: 'Dust shelves and displays', priority: '' },
+        { text: 'Clean windows and mirrors', priority: '' },
+        { text: 'Sanitize checkout counters', priority: '' },
+        { text: 'Take out trash and recycling', priority: 'high' }
+      ],
+      'cashier': [
+        { text: 'Verify all price changes', priority: '' },
+        { text: 'Restock bags and receipt paper', priority: 'medium' },
+        { text: 'Test all payment methods', priority: 'high' },
+        { text: 'Balance cash drawer', priority: 'high' },
+        { text: 'Process returns and exchanges', priority: '' }
+      ]
+    };
+    
+    const tasks = sampleTasks[section] || [];
+    
+    tasks.forEach(task => {
+      const li = document.createElement('li');
+      li.className = 'checklist-item' + (task.done ? ' done' : '');
+      
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.className = 'checklist-checkbox';
+      if (task.done) checkbox.checked = true;
+      
+      const textSpan = document.createElement('span');
+      textSpan.className = 'checklist-text';
+      textSpan.textContent = task.text;
+      
+      const importantBtn = document.createElement('button');
+      importantBtn.className = 'action-btn important-btn';
+      importantBtn.title = 'Mark as important';
+      importantBtn.innerHTML = '★';
+      
+      const removeBtn = document.createElement('button');
+      removeBtn.className = 'action-btn remove-btn';
+      removeBtn.title = 'Remove task';
+      removeBtn.innerHTML = '×';
+      
+      li.appendChild(checkbox);
+      li.appendChild(textSpan);
+      
+      if (task.priority === 'high') {
+        const badge = document.createElement('span');
+        badge.className = 'priority-badge high-priority';
+        badge.textContent = 'High';
+        li.appendChild(badge);
+      } else if (task.priority === 'medium') {
+        const badge = document.createElement('span');
+        badge.className = 'priority-badge medium-priority';
+        badge.textContent = 'Medium';
+        li.appendChild(badge);
+      }
+      
+      if (task.due) {
+        const dueDiv = document.createElement('div');
+        dueDiv.className = 'task-due';
+        dueDiv.textContent = task.due;
+        li.appendChild(dueDiv);
+      }
+      
+      li.appendChild(importantBtn);
+      li.appendChild(removeBtn);
+      
+      checklist.appendChild(li);
+    });
+  }
+  
+  updateNoTasksMessage();
 });
-addCatForm.onsubmit = async (e) => {
-  e.preventDefault();
-  const name = newCatInput.value.trim();
-  if (!name) return;
-  if (categories.some(cat => cat.name.toLowerCase() === name.toLowerCase())) {
-    alert('Category with this name already exists!');
-    return;
-  }
-  await addDoc(collection(db, "shop-categories"), { name, created: serverTimestamp() });
-  newCatInput.value = '';
-};
-function setCurrentSection(type, value) {
-  currentSection = { type, value };
-  updateSection();
-}
-function updateSection() {
-  let emoji = '📝', title = '';
-  if (currentSection.type === 'special') {
-    switch (currentSection.value) {
-      case 'myday': emoji = '🌞'; title = "My Day"; break;
-      case 'mon': emoji = '📅'; title = "Monday"; break;
-      case 'tue': emoji = '📅'; title = "Tuesday"; break;
-      case 'wed': emoji = '📅'; title = "Wednesday"; break;
-      case 'thu': emoji = '📅'; title = "Thursday"; break;
-      case 'fri': emoji = '📅'; title = "Friday"; break;
-      case 'sat': emoji = '📅'; title = "Saturday"; break;
-      case 'sun': emoji = '📅'; title = "Sunday"; break;
-    }
-  } else {
-    emoji = '📂';
-    const cat = categories.find(cat => cat.id === currentSection.value);
-    title = cat ? cat.name : 'Category';
-  }
-  mainEmoji.textContent = emoji;
-  mainTitle.textContent = title;
-  if (currentSection.type === 'special') {
-    taskDayOption.style.display = 'none';
-  } else {
-    taskDayOption.style.display = '';
-  }
-  setActiveSidebarItem();
-  loadTasks();
-}
-
-// --- Add Task
-addTaskForm.onsubmit = async (e) => {
-  e.preventDefault();
-  const text = todoInput.value.trim();
-  if (!text) return;
-
-  // Special handling for Cleaning repeat
-  if (text.toLowerCase() === "cleaning" && currentSection.type === "special" && currentSection.value === "mon") {
-    const now = new Date();
-    const nextMonday = getNextMonday8AM(now);
-    await addDoc(collection(db, "shop-meta-tasks"), {
-      text: "Cleaning",
-      done: false,
-      created: serverTimestamp(),
-      dueDate: nextMonday.toISOString(),
-      repeat: "weekly",
-      repeatDay: 1
-    });
-  } else if (currentSection.type === 'special') {
-    let payload = { text, done: false, created: serverTimestamp() };
-    if (currentSection.value === 'myday') payload.myday = true;
-    else payload.day = currentSection.value;
-    await addDoc(collection(db, "shop-meta-tasks"), payload);
-  } else if (currentSection.type === 'category') {
-    let payload = { text, done: false, created: serverTimestamp() };
-    const optDay = taskDayOption.value;
-    if (optDay) payload.day = optDay;
-    await addDoc(collection(db, "shop-categories", currentSection.value, "todos"), payload);
-  }
-  todoInput.value = '';
-  taskDayOption.value = '';
-};
-
-function renderTask(docData, taskRef, taskType = 'meta') {
-  const li = document.createElement('li');
-  li.className = 'todo-item' + (docData.done ? ' done' : '');
-  if (docData.text === "Cleaning" && docData.dueDate) {
-    const due = new Date(docData.dueDate);
-    const dueStr = due.toLocaleString([], { weekday: 'short', hour: '2-digit', minute: '2-digit', month: 'short', day: 'numeric' });
-    li.title = "Scheduled for: " + dueStr;
-  }
-  const checkbox = document.createElement('input');
-  checkbox.type = 'checkbox';
-  checkbox.className = 'todo-checkbox';
-  checkbox.checked = !!docData.done;
-  checkbox.title = docData.done ? "Mark as not done" : "Mark as done";
-  checkbox.onchange = async () => {
-    await updateDoc(taskRef, { done: checkbox.checked });
-    if (docData.text === "Cleaning" && docData.repeat === "weekly" && checkbox.checked && docData.dueDate) {
-      let due = new Date(docData.dueDate);
-      due = getNextMonday8AM(due);
-      const nextCleaning = await getDocs(query(collection(db, "shop-meta-tasks")));
-      let found = false;
-      nextCleaning.forEach(docSnap => {
-        const d = docSnap.data();
-        if (
-          d.text === "Cleaning" &&
-          d.dueDate &&
-          new Date(d.dueDate).getTime() === due.getTime() &&
-          !d.done
-        ) found = true;
-      });
-      if (!found) {
-        await addDoc(collection(db, "shop-meta-tasks"), {
-          text: "Cleaning",
-          done: false,
-          created: serverTimestamp(),
-          dueDate: due.toISOString(),
-          repeat: "weekly",
-          repeatDay: 1
-        });
-      }
-    }
-  };
-  const textSpan = document.createElement('span');
-  textSpan.className = 'todo-text';
-  textSpan.textContent = docData.text;
-  textSpan.onclick = () => {
-    updateDoc(taskRef, { done: !docData.done });
-  };
-  const removeBtn = document.createElement('button');
-  removeBtn.className = 'remove-btn';
-  removeBtn.innerHTML = '&times;';
-  removeBtn.title = "Remove";
-  removeBtn.onclick = () => {
-    deleteDoc(taskRef);
-  };
-  li.appendChild(checkbox);
-  li.appendChild(textSpan);
-  li.appendChild(removeBtn);
-  if (docData.text === "Cleaning" && docData.dueDate) {
-    const duePill = document.createElement('span');
-    duePill.style =
-      "background:#e5f4ff;color:#1565c0;font-size:.93em;font-weight:600;padding:2px 11px 2px 7px;border-radius:16px;margin-left:10px;";
-    const due = new Date(docData.dueDate);
-    duePill.textContent = due.toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" }) + " 8:00";
-    li.appendChild(duePill);
-  }
-  return li;
-}
-
-function loadTasks() {
-  if (unsubscribeTodos) unsubscribeTodos();
-  todoList.innerHTML = '';
-  noTasksMsg.style.display = 'none';
-
-  if (currentSection.type === 'special') {
-    let filterField, filterVal;
-    if (currentSection.value === 'myday') { filterField = 'myday'; filterVal = true; }
-    else { filterField = 'day'; filterVal = currentSection.value; }
-    const q = query(collection(db, "shop-meta-tasks"), orderBy("created", "desc"));
-    unsubscribeTodos = onSnapshot(q, (snapshot) => {
-      todoList.innerHTML = '';
-      let hasTasks = false;
-      let cleaningTasks = [];
-      snapshot.forEach(docSnap => {
-        const data = docSnap.data();
-        if (data.text === "Cleaning" && data.repeat === "weekly" && data.dueDate) {
-          const now = new Date();
-          const due = new Date(data.dueDate);
-          if (!data.done && due >= new Date(now.getFullYear(), now.getMonth(), now.getDate())) {
-            cleaningTasks.push({ data, ref: doc(db, "shop-meta-tasks", docSnap.id) });
-          }
-        } else if (data[filterField] === filterVal) {
-          hasTasks = true;
-          const ref = doc(db, "shop-meta-tasks", docSnap.id);
-          const li = renderTask(data, ref, 'meta');
-          todoList.appendChild(li);
-        }
-      });
-      if (currentSection.value === "mon" && cleaningTasks.length > 0) {
-        cleaningTasks.sort((a, b) => new Date(a.data.dueDate) - new Date(b.data.dueDate));
-        const { data, ref } = cleaningTasks[0];
-        todoList.insertBefore(renderTask(data, ref, 'meta'), todoList.firstChild);
-        hasTasks = true;
-      }
-      if (!hasTasks && cleaningTasks.length === 0) noTasksMsg.style.display = '';
-    });
-  } else if (currentSection.type === 'category') {
-    const todosRef = query(collection(db, "shop-categories", currentSection.value, "todos"), orderBy("created", "desc"));
-    unsubscribeTodos = onSnapshot(todosRef, (snapshot) => {
-      todoList.innerHTML = '';
-      let hasTasks = false;
-      snapshot.forEach(docSnap => {
-        const data = docSnap.data();
-        hasTasks = true;
-        const ref = doc(db, "shop-categories", currentSection.value, "todos", docSnap.id);
-        const li = renderTask(data, ref, 'cat');
-        todoList.appendChild(li);
-      });
-      if (!hasTasks) noTasksMsg.style.display = '';
-    });
-  }
-}
-updateSection();
 </script>
 </body>
 </html>
