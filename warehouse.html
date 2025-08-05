@@ -61,7 +61,6 @@
             padding: 0;
             margin: 0;
             overflow: hidden;
-           
             margin: 0 auto;
         }
 
@@ -281,6 +280,64 @@
             padding: 12px 15px;
         }
 
+        /* --- Modal styles for Edit --- */
+        .modal-bg {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.45);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+        .modal {
+            background: var(--bg-light);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 32px 24px 24px 24px;
+            min-width: 320px;
+            max-width: 95vw;
+            color: var(--text-light);
+            border: 1px solid var(--border);
+        }
+        .modal h3 {
+            margin-bottom: 20px;
+            color: var(--accent);
+            text-align: center;
+        }
+        .modal label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: var(--text-fade);
+        }
+        .modal input {
+            margin-bottom: 16px;
+        }
+        .modal .form-actions {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+        }
+        .edit-btn {
+            background: var(--success);
+            color: #fff;
+            border: none;
+            padding: 8px 14px;
+            font-size: 0.97rem;
+            border-radius: 7px;
+            margin-left: 5px;
+            cursor: pointer;
+        }
+        .edit-btn:hover {
+            background: var(--success-hover);
+        }
+        .edit-locked {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(-10px); }
             to { opacity: 1; transform: translateY(0); }
@@ -355,7 +412,8 @@
 
         let inventory = [];
         let unsubscribeInventory = null;
-        
+        let editLock = false; // lock for password
+
         // BRANCH MAPPING (swapped names)
         const branches = {
             "makeni": { id: "makeni", name: "Kabanana Branch" },
@@ -535,13 +593,18 @@
                     <td>${item.stock}</td>
                     <td>${item.sold || 0}</td>
                     <td>${stockValue.toFixed(2)}</td>
+                    <td>
+                        <button class="edit-btn${editLock ? ' edit-locked' : ''}" onclick="openEditModal('${item.id}')">Edit</button>
+                    </td>
                 `;
                 inventoryTableBody.appendChild(row);
             });
             const totalRow = document.createElement('tr');
+            totalRow.className = "total-row";
             totalRow.innerHTML = `
                 <td colspan="5" style="text-align: right;"><strong>Total Stock Value:</strong></td>
                 <td><strong>${totalStockValue.toFixed(2)}</strong></td>
+                <td></td>
             `;
             inventoryTableBody.appendChild(totalRow);
         }
@@ -601,17 +664,109 @@
                     <td>${item.stock}</td>
                     <td>${item.sold || 0}</td>
                     <td>${stockValue.toFixed(2)}</td>
+                    <td>
+                        <button class="edit-btn${editLock ? ' edit-locked' : ''}" onclick="openEditModal('${item.id}')">Edit</button>
+                    </td>
                 `;
                 inventoryTableBody.appendChild(row);
             });
             const totalRow = document.createElement('tr');
+            totalRow.className = "total-row";
             totalRow.innerHTML = `
                 <td colspan="5" style="text-align: right;"><strong>Total Stock Value:</strong></td>
                 <td><strong>${totalStockValue.toFixed(2)}</strong></td>
+                <td></td>
             `;
             inventoryTableBody.appendChild(totalRow);
         }
 
+        // --- Editable Modal Logic ---
+        window.openEditModal = function(productId) {
+            if (!editLock) {
+                const userPass = prompt("Enter password to edit product details:");
+                if (userPass !== "1030") {
+                    alert("Incorrect password. Editing not allowed.");
+                    return;
+                }
+                editLock = true;
+                displayInventory(); // unlock all edit buttons visually
+            }
+            const item = inventory.find(i => i.id === productId);
+            if (!item) return;
+            showModal(item);
+        };
+
+        function closeModal() {
+            const modalBg = document.getElementById('modal-bg');
+            if (modalBg) modalBg.remove();
+        }
+
+        async function saveEditProduct(event, id) {
+            event.preventDefault();
+            const form = event.target;
+            const code = form.code.value.trim().toUpperCase();
+            const name = form.name.value.trim();
+            const price = parseFloat(form.price.value);
+            const stock = parseInt(form.stock.value);
+            if (!code || !name || isNaN(price) || price < 0 || isNaN(stock) || stock < 0) {
+                alert('Please enter valid values for all fields.');
+                return;
+            }
+            // Check for duplicate product code under this branch, if code changed
+            const current = inventory.find(i => i.id === id);
+            if (!current) { alert('Product not found.'); return; }
+            if (code !== current.code) {
+                const exists = inventory.some(i => i.code === code);
+                if (exists) {
+                    alert('Product code already exists! Please use another code.');
+                    return;
+                }
+            }
+            try {
+                await updateDoc(doc(db, 'inventory', id), {
+                    code: code,
+                    name: name,
+                    price: price,
+                    stock: stock
+                });
+                closeModal();
+                alert("Inventory product updated successfully!");
+            } catch (error) {
+                alert("Failed to update product: " + error.message);
+            }
+        }
+
+        function showModal(item) {
+            closeModal(); // Remove any open modals
+            const modalBg = document.createElement('div');
+            modalBg.className = 'modal-bg';
+            modalBg.id = 'modal-bg';
+            modalBg.innerHTML = `
+                <div class="modal">
+                    <h3>Edit Product</h3>
+                    <form id="editProductForm">
+                        <label>Product Code</label>
+                        <input type="text" name="code" required value="${item.code}" />
+                        <label>Product Name</label>
+                        <input type="text" name="name" required value="${item.name}" />
+                        <label>Price</label>
+                        <input type="number" name="price" min="0" step="0.01" required value="${item.price}" />
+                        <label>Stock</label>
+                        <input type="number" name="stock" min="0" required value="${item.stock}" />
+                        <div class="form-actions">
+                            <button type="submit" class="btn-primary">Save</button>
+                            <button type="button" class="btn-danger" id="cancelModalBtn">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            `;
+            document.body.appendChild(modalBg);
+            document.getElementById('editProductForm').onsubmit = (e) => saveEditProduct(e, item.id);
+            document.getElementById('cancelModalBtn').onclick = closeModal;
+            modalBg.onclick = function(e){ if(e.target === modalBg) closeModal(); };
+        }
+
+        // ----
         window.onload = async function() {
             document.querySelector('h2.HEADER').textContent = `Warehouse - ${getCurrentBranchName()}`;
             setupInventoryListener();
@@ -668,6 +823,7 @@
                         <th>Stock</th>
                         <th>Sold</th>
                         <th>Stock Value</th>
+                        <th>Edit</th>
                     </tr>
                 </thead>
                 <tbody></tbody>
