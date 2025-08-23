@@ -5,27 +5,22 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sales Dashboard</title>
 <style>
-  body { font-family: Arial, sans-serif; background: #1e1e2f; color: #fff; margin: 0; padding: 20px; }
-  h2 { text-align: center; color: #ffcc00; margin-bottom: 20px; }
-  .buttons { text-align: center; margin-bottom: 20px; flex-wrap: wrap; display: flex; justify-content: center; gap:10px; }
-  input, select { padding: 8px; border-radius: 6px; border: none; margin: 5px; width: 180px; background: #2c2c44; color: #fff; font-size: 0.9rem; }
-  button { margin: 5px; padding: 8px 12px; border-radius: 6px; border: none; cursor: pointer; background: #ffcc00; color: #1e1e2f; font-weight: 600; font-size: 0.9rem; }
-  button:hover { background: #e6b800; }
-  table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 0.85rem; }
-  th, td { padding: 8px 6px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.1); }
-  th { color: #ffcc00; font-weight: 600; }
-  tbody tr:nth-child(even) { background: #2c2c44; }
-  tbody tr:nth-child(odd) { background: #1f1f33; }
-  .form-container { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 20px; }
-  .total-sales { text-align: center; margin-top: 10px; font-size: 1rem; font-weight: bold; }
-  .scroll-container { overflow-x: auto; }
+  body { font-family: Arial, sans-serif; background:#1e1e2f; color:#fff; margin:0; padding:10px; }
+  h2 { text-align:center; color:#ffcc00; margin-bottom:15px; font-size:1.2rem; }
+  .buttons { display:flex; justify-content:center; flex-wrap:wrap; gap:10px; margin-bottom:10px; }
+  input, select { padding:6px; border-radius:6px; border:none; background:#2c2c44; color:#fff; font-size:0.85rem; margin:3px; width:160px; }
+  button { padding:6px 10px; border-radius:6px; border:none; cursor:pointer; background:#ffcc00; color:#1e1e2f; font-weight:600; font-size:0.85rem; margin:3px; }
+  button:hover { background:#e6b800; }
+  table { width:100%; border-collapse:collapse; margin-top:15px; font-size:0.8rem; }
+  th, td { padding:6px 4px; text-align:left; border-bottom:1px solid rgba(255,255,255,0.1); }
+  th { color:#ffcc00; font-weight:600; }
+  tbody tr:nth-child(even) { background:#2c2c44; }
+  tbody tr:nth-child(odd) { background:#1f1f33; }
+  .form-container { display:flex; flex-direction:column; align-items:center; gap:8px; margin-bottom:10px; }
+  .total-sales { text-align:center; margin-top:8px; font-size:0.95rem; font-weight:bold; }
+  .scroll-container { overflow-x:auto; }
 
-  /* Mobile responsive tweaks */
-  @media (max-width: 768px) {
-    table { font-size: 0.8rem; }
-    input, select { width: 90%; max-width: 250px; }
-    button { width: 90%; max-width: 250px; }
-  }
+  @media(max-width:768px){ input, select, button { width:90%; max-width:220px; } table { font-size:0.75rem; } }
 </style>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
@@ -45,113 +40,106 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-let currentUserUID;
-let inventory = [];
-let sales = [];
 
-onAuthStateChanged(auth, async (user) => {
-  if (!user) window.location.href = "index.html";
+let currentUserUID, inventory = [], salesCache = {};
+onAuthStateChanged(auth, async user => {
+  if(!user) window.location.href="index.html";
   currentUserUID = user.uid;
   await loadInventory();
   setTodayDate();
   await loadSalesByDate(document.getElementById('filterDate').value);
 });
 
-async function loadInventory() {
-  inventory = [];
+// Cache inventory locally to reduce reads
+async function loadInventory(){
+  if(inventory.length>0) return;
   const snapshot = await getDocs(collection(db, "users", currentUserUID, "inventory"));
-  snapshot.forEach(docSnap => inventory.push({ id: docSnap.id, ...docSnap.data() }));
+  inventory = snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
   populateProductOptions();
 }
 
-function populateProductOptions() {
+function populateProductOptions(){
   const select = document.getElementById('productCode');
   select.innerHTML = '<option value="">Select Product</option>';
-  inventory.forEach(item => {
-    const option = document.createElement('option');
-    option.value = item.code;
-    option.textContent = item.name;
-    select.appendChild(option);
+  inventory.forEach(item => { 
+    const option = document.createElement('option'); 
+    option.value=item.code; option.textContent=item.name; 
+    select.appendChild(option); 
   });
 }
 
-function setTodayDate() {
+function setTodayDate(){
   const today = new Date().toISOString().split('T')[0];
   document.getElementById('saleDate').value = today;
   document.getElementById('filterDate').value = today;
 }
 
-async function makeSale(event) {
+async function makeSale(event){
   event.preventDefault();
   const productCode = document.getElementById('productCode').value;
   const quantity = parseInt(document.getElementById('quantity').value);
   const date = document.getElementById('saleDate').value;
-
-  if (!productCode || isNaN(quantity) || !date) return alert("Fill all fields!");
-  const item = inventory.find(i => i.code === productCode);
-  if (!item || item.stock < quantity) return alert(`Insufficient stock for ${item ? item.name : ''}`);
-
+  if(!productCode || isNaN(quantity) || !date) return alert("Fill all fields!");
+  
+  const item = inventory.find(i => i.code===productCode);
+  if(!item || item.stock < quantity) return alert(`Insufficient stock for ${item?item.name:''}`);
+  
   item.stock -= quantity;
-  item.sold = (item.sold || 0) + quantity;
+  item.sold = (item.sold||0)+quantity;
 
-  const saleEntry = { date, code: item.code, name: item.name, price: item.price, quantity };
+  const saleEntry = { date, code:item.code, name:item.name, price:item.price, quantity };
   await addDoc(collection(db, "users", currentUserUID, "sales"), saleEntry);
-  await updateDoc(doc(db, "users", currentUserUID, "inventory", item.id), { stock: item.stock, sold: item.sold });
+  await updateDoc(doc(db, "users", currentUserUID, "inventory", item.id), { stock:item.stock, sold:item.sold });
 
-  await loadSalesByDate(date);
+  if(!salesCache[date]) salesCache[date]=[];
+  salesCache[date].push(saleEntry); // update local cache
+  renderSalesTable(date);
   document.getElementById('salesForm').reset();
 }
 
-async function loadSalesByDate(date) {
-  sales = [];
-  const salesRef = collection(db, "users", currentUserUID, "sales");
-  const q = query(salesRef, where("date", "==", date));
-  const snapshot = await getDocs(q);
-  snapshot.forEach(docSnap => sales.push({ id: docSnap.id, ...docSnap.data() }));
-  renderSalesTable();
+async function loadSalesByDate(date){
+  if(!salesCache[date]){
+    const salesRef = collection(db, "users", currentUserUID, "sales");
+    const q = query(salesRef, where("date","==",date));
+    const snapshot = await getDocs(q);
+    salesCache[date] = snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
+  }
+  renderSalesTable(date);
 }
 
-function renderSalesTable() {
+function renderSalesTable(date){
   const tbody = document.querySelector('#salesTable tbody');
-  tbody.innerHTML = '';
+  tbody.innerHTML='';
+  const sales = salesCache[date] || [];
   if(sales.length===0){
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No sales yet</td></tr>';
-    updateTotalSales();
+    tbody.innerHTML='<tr><td colspan="5" style="text-align:center;">No sales yet</td></tr>';
+    updateTotalSales(date);
     return;
   }
-  sales.forEach(sale => {
-    const total = (sale.price * sale.quantity).toFixed(2);
-    const row = document.createElement('tr');
-    row.innerHTML = `
-      <td>${sale.code}</td>
-      <td>${sale.name}</td>
-      <td>${sale.price}</td>
-      <td>${sale.quantity}</td>
-      <td>${total}</td>
-    `;
+  sales.forEach(sale=>{
+    const total=(sale.price*sale.quantity).toFixed(2);
+    const row=document.createElement('tr');
+    row.innerHTML=`<td>${sale.code}</td><td>${sale.name}</td><td>${sale.price}</td><td>${sale.quantity}</td><td>${total}</td>`;
     tbody.appendChild(row);
   });
-  updateTotalSales();
+  updateTotalSales(date);
 }
 
-function updateTotalSales() {
-  const total = sales.reduce((acc, s) => acc + s.price * s.quantity, 0).toFixed(2);
-  document.querySelector('.total-sales').textContent = `Total Sales for ${document.getElementById('filterDate').value}: ZMW ${total}`;
+function updateTotalSales(date){
+  const total=(salesCache[date]||[]).reduce((acc,s)=>acc+s.price*s.quantity,0).toFixed(2);
+  document.querySelector('.total-sales').textContent=`Total Sales for ${date}: ZMW ${total}`;
 }
 
-function filterByDate() {
-  const date = document.getElementById('filterDate').value;
-  loadSalesByDate(date);
+function filterByDate(){ loadSalesByDate(document.getElementById('filterDate').value); }
+
+function toggleForm(){
+  const form=document.querySelector('.form-container');
+  form.style.display=form.style.display==='flex'?'none':'flex';
 }
 
-function toggleForm() {
-  const form = document.querySelector('.form-container');
-  form.style.display = form.style.display === 'flex' ? 'none' : 'flex';
-}
-
-window.makeSale = makeSale;
-window.toggleForm = toggleForm;
-window.filterByDate = filterByDate;
+window.makeSale=makeSale;
+window.toggleForm=toggleForm;
+window.filterByDate=filterByDate;
 </script>
 </head>
 <body>
@@ -161,7 +149,7 @@ window.filterByDate = filterByDate;
     <button onclick="toggleForm()">Toggle Sale Form</button>
     <input type="date" id="filterDate" onchange="filterByDate()">
   </div>
-  <div class="form-container">
+  <div class="form-container" style="display:flex;">
     <form id="salesForm" onsubmit="makeSale(event)">
       <input type="date" id="saleDate" required>
       <select id="productCode" required></select>
@@ -176,16 +164,4 @@ window.filterByDate = filterByDate;
           <th>Product Code</th>
           <th>Product Name</th>
           <th>Price</th>
-          <th>Quantity</th>
-          <th>Total</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr><td colspan="5" style="text-align:center;">No sales yet</td></tr>
-      </tbody>
-    </table>
-  </div>
-  <div class="total-sales">Total Sales ZMW0.00</div>
-</div>
-</body>
-</html>
+          <th>Quanti
