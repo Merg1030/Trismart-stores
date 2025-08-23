@@ -17,6 +17,8 @@
   tbody tr:nth-child(even) { background: #2c2c44; }
   tbody tr:nth-child(odd) { background: #1f1f33; }
   .form-container { display: none; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 15px; }
+
+  /* Responsive table */
   @media(max-width:768px){
     input, select, button { width: 90%; max-width: 250px; font-size: 0.85rem; }
     table, thead, tbody, th, td, tr { display: block; }
@@ -66,6 +68,10 @@ function renderTable() {
   const tbody = document.querySelector('#cashflowTable tbody');
   tbody.innerHTML = '';
   let balance = 0;
+  if(cashflow.length === 0){
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No entries yet</td></tr>';
+    return;
+  }
   cashflow.forEach(entry => {
     balance += entry.type === 'Inflow' ? entry.amount : -entry.amount;
     const row = document.createElement('tr');
@@ -93,7 +99,6 @@ async function addEntry(event) {
   const amount = parseFloat(document.getElementById('amount').value);
 
   if (!date || !description || isNaN(amount)) return alert("Fill all fields correctly!");
-
   await addDoc(collection(db, "users", currentUserUID, "cashflow"), { date, description, type, amount });
   document.getElementById('cashflowForm').reset();
   toggleForm();
@@ -130,7 +135,9 @@ window.addEntry = addEntry;
       <th>Balance</th>
     </tr>
   </thead>
-  <tbody><tr><td colspan="5" style="text-align:center;">No entries yet</td></tr></tbody>
+  <tbody>
+    <tr><td colspan="5" style="text-align:center;">No entries yet</td></tr>
+  </tbody>
 </table>
 </body>
 </html>
