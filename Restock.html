@@ -5,22 +5,30 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Restock Inventory</title>
 <style>
-  body { font-family: Arial; background: #1e1e2f; color: #fff; margin: 0; padding: 20px; }
-  h2 { text-align: center; color: #ffcc00; margin-bottom: 20px; }
-  .form-container, .history-container { margin-bottom: 30px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
-  select, input { padding: 8px; border-radius: 4px; border: 1px solid #fff; margin: 5px; width: 200px; }
-  button { padding: 8px 12px; border-radius: 5px; border: none; cursor: pointer; background: #ffcc00; color: #1e1e2f; }
+  body { font-family: Arial, sans-serif; background: #1e1e2f; color: #fff; margin: 0; padding: 20px; }
+  h2 { text-align: center; color: #ffcc00; margin-bottom: 15px; font-size: 1.5rem; }
+  .form-container, .history-container { margin-bottom: 15px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  select, input { padding: 8px; border-radius: 6px; border: none; margin: 5px; width: 200px; background: #2c2c44; color: #fff; font-size: 0.9rem; }
+  button { padding: 8px 12px; border-radius: 6px; border: none; cursor: pointer; background: #ffcc00; color: #1e1e2f; font-weight: 600; font-size: 0.9rem; margin: 5px; }
   button:hover { background: #e6b800; }
-  table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-  th, td { padding: 10px; border: 1px solid #fff; text-align: center; }
-  th { background: #acaaa5; color: #121212; }
-  tbody tr:nth-child(even) { background: #2c2c2c; }
-  tbody tr:nth-child(odd) { background: #1e1e2d; }
+  table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.85rem; }
+  th, td { padding: 8px 6px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.1); }
+  th { color: #ffcc00; font-weight: 600; }
+  tbody tr:nth-child(even) { background: #2c2c44; }
+  tbody tr:nth-child(odd) { background: #1f1f33; }
+  .total-value { text-align: right; font-weight: bold; font-size: 0.95rem; color: #ffcc00; margin-top: 5px; }
+  @media(max-width:768px){
+    select, input, button { width: 90%; max-width: 250px; }
+    table, thead, tbody, th, td, tr { display: block; }
+    th { display: none; }
+    td { text-align: right; padding-left: 50%; position: relative; }
+    td::before { content: attr(data-label); position: absolute; left: 15px; font-weight: 600; color: #ffcc00; text-transform: capitalize; }
+  }
 </style>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-import { getFirestore, collection, getDocs, updateDoc, addDoc, doc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+import { getFirestore, collection, updateDoc, addDoc, doc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyDuAv_aGmY4VzergDS7g_K3zR-jFYHvGZo",
@@ -42,17 +50,21 @@ let inventory = [];
 onAuthStateChanged(auth, async (user) => {
     if (!user) { window.location.href = "index.html"; return; }
     currentUserUID = user.uid;
-    await loadInventory();
+    listenInventory();
     listenRestockHistory();
 });
 
-async function loadInventory() {
-    const snapshot = await getDocs(collection(db, "users", currentUserUID, "inventory"));
-    inventory = [];
-    snapshot.forEach(docSnap => inventory.push({ id: docSnap.id, ...docSnap.data() }));
-    populateSelect();
+// Listen inventory changes once
+function listenInventory() {
+    const invRef = collection(db, "users", currentUserUID, "inventory");
+    onSnapshot(invRef, snapshot => {
+        inventory = [];
+        snapshot.forEach(docSnap => inventory.push({ id: docSnap.id, ...docSnap.data() }));
+        populateSelect();
+    });
 }
 
+// Populate the dropdown select
 function populateSelect() {
     const select = document.getElementById('itemSelect');
     select.innerHTML = '<option value="">Select Item</option>';
@@ -61,13 +73,14 @@ function populateSelect() {
     });
 }
 
-// Automatically fill supplier price with default item price
+// Auto-fill supplier price on selection
 document.getElementById('itemSelect')?.addEventListener('change', (e) => {
     const option = e.target.selectedOptions[0];
     const priceInput = document.getElementById('supplierPrice');
     if (option && option.dataset.price) priceInput.value = option.dataset.price;
 });
 
+// Restock function optimized
 async function restockItem(event) {
     event.preventDefault();
     const itemId = document.getElementById('itemSelect').value;
@@ -83,10 +96,13 @@ async function restockItem(event) {
 
     try {
         const itemRef = doc(db, "users", currentUserUID, "inventory", itemId);
+        const historyRef = collection(db, "users", currentUserUID, "restockHistory");
+
+        // Update inventory stock
         await updateDoc(itemRef, { stock: item.stock + qty });
 
+        // Add restock history
         const totalCost = qty * price;
-        const historyRef = collection(db, "users", currentUserUID, "restockHistory");
         await addDoc(historyRef, {
             itemId,
             itemCode: item.code,
@@ -98,35 +114,43 @@ async function restockItem(event) {
             date: new Date()
         });
 
+        // Update local stock to avoid extra reads
+        item.stock += qty;
+        populateSelect();
         document.getElementById('restockForm').reset();
-        await loadInventory(); // refresh select and inventory
     } catch (err) {
         console.error("Restock error:", err);
         alert("Error restocking item");
     }
 }
 
+// Listen restock history with total value
 function listenRestockHistory() {
     const restockRef = collection(db, "users", currentUserUID, "restockHistory");
     const q = query(restockRef, orderBy("date", "desc"));
     const tbody = document.querySelector('#restockTable tbody');
+    const totalDiv = document.querySelector('.total-value');
+
     onSnapshot(q, snapshot => {
         tbody.innerHTML = '';
+        let totalValue = 0;
         snapshot.forEach(docSnap => {
             const data = docSnap.data();
             const date = data.date?.toDate ? data.date.toDate() : new Date();
+            totalValue += data.totalCost;
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td>${data.itemCode}</td>
-                <td>${data.itemName}</td>
-                <td>${data.supplier}</td>
-                <td>${data.quantity}</td>
-                <td>${data.price.toFixed(2)}</td>
-                <td>${data.totalCost.toFixed(2)}</td>
-                <td>${date.toLocaleString()}</td>
+                <td data-label="Code">${data.itemCode}</td>
+                <td data-label="Item Name">${data.itemName}</td>
+                <td data-label="Supplier">${data.supplier}</td>
+                <td data-label="Quantity">${data.quantity}</td>
+                <td data-label="Price">${data.price.toFixed(2)}</td>
+                <td data-label="Total Cost">${data.totalCost.toFixed(2)}</td>
+                <td data-label="Date">${date.toLocaleString()}</td>
             `;
             tbody.appendChild(row);
         });
+        totalDiv.textContent = `Total Restock Value: ZMW ${totalValue.toFixed(2)}`;
     });
 }
 
@@ -147,7 +171,6 @@ window.restockItem = restockItem;
 </div>
 
 <div class="history-container">
-
   <table id="restockTable">
     <thead>
       <tr>
@@ -160,8 +183,9 @@ window.restockItem = restockItem;
         <th>Date</th>
       </tr>
     </thead>
-    <tbody></tbody>
+    <tbody><tr><td colspan="7" style="text-align:center;">No restock history yet</td></tr></tbody>
   </table>
+  <div class="total-value">Total Restock Value: ZMW 0.00</div>
 </div>
 </body>
 </html>
