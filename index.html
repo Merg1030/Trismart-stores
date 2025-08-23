@@ -258,6 +258,114 @@
       display: none;
     }
 
+    /* Modal Styles */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: var(--transition);
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .modal {
+      background: var(--card-bg);
+      border-radius: var(--border-radius);
+      width: 90%;
+      max-width: 500px;
+      padding: 2rem;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+      transform: translateY(-50px);
+      transition: var(--transition);
+      position: relative;
+    }
+
+    .modal-overlay.active .modal {
+      transform: translateY(0);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .modal-title {
+      font-size: 1.5rem;
+      color: var(--accent);
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 1.5rem;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .modal-close:hover {
+      color: var(--text);
+    }
+
+    .payment-details {
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .payment-option {
+      margin-bottom: 1rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .payment-option:last-child {
+      margin-bottom: 0;
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+
+    .payment-option-title {
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: 0.5rem;
+    }
+
+    .payment-option-details {
+      color: var(--text);
+      font-size: 0.95rem;
+    }
+
+    .transaction-form {
+      margin-top: 1.5rem;
+    }
+
+    .success-message {
+      text-align: center;
+      padding: 1.5rem;
+    }
+
+    .success-icon {
+      font-size: 3rem;
+      color: var(--success);
+      margin-bottom: 1rem;
+    }
+
     /* Responsive adjustments */
     @media (max-width: 480px) {
       .auth-container {
@@ -283,6 +391,10 @@
       .auth-tab {
         padding: 0.8rem;
         font-size: 0.9rem;
+      }
+      
+      .modal {
+        padding: 1.5rem;
       }
     }
   </style>
@@ -311,7 +423,7 @@
       <div id="paymentMessage" class="payment-message">
         <i class="fas fa-exclamation-circle"></i>
         <p>Your account has been disabled. Please make a payment to regain access.</p>
-        <button class="btn btn-primary" style="margin-top: 10px;" onclick="contactSupport()">
+        <button class="btn btn-primary" style="margin-top: 10px;" onclick="showPaymentModal()">
           <i class="fas fa-credit-card"></i> Make Payment
         </button>
       </div>
@@ -432,6 +544,95 @@
     </div>
   </div>
 
+  <!-- Payment Modal -->
+  <div class="modal-overlay" id="paymentModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title">Make Payment</h2>
+        <button class="modal-close" onclick="closeModal('paymentModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p>Please send money to one of the following accounts:</p>
+        
+        <div class="payment-details">
+          <div class="payment-option">
+            <div class="payment-option-title">Airtel Money</div>
+            <div class="payment-option-details">
+              <p>Line: 0771287206</p>
+              <p>Name: Christopher Chishela</p>
+            </div>
+          </div>
+          
+          <div class="payment-option">
+            <div class="payment-option-title">FNB Bank</div>
+            <div class="payment-option-details">
+              <p>Account: 63042080133</p>
+              <p>Name: Christopher Chishela</p>
+            </div>
+          </div>
+        </div>
+        
+        <button class="btn btn-primary" onclick="showTransactionIdModal()">
+          <i class="fas fa-check-circle"></i> I've Made the Payment
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Transaction ID Modal -->
+  <div class="modal-overlay" id="transactionIdModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title">Enter Payment Details</h2>
+        <button class="modal-close" onclick="closeModal('transactionIdModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p>Please enter your payment details below:</p>
+        
+        <div class="form-group">
+          <label for="paymentAmount">Amount Paid</label>
+          <div class="input-with-icon">
+            <i class="fas fa-dollar-sign"></i>
+            <input type="number" id="paymentAmount" placeholder="Amount">
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="transactionId">Transaction ID</label>
+          <div class="input-with-icon">
+            <i class="fas fa-receipt"></i>
+            <input type="text" id="transactionId" placeholder="Transaction ID">
+          </div>
+        </div>
+        
+        <button class="btn btn-primary" onclick="submitPayment()">
+          <i class="fas fa-paper-plane"></i> Submit Payment
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Success Modal -->
+  <div class="modal-overlay" id="successModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title">Payment Submitted</h2>
+        <button class="modal-close" onclick="closeModal('successModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="success-message">
+          <div class="success-icon">
+            <i class="fas fa-check-circle"></i>
+          </div>
+          <p>Your payment has been submitted successfully!</p>
+          <p>Please wait for 5 minutes for accounts to approve.</p>
+          <p>If it takes more than 5 minutes, call our Support team on:</p>
+          <p style="font-weight: bold; margin-top: 10px; font-size: 1.2rem;">0771287206</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
   import { 
@@ -442,7 +643,7 @@
     onAuthStateChanged,
     signOut
   } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-  import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+  import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, addDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
   import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-analytics.js";
 
   // Firebase config
@@ -460,6 +661,9 @@
   const analytics = getAnalytics(app);
   const auth = getAuth(app);
   const db = getFirestore(app);
+
+  // Current user data
+  let currentUser = null;
 
   // Always start on login
   window.addEventListener('DOMContentLoaded', () => showSection('login'));
@@ -500,8 +704,59 @@
     document.getElementById('paymentMessage').style.display = 'none';
   }
   
-  function contactSupport() {
-    alert("Please contact support at payments@trismart.com to make a payment and reactivate your account.");
+  // Modal functions
+  function showModal(modalId) {
+    document.getElementById(modalId).classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+  
+  function closeModal(modalId) {
+    document.getElementById(modalId).classList.remove('active');
+    document.body.style.overflow = 'auto';
+  }
+  
+  function showPaymentModal() {
+    showModal('paymentModal');
+  }
+  
+  function showTransactionIdModal() {
+    closeModal('paymentModal');
+    showModal('transactionIdModal');
+  }
+  
+  async function submitPayment() {
+    const amount = document.getElementById('paymentAmount').value;
+    const transactionId = document.getElementById('transactionId').value;
+    
+    if (!amount || !transactionId) {
+      showAlert('Please enter both amount and transaction ID', 'error');
+      return;
+    }
+    
+    try {
+      // Save payment to Firestore
+      await addDoc(collection(db, "payments"), {
+        userId: currentUser.uid,
+        userEmail: currentUser.email,
+        userName: currentUser.name || 'Unknown',
+        amount: parseFloat(amount),
+        transactionId: transactionId,
+        status: 'pending',
+        date: new Date(),
+        type: 'account_reactivation'
+      });
+      
+      // Show success message
+      closeModal('transactionIdModal');
+      showModal('successModal');
+      
+      // Clear the form fields for next time
+      document.getElementById('paymentAmount').value = '';
+      document.getElementById('transactionId').value = '';
+      
+    } catch (error) {
+      showAlert('Error submitting payment: ' + error.message, 'error');
+    }
   }
 
   // Sign Up
@@ -574,11 +829,11 @@
       // Check if user exists and if account is disabled
       if (userDoc.exists()) {
         const userData = userDoc.data();
+        currentUser = { ...userData, uid };
         
         // Check if account is disabled
         if (userData.disabled) {
-          // Sign out the user and show payment message
-          await signOut(auth);
+          // Show payment message instead of signing out
           showPaymentMessage();
           showAlert("Your account has been disabled. Please make a payment to regain access.", "error");
           return;
@@ -610,6 +865,8 @@
           approved: approved,
           disabled: false
         });
+        
+        currentUser = { email, uid, role, approved, disabled: false };
         
         const redirectUrl = role === "admin" ? "admindash.html" : "dashboard.html";
         
@@ -645,9 +902,12 @@
   window.login = login;
   window.resetPassword = resetPassword;
   window.showSection = showSection;
-  window.contactSupport = contactSupport;
+  window.showPaymentModal = showPaymentModal;
+  window.showTransactionIdModal = showTransactionIdModal;
+  window.submitPayment = submitPayment;
+  window.closeModal = closeModal;
 
-  // -------------------------------
+   // -------------------------------
   // 1️⃣ Redirect after 15 minutes of inactivity
   // -------------------------------
   let inactivityTime = function () {
@@ -692,5 +952,4 @@
 </script>
 
 </body>
-
 </html>
