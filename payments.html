@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trismart - Admin Ledger</title>
+<style>
+:root {
+  --primary: #1e1e2f;
+  --card-bg: #27293d;
+  --accent: #ffcc00;
+  --success: #4caf50;
+  --danger: #f44336;
+  --pending: #ff9800;
+  --text: #ffffff;
+  --border-radius: 12px;
+}
+body { font-family: 'Segoe UI', sans-serif; background: var(--primary); color: var(--text); margin:0; padding:2rem; }
+h1 { color: var(--accent); margin-bottom: 1rem; }
+.card { background: var(--card-bg); border-radius: var(--border-radius); padding:1rem; margin-bottom:2rem; }
+select, button { padding:0.5rem; border-radius:8px; border:none; margin-right:0.5rem; cursor:pointer; }
+table { width:100%; border-collapse: collapse; margin-top:1rem; }
+th, td { padding:0.8rem; border-bottom:1px solid rgba(255,255,255,0.1); text-align:left; }
+tr:hover { background: rgba(255,255,255,0.05); }
+.status { font-weight:600; }
+.status-success { color: var(--success); }
+.status-danger { color: var(--danger); }
+.status-pending { color: var(--pending); }
+.action-btn { margin-right: 5px; padding: 2px 6px; border-radius: 4px; border:none; cursor:pointer; }
+.action-approve { background: var(--success); color:#fff; }
+.action-reject { background: var(--danger); color:#fff; }
+</style>
+</head>
+<body>
+
+<h1>Admin Ledger</h1>
+
+<div class="card">
+    <label>Select User:</label>
+    <select id="userSelect">
+        <option value="all">-- All Users --</option>
+    </select>
+</div>
+
+<div class="card">
+    <table id="ledgerTable">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>User</th>
+                <th>Description</th>
+                <th>Debit</th>
+                <th>Credit</th>
+                <th>Balance</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td colspan="8">Loading transactions...</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import { getFirestore, collection, onSnapshot, doc, updateDoc, getDoc, getDocs } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyDuAv_aGmY4VzergDS7g_K3zR-jFYHvGZo",
+    authDomain: "trismart-online-app.firebaseapp.com",
+    projectId: "trismart-online-app",
+    storageBucket: "trismart-online-app.firebasestorage.app",
+    messagingSenderId: "867677912389",
+    appId: "1:867677912389:web:3c5ea505cb1e84a003d22c",
+    measurementId: "G-KEWDREKNDB"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const userSelect = document.getElementById("userSelect");
+const ledgerTableBody = document.querySelector("#ledgerTable tbody");
+
+let usersMap = {}; // id => name
+
+// Load users into dropdown
+async function loadUsers() {
+    const snapshot = await getDocs(collection(db, "users"));
+    snapshot.forEach(docSnap => {
+        const data = docSnap.data();
+        usersMap[docSnap.id] = data.name || "Unknown";
+        const option = document.createElement("option");
+        option.value = docSnap.id;
+        option.textContent = data.name || "Unknown";
+        userSelect.appendChild(option);
+    });
+}
+
+// Render ledger
+function renderLedger(payments) {
+    let balanceMap = {}; // per user balance
+    ledgerTableBody.innerHTML = "";
+    payments.forEach(p => {
+        const userName = usersMap[p.userId] || "Unknown";
+        balanceMap[p.userId] = balanceMap[p.userId] || 0;
+        balanceMap[p.userId] += (p.type === "credit" ? p.amount : -p.amount);
+
+        const statusClass = p.status === "approved" ? "status-success" :
+                            p.status === "pending" ? "status-pending" :
+                            "status-danger";
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td>${new Date(p.date.seconds*1000).toLocaleString()}</td>
+            <td>${userName}</td>
+            <td>${p.description || ""}</td>
+            <td>${p.type === "debit" ? p.amount : ""}</td>
+            <td>${p.type === "credit" ? p.amount : ""}</td>
+            <td>${balanceMap[p.userId]}</td>
+            <td class="status ${statusClass}">${p.status}</td>
+            <td>
+                ${p.status === "pending" ? `<button class="action-btn action-approve" data-id="${p.id}">Approve</button>
+                <button class="action-btn action-reject" data-id="${p.id}">Reject</button>` : ""}
+            </td>
+        `;
+        ledgerTableBody.appendChild(tr);
+    });
+
+    // Add click listeners for approve/reject
+    document.querySelectorAll(".action-approve").forEach(btn => {
+        btn.onclick = async () => {
+            await updateDoc(doc(db, "payments", btn.dataset.id), { status: "approved" });
+        };
+    });
+    document.querySelectorAll(".action-reject").forEach(btn => {
+        btn.onclick = async () => {
+            await updateDoc(doc(db, "payments", btn.dataset.id), { status: "rejected" });
+        };
+    });
+}
+
+// Load payments in real-time
+function listenPayments() {
+    const paymentsRef = collection(db, "payments");
+    onSnapshot(paymentsRef, snapshot => {
+        let allPayments = [];
+        snapshot.forEach(docSnap => allPayments.push({ id: docSnap.id, ...docSnap.data() }));
+
+        const selectedUser = userSelect.value;
+        if(selectedUser !== "all"){
+            allPayments = allPayments.filter(p => p.userId === selectedUser);
+        }
+
+        // sort by date ascending
+        allPayments.sort((a,b) => a.date.seconds - b.date.seconds);
+        renderLedger(allPayments);
+    });
+}
+
+userSelect.addEventListener("change", listenPayments);
+
+// Initialize
+await loadUsers();
+listenPayments();
+</script>
+
+</body>
+</html>

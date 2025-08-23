@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trismart Admin - User Management</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root {
+  --primary: #1e1e2f;
+  --secondary: #2c2c44;
+  --accent: #ffcc00;
+  --accent-hover: #e6b800;
+  --text: #ffffff;
+  --text-secondary: #b8b8cc;
+  --card-bg: #27293d;
+  --success: #28a745;
+  --danger: #dc3545;
+  --border-radius: 10px;
+  --transition: all 0.3s ease;
+}
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background: var(--primary);
+  color: var(--text);
+}
+
+.header {
+  text-align: center;
+  padding: 1.5rem;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.table-card {
+  background: var(--card-bg);
+  margin: 2rem auto;
+  padding: 1.5rem;
+  border-radius: var(--border-radius);
+  max-width: 1200px;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+thead {
+  background: var(--secondary);
+}
+
+th, td {
+  padding: 12px 15px;
+  text-align: center;
+  font-size: 0.95rem;
+  color: var(--text);
+}
+
+th {
+  font-weight: 600;
+  color: var(--accent);
+}
+
+tbody tr:nth-child(even) { background: #2c2c44; }
+tbody tr:nth-child(odd) { background: #1f1f33; }
+
+button {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  transition: var(--transition);
+}
+
+button.approve {
+  background: var(--success);
+  color: #fff;
+}
+button.approve:hover { background: #218838; }
+
+button.disable {
+  background: var(--danger);
+  color: #fff;
+}
+button.disable:hover { background: #c82333; }
+
+.status-btn {
+  padding: 5px 10px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  transition: var(--transition);
+}
+
+.status-active { background: var(--success); color: #fff; }
+.status-inactive { background: var(--danger); color: #fff; }
+
+@media (max-width: 768px) {
+  table, thead, tbody, th, td, tr { display: block; }
+  th { display: none; }
+  td { text-align: right; padding-left: 50%; position: relative; }
+  td::before {
+    content: attr(data-label);
+    position: absolute;
+    left: 15px;
+    font-weight: 600;
+    color: var(--accent);
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="header">User Management Dashboard</div>
+
+<div class="table-card">
+  <table id="usersTable">
+    <thead>
+      <tr>
+        <th>User ID</th>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Phone</th>
+        <th>Status</th>
+        <th>Account</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+import { getFirestore, collection, onSnapshot, doc, updateDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDuAv_aGmY4VzergDS7g_K3zR-jFYHvGZo",
+  authDomain: "trismart-online-app.firebaseapp.com",
+  projectId: "trismart-online-app",
+  storageBucket: "trismart-online-app.firebasestorage.app",
+  messagingSenderId: "867677912389",
+  appId: "1:867677912389:web:3c5ea505cb1e84a003d22c",
+  measurementId: "G-KEWDREKNDB"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+onAuthStateChanged(auth, user => {
+  if (!user) window.location.href = "index.html";
+  else listenUsers();
+});
+
+function listenUsers() {
+  const usersRef = collection(db, "users");
+  onSnapshot(usersRef, snapshot => {
+    const tbody = document.querySelector("#usersTable tbody");
+    tbody.innerHTML = '';
+    snapshot.forEach(docSnap => {
+      const data = docSnap.data();
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td data-label="User ID">${docSnap.id}</td>
+        <td data-label="Name">${data.name || ''}</td>
+        <td data-label="Email">${data.email || ''}</td>
+        <td data-label="Phone">${data.phone || ''}</td>
+        <td data-label="Status">
+          <button class="status-btn ${data.disabled ? 'status-inactive' : 'status-active'}"
+                  onclick="toggleStatus('${docSnap.id}', ${data.disabled})">
+            ${data.disabled ? 'Inactive' : 'Active'}
+          </button>
+        </td>
+        <td data-label="Account">${data.approved ? 'Approved' : 'Pending'}</td>
+        <td data-label="Actions">
+          <button class="approve" onclick="approveUser('${docSnap.id}')">Approve</button>
+          <button class="disable" onclick="disableUser('${docSnap.id}')">Disable</button>
+        </td>
+      `;
+      tbody.appendChild(row);
+    });
+  });
+}
+
+window.approveUser = async (userId) => {
+  try {
+    // Get pending payments for this user
+    const paymentsRef = collection(db, "payments");
+    const q = query(paymentsRef, where("userId", "==", userId), where("status", "==", "pending"));
+    const paymentSnap = await getDocs(q);
+
+    // Approve all pending payments
+    paymentSnap.forEach(async (docSnap) => {
+      await updateDoc(doc(db, "payments", docSnap.id), { status: "approved" });
+    });
+
+    // Activate user account
+    const userRef = doc(db, "users", userId);
+    await updateDoc(userRef, { approved: true, disabled: false });
+
+    alert("Payment approved and user activated!");
+  } catch (error) {
+    console.error(error);
+    alert("Error approving user: " + error.message);
+  }
+}
+
+window.disableUser = async (userId) => {
+  const userRef = doc(db, "users", userId);
+  await updateDoc(userRef, { disabled: true });
+  alert("User disabled!");
+}
+
+window.toggleStatus = async (userId, currentStatus) => {
+  const userRef = doc(db, "users", userId);
+  await updateDoc(userRef, { disabled: !currentStatus });
+  alert(`User status changed to ${!currentStatus ? 'Active' : 'Inactive'}`);
+}
+</script>
+
+</body>
+</html>
