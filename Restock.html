@@ -7,7 +7,7 @@
 <style>
   body { font-family: Arial, sans-serif; background: #1e1e2f; color: #fff; margin: 0; padding: 20px; }
   h2 { text-align: center; color: #ffcc00; margin-bottom: 15px; font-size: 1.5rem; }
-  .form-container, .history-container { margin-bottom: 15px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .form-container, .table-container { margin-bottom: 15px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
   select, input { padding: 8px; border-radius: 6px; border: none; margin: 5px; width: 200px; background: #2c2c44; color: #fff; font-size: 0.9rem; }
   button { padding: 8px 12px; border-radius: 6px; border: none; cursor: pointer; background: #ffcc00; color: #1e1e2f; font-weight: 600; font-size: 0.9rem; margin: 5px; }
   button:hover { background: #e6b800; }
@@ -54,17 +54,16 @@ onAuthStateChanged(auth, async (user) => {
     listenRestockHistory();
 });
 
-// Listen inventory changes once
 function listenInventory() {
     const invRef = collection(db, "users", currentUserUID, "inventory");
     onSnapshot(invRef, snapshot => {
         inventory = [];
         snapshot.forEach(docSnap => inventory.push({ id: docSnap.id, ...docSnap.data() }));
         populateSelect();
+        renderRestockTable(); // also update table immediately
     });
 }
 
-// Populate the dropdown select
 function populateSelect() {
     const select = document.getElementById('itemSelect');
     select.innerHTML = '<option value="">Select Item</option>';
@@ -73,14 +72,12 @@ function populateSelect() {
     });
 }
 
-// Auto-fill supplier price on selection
 document.getElementById('itemSelect')?.addEventListener('change', (e) => {
     const option = e.target.selectedOptions[0];
     const priceInput = document.getElementById('supplierPrice');
     if (option && option.dataset.price) priceInput.value = option.dataset.price;
 });
 
-// Restock function optimized
 async function restockItem(event) {
     event.preventDefault();
     const itemId = document.getElementById('itemSelect').value;
@@ -98,10 +95,8 @@ async function restockItem(event) {
         const itemRef = doc(db, "users", currentUserUID, "inventory", itemId);
         const historyRef = collection(db, "users", currentUserUID, "restockHistory");
 
-        // Update inventory stock
         await updateDoc(itemRef, { stock: item.stock + qty });
 
-        // Add restock history
         const totalCost = qty * price;
         await addDoc(historyRef, {
             itemId,
@@ -114,9 +109,9 @@ async function restockItem(event) {
             date: new Date()
         });
 
-        // Update local stock to avoid extra reads
         item.stock += qty;
         populateSelect();
+        renderRestockTable(); // update table immediately
         document.getElementById('restockForm').reset();
     } catch (err) {
         console.error("Restock error:", err);
@@ -124,34 +119,29 @@ async function restockItem(event) {
     }
 }
 
-// Listen restock history with total value
-function listenRestockHistory() {
-    const restockRef = collection(db, "users", currentUserUID, "restockHistory");
-    const q = query(restockRef, orderBy("date", "desc"));
+// Render restock table like warehouse table
+function renderRestockTable() {
     const tbody = document.querySelector('#restockTable tbody');
     const totalDiv = document.querySelector('.total-value');
+    tbody.innerHTML = '';
+    let totalValue = 0;
 
-    onSnapshot(q, snapshot => {
-        tbody.innerHTML = '';
-        let totalValue = 0;
-        snapshot.forEach(docSnap => {
-            const data = docSnap.data();
-            const date = data.date?.toDate ? data.date.toDate() : new Date();
-            totalValue += data.totalCost;
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td data-label="Code">${data.itemCode}</td>
-                <td data-label="Item Name">${data.itemName}</td>
-                <td data-label="Supplier">${data.supplier}</td>
-                <td data-label="Quantity">${data.quantity}</td>
-                <td data-label="Price">${data.price.toFixed(2)}</td>
-                <td data-label="Total Cost">${data.totalCost.toFixed(2)}</td>
-                <td data-label="Date">${date.toLocaleString()}</td>
-            `;
-            tbody.appendChild(row);
-        });
-        totalDiv.textContent = `Total Restock Value: ZMW ${totalValue.toFixed(2)}`;
+    inventory.forEach(item => {
+        const restockedQty = item.stock - (item.initialStock || item.stock); // if initialStock saved somewhere
+        const totalCost = restockedQty * item.price;
+        totalValue += totalCost;
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td data-label="Code">${item.code}</td>
+            <td data-label="Name">${item.name}</td>
+            <td data-label="Price">${item.price.toFixed(2)}</td>
+            <td data-label="Stock">${item.stock}</td>
+            <td data-label="Sold">${item.sold || 0}</td>
+            <td data-label="Total Restock">${totalCost.toFixed(2)}</td>
+        `;
+        tbody.appendChild(row);
     });
+    totalDiv.textContent = `Total Restock Value: ZMW ${totalValue.toFixed(2)}`;
 }
 
 window.restockItem = restockItem;
@@ -170,20 +160,21 @@ window.restockItem = restockItem;
   </form>
 </div>
 
-<div class="history-container">
+<div class="table-container">
   <table id="restockTable">
     <thead>
       <tr>
         <th>Code</th>
-        <th>Item Name</th>
-        <th>Supplier</th>
-        <th>Quantity</th>
+        <th>Name</th>
         <th>Price</th>
-        <th>Total Cost</th>
-        <th>Date</th>
+        <th>Stock</th>
+        <th>Sold</th>
+        <th>Total Restock</th>
       </tr>
     </thead>
-    <tbody><tr><td colspan="7" style="text-align:center;">No restock history yet</td></tr></tbody>
+    <tbody>
+      <tr><td colspan="6" style="text-align:center;">No restocked items yet</td></tr>
+    </tbody>
   </table>
   <div class="total-value">Total Restock Value: ZMW 0.00</div>
 </div>
