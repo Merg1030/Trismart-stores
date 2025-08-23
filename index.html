@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trismart - Authentication</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary: #1e1e2f;
+      --secondary: #2c2c44;
+      --accent: #ffcc00;
+      --accent-hover: #e6b800;
+      --text: #ffffff;
+      --text-secondary: #b8b8cc;
+      --card-bg: #27293d;
+      --success: #4caf50;
+      --danger: #f44336;
+      --info: #2196f3;
+      --border-radius: 12px;
+      --transition: all 0.3s ease;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, var(--primary) 0%, #2d2d47 100%);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .auth-container {
+      background: var(--card-bg);
+      border-radius: var(--border-radius);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+      width: 100%;
+      max-width: 450px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .auth-header {
+      background: linear-gradient(135deg, var(--secondary) 0%, #3a3a5e 100%);
+      padding: 2rem;
+      text-align: center;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 1rem;
+    }
+
+    .logo i {
+      font-size: 2.2rem;
+    }
+
+    .auth-tabs {
+      display: flex;
+      background: rgba(0, 0, 0, 0.2);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .auth-tab {
+      flex: 1;
+      padding: 1rem;
+      text-align: center;
+      cursor: pointer;
+      transition: var(--transition);
+      font-weight: 600;
+      color: var(--text-secondary);
+      border-bottom: 3px solid transparent;
+    }
+
+    .auth-tab.active {
+      color: var(--accent);
+      border-bottom: 3px solid var(--accent);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .auth-tab:hover:not(.active) {
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text);
+    }
+
+    .auth-content {
+      padding: 2rem;
+    }
+
+    .auth-section {
+      display: none;
+      animation: fadeIn 0.5s ease;
+    }
+
+    .auth-section.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+      position: relative;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+
+    .input-with-icon {
+      position: relative;
+    }
+
+    .input-with-icon i {
+      position: absolute;
+      left: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-secondary);
+    }
+
+    .input-with-icon input {
+      padding-left: 45px;
+    }
+
+    input {
+      width: 100%;
+      padding: 14px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(0, 0, 0, 0.2);
+      color: var(--text);
+      font-size: 1rem;
+      transition: var(--transition);
+    }
+
+    input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(255, 204, 0, 0.2);
+    }
+
+    input::placeholder {
+      color: var(--text-secondary);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      padding: 14px;
+      border-radius: 8px;
+      border: none;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: var(--transition);
+      text-decoration: none;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: var(--primary);
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-hover);
+      transform: translateY(-2px);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: translateY(-2px);
+    }
+
+    .btn-logout {
+      background: var(--danger);
+      color: white;
+    }
+
+    .btn-logout:hover {
+      background: #d32f2f;
+      transform: translateY(-2px);
+    }
+
+    .form-footer {
+      margin-top: 1.5rem;
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    .form-footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .form-footer a:hover {
+      text-decoration: underline;
+    }
+
+    .alert {
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+      display: none;
+    }
+
+    .alert-success {
+      background: rgba(76, 175, 80, 0.2);
+      border: 1px solid var(--success);
+      color: #a5d6a7;
+    }
+
+    .alert-error {
+      background: rgba(244, 67, 54, 0.2);
+      border: 1px solid var(--danger);
+      color: #ffab91;
+    }
+
+    .payment-message {
+      background: rgba(255, 204, 0, 0.2);
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 20px;
+      text-align: center;
+      display: none;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 480px) {
+      .auth-container {
+        border-radius: 0;
+      }
+      
+      .auth-header {
+        padding: 1.5rem;
+      }
+      
+      .auth-content {
+        padding: 1.5rem;
+      }
+      
+      .logo {
+        font-size: 1.5rem;
+      }
+      
+      .logo i {
+        font-size: 1.8rem;
+      }
+      
+      .auth-tab {
+        padding: 0.8rem;
+        font-size: 0.9rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="auth-container">
+    <div class="auth-header">
+      <div class="logo">
+        <i class="fas fa-chart-line"></i>
+        <span>Trismart</span>
+      </div>
+      <p>Business Management Platform</p>
+    </div>
+
+    <div class="auth-tabs">
+      <div class="auth-tab active" data-target="signup">Sign Up</div>
+      <div class="auth-tab" data-target="login">Login</div>
+      <div class="auth-tab" data-target="reset">Reset</div>
+    </div>
+
+    <div class="auth-content">
+      <!-- Alert messages -->
+      <div id="alertBox" class="alert"></div>
+      
+      <!-- Payment message for disabled accounts -->
+      <div id="paymentMessage" class="payment-message">
+        <i class="fas fa-exclamation-circle"></i>
+        <p>Your account has been disabled. Please make a payment to regain access.</p>
+        <button class="btn btn-primary" style="margin-top: 10px;" onclick="contactSupport()">
+          <i class="fas fa-credit-card"></i> Make Payment
+        </button>
+      </div>
+
+      <!-- Sign Up Section -->
+      <div id="signup" class="auth-section active">
+        <div class="form-group">
+          <label for="name">Full Name</label>
+          <div class="input-with-icon">
+            <i class="fas fa-user"></i>
+            <input type="text" id="name" placeholder="Your Name">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="businessName">Business Name</label>
+          <div class="input-with-icon">
+            <i class="fas fa-building"></i>
+            <input type="text" id="businessName" placeholder="Business Name">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="businessPlace">Business Location</label>
+          <div class="input-with-icon">
+            <i class="fas fa-map-marker-alt"></i>
+            <input type="text" id="businessPlace" placeholder="Business Location">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="phone">Phone Number</label>
+          <div class="input-with-icon">
+            <i class="fas fa-phone"></i>
+            <input type="text" id="phone" placeholder="Phone Number">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="businessNature">Nature of Business</label>
+          <div class="input-with-icon">
+            <i class="fas fa-briefcase"></i>
+            <input type="text" id="businessNature" placeholder="Nature of Business">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="signupEmail">Email</label>
+          <div class="input-with-icon">
+            <i class="fas fa-envelope"></i>
+            <input type="email" id="signupEmail" placeholder="Email">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="signupPassword">Password</label>
+          <div class="input-with-icon">
+            <i class="fas fa-lock"></i>
+            <input type="password" id="signupPassword" placeholder="Password">
+          </div>
+        </div>
+
+        <button class="btn btn-primary" onclick="signUp()">
+          <i class="fas fa-user-plus"></i> Create Account
+        </button>
+
+        <div class="form-footer">
+          Already have an account? <a href="#" onclick="showSection('login')">Login here</a>
+        </div>
+      </div>
+
+      <!-- Login Section -->
+      <div id="login" class="auth-section">
+        <div class="form-group">
+          <label for="loginEmail">Email</label>
+          <div class="input-with-icon">
+            <i class="fas fa-envelope"></i>
+            <input type="email" id="loginEmail" placeholder="Email">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="loginPassword">Password</label>
+          <div class="input-with-icon">
+            <i class="fas fa-lock"></i>
+            <input type="password" id="loginPassword" placeholder="Password">
+          </div>
+        </div>
+
+        <button class="btn btn-primary" onclick="login()">
+          <i class="fas fa-sign-in-alt"></i> Login
+        </button>
+
+        <div class="form-footer">
+          <a href="#" onclick="showSection('reset')">Forgot your password?</a><br>
+          Don't have an account? <a href="#" onclick="showSection('signup')">Sign up here</a>
+        </div>
+      </div>
+
+      <!-- Password Reset Section -->
+      <div id="reset" class="auth-section">
+        <div class="form-group">
+          <label for="resetEmail">Email</label>
+          <div class="input-with-icon">
+            <i class="fas fa-envelope"></i>
+            <input type="email" id="resetEmail" placeholder="Enter your email">
+          </div>
+        </div>
+
+        <button class="btn btn-primary" onclick="resetPassword()">
+          <i class="fas fa-paper-plane"></i> Send Reset Instructions
+        </button>
+
+        <div class="form-footer">
+          Remember your password? <a href="#" onclick="showSection('login')">Login here</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+  import { 
+    getAuth, 
+    createUserWithEmailAndPassword, 
+    signInWithEmailAndPassword, 
+    sendPasswordResetEmail, 
+    onAuthStateChanged,
+    signOut
+  } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+  import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-analytics.js";
+
+  // Firebase config
+  const firebaseConfig = {
+    apiKey: "AIzaSyDuAv_aGmY4VzergDS7g_K3zR-jFYHvGZo",
+    authDomain: "trismart-online-app.firebaseapp.com",
+    projectId: "trismart-online-app",
+    storageBucket: "trismart-online-app.firebasestorage.app",
+    messagingSenderId: "867677912389",
+    appId: "1:867677912389:web:3c5ea505cb1e84a003d22c",
+    measurementId: "G-KEWDREKNDB"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  // Always start on login
+  window.addEventListener('DOMContentLoaded', () => showSection('login'));
+
+  // Tab navigation
+  document.querySelectorAll('.auth-tab').forEach(tab => {
+    tab.addEventListener('click', () => showSection(tab.getAttribute('data-target')));
+  });
+
+  function showSection(sectionId) {
+    document.querySelectorAll('.auth-tab').forEach(tab => tab.classList.remove('active'));
+    document.querySelector(`.auth-tab[data-target="${sectionId}"]`).classList.add('active');
+
+    document.querySelectorAll('.auth-section').forEach(sec => sec.classList.remove('active'));
+    document.getElementById(sectionId).classList.add('active');
+
+    hideAlert();
+    hidePaymentMessage();
+  }
+
+  function showAlert(message, type) {
+    const alertBox = document.getElementById('alertBox');
+    alertBox.textContent = message;
+    alertBox.className = `alert alert-${type}`;
+    alertBox.style.display = 'block';
+    setTimeout(hideAlert, 5000);
+  }
+
+  function hideAlert() {
+    document.getElementById('alertBox').style.display = 'none';
+  }
+  
+  function showPaymentMessage() {
+    document.getElementById('paymentMessage').style.display = 'block';
+  }
+  
+  function hidePaymentMessage() {
+    document.getElementById('paymentMessage').style.display = 'none';
+  }
+  
+  function contactSupport() {
+    alert("Please contact support at payments@trismart.com to make a payment and reactivate your account.");
+  }
+
+  // Sign Up
+  async function signUp() {
+    const name = document.getElementById("name").value;
+    const businessName = document.getElementById("businessName").value;
+    const businessPlace = document.getElementById("businessPlace").value;
+    const phone = document.getElementById("phone").value;
+    const businessNature = document.getElementById("businessNature").value;
+    const email = document.getElementById("signupEmail").value;
+    const password = document.getElementById("signupPassword").value;
+
+    if (!name || !businessName || !businessPlace || !phone || !businessNature || !email || !password) {
+      showAlert("Please fill in all fields!", "error");
+      return;
+    }
+
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const uid = userCredential.user.uid;
+
+      // Set admin role for chrischishe@gmail.com
+      const role = email.toLowerCase() === "chrischishe@gmail.com" ? "admin" : "user";
+      
+      await setDoc(doc(db, "users", uid), {
+        name, 
+        businessName, 
+        businessPlace, 
+        phone, 
+        businessNature, 
+        email, 
+        uid, 
+        role: role,
+        approved: role === "admin", // Auto-approve admin
+        disabled: false // Default to not disabled
+      });
+
+      showAlert("Account created successfully! Redirecting...", "success");
+      setTimeout(() => {
+        if (role === "admin") {
+          window.location.href = "admindash.html";
+        } else {
+          window.location.href = "dashboard.html";
+        }
+      }, 1500);
+
+    } catch (error) {
+      showAlert("Error: " + error.message, "error");
+    }
+  }
+
+  // Login with admin check and disabled account check
+  async function login() {
+    const email = document.getElementById("loginEmail").value;
+    const password = document.getElementById("loginPassword").value;
+
+    if (!email || !password) {
+      showAlert("Please enter both email and password", "error");
+      return;
+    }
+
+    try {
+      // Sign in with Firebase Auth
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const uid = userCredential.user.uid;
+
+      // Fetch user data from Firestore
+      const userDoc = await getDoc(doc(db, "users", uid));
+      
+      // Check if user exists and if account is disabled
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        
+        // Check if account is disabled
+        if (userData.disabled) {
+          // Sign out the user and show payment message
+          await signOut(auth);
+          showPaymentMessage();
+          showAlert("Your account has been disabled. Please make a payment to regain access.", "error");
+          return;
+        }
+        
+        // Check if account is approved (for non-admin users)
+        if (!userData.approved && userData.role !== "admin") {
+          await signOut(auth);
+          showAlert("Your account is pending approval. Please contact support.", "error");
+          return;
+        }
+        
+        // Determine redirect based on role
+        const redirectUrl = userData.role === "admin" ? "admindash.html" : "dashboard.html";
+        
+        showAlert("Login successful", "success");
+        setTimeout(() => {
+          window.location.href = redirectUrl;
+        }, 1500);
+      } else {
+        // If user document doesn't exist, create one with appropriate role
+        const role = email.toLowerCase() === "chrischishe@gmail.com" ? "admin" : "user";
+        const approved = role === "admin"; // Auto-approve admin
+        
+        await setDoc(doc(db, "users", uid), {
+          email: email,
+          uid: uid,
+          role: role,
+          approved: approved,
+          disabled: false
+        });
+        
+        const redirectUrl = role === "admin" ? "admindash.html" : "dashboard.html";
+        
+        showAlert("Login successful", "success");
+        setTimeout(() => {
+          window.location.href = redirectUrl;
+        }, 1500);
+      }
+
+    } catch (error) {
+      showAlert("Error: " + error.message, "error");
+    }
+  }
+
+  // Reset Password
+  async function resetPassword() {
+    const email = document.getElementById("resetEmail").value;
+    if (!email) { 
+      showAlert("Please enter your email.", "error"); 
+      return; 
+    }
+
+    try {
+      await sendPasswordResetEmail(auth, email);
+      showAlert("Password reset email sent! Check your inbox.", "success");
+    } catch (error) {
+      showAlert("Error: " + error.message, "error");
+    }
+  }
+
+  // Expose functions
+  window.signUp = signUp;
+  window.login = login;
+  window.resetPassword = resetPassword;
+  window.showSection = showSection;
+  window.contactSupport = contactSupport;
+</script>
+
+</body>
+</html>

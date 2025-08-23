@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Restock Inventory</title>
+<style>
+  body { font-family: Arial; background: #1e1e2f; color: #fff; margin: 0; padding: 20px; }
+  h2 { text-align: center; color: #ffcc00; margin-bottom: 20px; }
+  .form-container, .history-container { margin-bottom: 30px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  select, input { padding: 8px; border-radius: 4px; border: 1px solid #fff; margin: 5px; width: 200px; }
+  button { padding: 8px 12px; border-radius: 5px; border: none; cursor: pointer; background: #ffcc00; color: #1e1e2f; }
+  button:hover { background: #e6b800; }
+  table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+  th, td { padding: 10px; border: 1px solid #fff; text-align: center; }
+  th { background: #acaaa5; color: #121212; }
+  tbody tr:nth-child(even) { background: #2c2c2c; }
+  tbody tr:nth-child(odd) { background: #1e1e2d; }
+</style>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+import { getFirestore, collection, getDocs, updateDoc, addDoc, doc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyDuAv_aGmY4VzergDS7g_K3zR-jFYHvGZo",
+    authDomain: "trismart-online-app.firebaseapp.com",
+    projectId: "trismart-online-app",
+    storageBucket: "trismart-online-app.firebasestorage.app",
+    messagingSenderId: "867677912389",
+    appId: "1:867677912389:web:3c5ea505cb1e84a003d22c",
+    measurementId: "G-KEWDREKNDB"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let currentUserUID;
+let inventory = [];
+
+onAuthStateChanged(auth, async (user) => {
+    if (!user) { window.location.href = "index.html"; return; }
+    currentUserUID = user.uid;
+    await loadInventory();
+    listenRestockHistory();
+});
+
+async function loadInventory() {
+    const snapshot = await getDocs(collection(db, "users", currentUserUID, "inventory"));
+    inventory = [];
+    snapshot.forEach(docSnap => inventory.push({ id: docSnap.id, ...docSnap.data() }));
+    populateSelect();
+}
+
+function populateSelect() {
+    const select = document.getElementById('itemSelect');
+    select.innerHTML = '<option value="">Select Item</option>';
+    inventory.forEach(item => {
+        select.innerHTML += `<option value="${item.id}" data-price="${item.price}" data-code="${item.code}">${item.name} (Stock: ${item.stock})</option>`;
+    });
+}
+
+// Automatically fill supplier price with default item price
+document.getElementById('itemSelect')?.addEventListener('change', (e) => {
+    const option = e.target.selectedOptions[0];
+    const priceInput = document.getElementById('supplierPrice');
+    if (option && option.dataset.price) priceInput.value = option.dataset.price;
+});
+
+async function restockItem(event) {
+    event.preventDefault();
+    const itemId = document.getElementById('itemSelect').value;
+    const qty = parseInt(document.getElementById('restockQty').value);
+    const supplier = document.getElementById('supplier').value.trim();
+    const price = parseFloat(document.getElementById('supplierPrice').value);
+
+    if (!itemId || isNaN(qty) || qty <= 0 || !supplier || isNaN(price) || price <= 0)
+        return alert("Fill all fields with valid values");
+
+    const item = inventory.find(i => i.id === itemId);
+    if (!item) return alert("Item not found");
+
+    try {
+        const itemRef = doc(db, "users", currentUserUID, "inventory", itemId);
+        await updateDoc(itemRef, { stock: item.stock + qty });
+
+        const totalCost = qty * price;
+        const historyRef = collection(db, "users", currentUserUID, "restockHistory");
+        await addDoc(historyRef, {
+            itemId,
+            itemCode: item.code,
+            itemName: item.name,
+            supplier,
+            price,
+            quantity: qty,
+            totalCost,
+            date: new Date()
+        });
+
+        document.getElementById('restockForm').reset();
+        await loadInventory(); // refresh select and inventory
+    } catch (err) {
+        console.error("Restock error:", err);
+        alert("Error restocking item");
+    }
+}
+
+function listenRestockHistory() {
+    const restockRef = collection(db, "users", currentUserUID, "restockHistory");
+    const q = query(restockRef, orderBy("date", "desc"));
+    const tbody = document.querySelector('#restockTable tbody');
+    onSnapshot(q, snapshot => {
+        tbody.innerHTML = '';
+        snapshot.forEach(docSnap => {
+            const data = docSnap.data();
+            const date = data.date?.toDate ? data.date.toDate() : new Date();
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${data.itemCode}</td>
+                <td>${data.itemName}</td>
+                <td>${data.supplier}</td>
+                <td>${data.quantity}</td>
+                <td>${data.price.toFixed(2)}</td>
+                <td>${data.totalCost.toFixed(2)}</td>
+                <td>${date.toLocaleString()}</td>
+            `;
+            tbody.appendChild(row);
+        });
+    });
+}
+
+window.restockItem = restockItem;
+</script>
+</head>
+<body>
+<h2>Restock Inventory</h2>
+
+<div class="form-container">
+  <form id="restockForm" onsubmit="restockItem(event)">
+    <select id="itemSelect" required></select>
+    <input type="number" id="restockQty" placeholder="Quantity to restock" min="1" required>
+    <input type="text" id="supplier" placeholder="Supplier Name" required>
+    <input type="number" id="supplierPrice" placeholder="Supplier Price per Unit" step="0.01" required>
+    <button type="submit">Restock Item</button>
+  </form>
+</div>
+
+<div class="history-container">
+
+  <table id="restockTable">
+    <thead>
+      <tr>
+        <th>Code</th>
+        <th>Item Name</th>
+        <th>Supplier</th>
+        <th>Quantity</th>
+        <th>Price</th>
+        <th>Total Cost</th>
+        <th>Date</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+</body>
+</html>

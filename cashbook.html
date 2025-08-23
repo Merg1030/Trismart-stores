@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cash Flow Account</title>
+<style>
+  body { font-family: Arial; background: #121212; color: #fff; margin: 0; padding: 20px; }
+  h2 { text-align: center; color: #ffcc00; margin-bottom: 20px; }
+  .buttons { text-align: center; margin-bottom: 20px; }
+  input, select { padding: 8px; margin: 5px; border-radius: 4px; border: 1px solid #fff; width: 200px; background: #1e1e2d; color: #fff; }
+  button { padding: 8px 12px; border-radius: 5px; border: none; cursor: pointer; background: #ffcc00; color: #1e1e2f; margin: 5px; }
+  button:hover { background: #e6b800; }
+  table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+  th, td { padding: 10px; border: 1px solid #fff; text-align: center; }
+  th { background: #acaaa5; color: #121212; }
+  tbody tr:nth-child(even) { background: #2c2c2c; }
+  tbody tr:nth-child(odd) { background: #1e1e2d; }
+  .form-container { display: none; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 20px; }
+</style>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import { getFirestore, collection, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDuAv_aGmY4VzergDS7g_K3zR-jFYHvGZo",
+  authDomain: "trismart-online-app.firebaseapp.com",
+  projectId: "trismart-online-app",
+  storageBucket: "trismart-online-app.firebasestorage.app",
+  messagingSenderId: "867677912389",
+  appId: "1:867677912389:web:3c5ea505cb1e84a003d22c",
+  measurementId: "G-KEWDREKNDB"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+let currentUserUID;
+let cashflow = [];
+
+onAuthStateChanged(auth, async (user) => {
+  if (!user) { window.location.href = "index.html"; return; }
+  currentUserUID = user.uid;
+  await loadCashflow();
+});
+
+async function loadCashflow() {
+  cashflow = [];
+  const snapshot = await getDocs(collection(db, "users", currentUserUID, "cashflow"));
+  snapshot.forEach(docSnap => {
+    cashflow.push({ id: docSnap.id, ...docSnap.data() });
+  });
+  renderTable();
+}
+
+function renderTable() {
+  const tbody = document.querySelector('#cashflowTable tbody');
+  tbody.innerHTML = '';
+  let balance = 0;
+  cashflow.sort((a,b) => new Date(a.date) - new Date(b.date));
+  cashflow.forEach(entry => {
+    balance += entry.type === 'Inflow' ? entry.amount : -entry.amount;
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${new Date(entry.date).toLocaleDateString()}</td>
+      <td>${entry.description}</td>
+      <td>${entry.type}</td>
+      <td>${entry.amount.toFixed(2)}</td>
+      <td>${balance.toFixed(2)}</td>
+    `;
+    tbody.appendChild(row);
+  });
+}
+
+function toggleForm() {
+  const form = document.querySelector('.form-container');
+  form.style.display = form.style.display === 'flex' ? 'none' : 'flex';
+}
+
+async function addEntry(event) {
+  event.preventDefault();
+  const date = document.getElementById('entryDate').value;
+  const description = document.getElementById('description').value.trim();
+  const type = document.getElementById('type').value;
+  const amount = parseFloat(document.getElementById('amount').value);
+
+  if (!date || !description || isNaN(amount)) return alert("Fill all fields correctly!");
+
+  const docRef = await addDoc(collection(db, "users", currentUserUID, "cashflow"), { date, description, type, amount });
+  cashflow.push({ id: docRef.id, date, description, type, amount });
+  renderTable();
+  document.getElementById('cashflowForm').reset();
+  toggleForm();
+  alert("Entry added successfully!");
+}
+
+window.loadCashflow = loadCashflow;
+window.toggleForm = toggleForm;
+window.addEntry = addEntry;
+</script>
+</head>
+<body>
+<h2>Cash Flow Account</h2>
+<div class="buttons">
+  <button onclick="toggleForm()">Add Entry</button>
+</div>
+<div class="form-container">
+  <form id="cashflowForm" onsubmit="addEntry(event)">
+    <input type="date" id="entryDate" required>
+    <input type="text" id="description" placeholder="Description" required>
+    <select id="type" required>
+      <option value="Inflow">Inflow</option>
+      <option value="Outflow">Outflow</option>
+    </select>
+    <input type="number" id="amount" step="0.01" placeholder="Amount" required>
+    <button type="submit">Add Entry</button>
+  </form>
+</div>
+<table id="cashflowTable">
+  <thead>
+    <tr>
+      <th>Date</th>
+      <th>Description</th>
+      <th>Type</th>
+      <th>Amount</th>
+      <th>Balance</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+</body>
+</html>

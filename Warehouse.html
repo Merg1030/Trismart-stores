@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Warehouse Inventory</title>
+<style>
+  body { font-family: Arial; background: #1e1e2f; color: #fff; margin: 0; padding: 20px; }
+  h2 { text-align: center; color: #ffcc00; margin-bottom: 20px; }
+  .buttons { text-align: center; margin-bottom: 20px; }
+  input { padding: 8px; border-radius: 4px; border: 1px solid #fff; margin: 5px; width: 200px; }
+  button { margin: 5px; padding: 8px 12px; border-radius: 5px; border: none; cursor: pointer; background: #ffcc00; color: #1e1e2f; }
+  button:hover { background: #e6b800; }
+  table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+  th, td { padding: 10px; border: 1px solid #fff; text-align: center; }
+  th { background: #acaaa5; color: #121212; }
+  tbody tr:nth-child(even) { background: #2c2c2c; }
+  tbody tr:nth-child(odd) { background: #1e1e2d; }
+  .form-container { display: none; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 20px; }
+</style>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+  import { getFirestore, collection, addDoc, updateDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDuAv_aGmY4VzergDS7g_K3zR-jFYHvGZo",
+    authDomain: "trismart-online-app.firebaseapp.com",
+    projectId: "trismart-online-app",
+    storageBucket: "trismart-online-app.firebasestorage.app",
+    messagingSenderId: "867677912389",
+    appId: "1:867677912389:web:3c5ea505cb1e84a003d22c",
+    measurementId: "G-KEWDREKNDB"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  let currentUserUID;
+  let inventory = [];
+
+  // Auto-update inventory with real-time listener
+  function listenInventory() {
+    const inventoryRef = collection(db, "users", currentUserUID, "inventory");
+    onSnapshot(inventoryRef, (snapshot) => {
+        inventory = [];
+        snapshot.forEach(docSnap => {
+            inventory.push({ id: docSnap.id, ...docSnap.data() });
+        });
+        renderTable();
+    });
+  }
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) { window.location.href = "index.html"; return; }
+    currentUserUID = user.uid;
+    listenInventory(); // Real-time updates
+  });
+
+  function renderTable() {
+    const tbody = document.querySelector('#inventoryTable tbody');
+    tbody.innerHTML = '';
+    inventory.forEach(item => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${item.code}</td>
+        <td>${item.name}</td>
+        <td>${item.price.toFixed(2)}</td>
+        <td>${item.stock}</td>
+        <td>${item.sold || 0}</td>
+        <td>
+          <button onclick="editItem('${item.id}')">Edit</button>
+        </td>
+      `;
+      tbody.appendChild(row);
+    });
+  }
+
+  function searchInventory() {
+    const filter = document.getElementById('searchInput').value.toLowerCase();
+    const tbody = document.querySelector('#inventoryTable tbody');
+    Array.from(tbody.rows).forEach(row => {
+      const code = row.cells[0].innerText.toLowerCase();
+      const name = row.cells[1].innerText.toLowerCase();
+      row.style.display = (code.includes(filter) || name.includes(filter)) ? '' : 'none';
+    });
+  }
+
+  async function editItem(itemId) {
+    const password = prompt("Enter password to edit:");
+    if (password !== "1210") return alert("Wrong password!");
+    const item = inventory.find(i => i.id === itemId);
+    if (!item) return alert("Item not found!");
+
+    const newName = prompt("Enter new name:", item.name);
+    const newPrice = parseFloat(prompt("Enter new price:", item.price));
+    const newStock = parseInt(prompt("Enter new stock:", item.stock));
+    if (!newName || isNaN(newPrice) || isNaN(newStock)) return alert("Invalid input!");
+
+    await updateDoc(doc(db, "users", currentUserUID, "inventory", itemId), {
+      name: newName, price: newPrice, stock: newStock
+    });
+
+    alert("Item updated successfully!");
+  }
+
+  function toggleAddForm() {
+    const form = document.querySelector('.form-container');
+    form.style.display = form.style.display === 'flex' ? 'none' : 'flex';
+  }
+
+  async function addItem(event) {
+    event.preventDefault();
+    const code = document.getElementById('addCode').value.trim();
+    const name = document.getElementById('addName').value.trim();
+    const price = parseFloat(document.getElementById('addPrice').value);
+    const stock = parseInt(document.getElementById('addStock').value);
+
+    if (!code || !name || isNaN(price) || isNaN(stock)) return alert("Fill all fields!");
+
+    const docRef = await addDoc(collection(db, "users", currentUserUID, "inventory"), {
+      code, name, price, stock, sold: 0
+    });
+
+    document.getElementById('addForm').reset();
+    toggleAddForm();
+    alert("Item added successfully!");
+  }
+
+  window.editItem = editItem;
+  window.searchInventory = searchInventory;
+  window.toggleAddForm = toggleAddForm;
+  window.addItem = addItem;
+</script>
+</head>
+<body>
+  <h2>Warehouse Inventory</h2>
+  <div class="buttons">
+  <input type="text" id="searchInput" placeholder="Search by code or name" onkeyup="searchInventory()">
+  <button onclick="toggleAddForm()">Add Item</button>
+  <button onclick="window.location.href='Restock.html'">Restock Inventory</button>
+</div>
+
+  
+
+  <div class="form-container">
+    <form id="addForm" onsubmit="addItem(event)">
+      <input type="text" id="addCode" placeholder="Product Code" required>
+      <input type="text" id="addName" placeholder="Product Name" required>
+      <input type="number" id="addPrice" placeholder="Price" step="0.01" required>
+      <input type="number" id="addStock" placeholder="Stock" required>
+      <button type="submit">Add Product</button>
+    </form>
+  </div>
+
+  <table id="inventoryTable">
+    <thead>
+      <tr>
+        <th>Code</th>
+        <th>Name</th>
+        <th>Price</th>
+        <th>Stock</th>
+        <th>Sold</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</body>
+</html>

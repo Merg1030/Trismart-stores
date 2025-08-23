@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard - User Management</title>
+<style>
+  body { font-family: Arial; background: #1e1e2f; color: #fff; margin: 0; padding: 20px; }
+  h2 { text-align: center; color: #ffcc00; margin-bottom: 20px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+  th, td { padding: 10px; border: 1px solid #fff; text-align: center; }
+  th { background: #acaaa5; color: #121212; }
+  tbody tr:nth-child(even) { background: #2c2c2c; }
+  tbody tr:nth-child(odd) { background: #1e1e2d; }
+  button { padding: 5px 10px; border-radius: 5px; border: none; cursor: pointer; margin: 2px; }
+  .approve { background: #28a745; color: #fff; }
+  .disable { background: #dc3545; color: #fff; }
+</style>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+  import { getFirestore, collection, getDocs, updateDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDuAv_aGmY4VzergDS7g_K3zR-jFYHvGZo",
+    authDomain: "trismart-online-app.firebaseapp.com",
+    projectId: "trismart-online-app",
+    storageBucket: "trismart-online-app.firebasestorage.app",
+    messagingSenderId: "867677912389",
+    appId: "1:867677912389:web:3c5ea505cb1e84a003d22c",
+    measurementId: "G-KEWDREKNDB"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let currentUserUID;
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) { window.location.href = "index.html"; return; }
+    currentUserUID = user.uid;
+    listenUsers();
+  });
+
+  function listenUsers() {
+    const usersRef = collection(db, "users");
+    onSnapshot(usersRef, snapshot => {
+      const tbody = document.querySelector("#usersTable tbody");
+      tbody.innerHTML = '';
+      snapshot.forEach(docSnap => {
+        const data = docSnap.data();
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${docSnap.id}</td>
+          <td>${data.name || ''}</td>
+          <td>${data.email || ''}</td>
+          <td>${data.phone || ''}</td>
+          <td>${data.approved ? 'Approved' : 'Pending'}</td>
+          <td>${data.disabled ? 'Disabled' : 'Active'}</td>
+          <td>
+            <button class="approve" onclick="approveUser('${docSnap.id}')">Approve</button>
+            <button class="disable" onclick="disableUser('${docSnap.id}')">Disable</button>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+    });
+  }
+
+  async function approveUser(userId) {
+    const userRef = doc(db, "users", userId);
+    await updateDoc(userRef, { approved: true, disabled: false });
+    alert("User approved successfully!");
+  }
+
+  async function disableUser(userId) {
+    const userRef = doc(db, "users", userId);
+    await updateDoc(userRef, { disabled: true });
+    alert("User disabled successfully!");
+  }
+
+  window.approveUser = approveUser;
+  window.disableUser = disableUser;
+</script>
+</head>
+<body>
+<h2>Admin Dashboard - User Management</h2>
+<table id="usersTable">
+  <thead>
+    <tr>
+      <th>User ID</th>
+      <th>Name</th>
+      <th>Email</th>
+      <th>Phone</th>
+      <th>Status</th>
+      <th>Account</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+</body>
+</html>
