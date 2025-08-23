@@ -6,32 +6,22 @@
 <title>Warehouse Inventory</title>
 <style>
   body { font-family: Arial, sans-serif; background: #1e1e2f; color: #fff; margin: 0; padding: 20px; }
-  h2 { text-align: center; color: #ffcc00; margin-bottom: 20px; }
-  .buttons { text-align: center; margin-bottom: 20px; flex-wrap: wrap; display: flex; justify-content: center; gap:10px; }
-  input { padding: 10px; border-radius: 8px; border: none; margin: 5px; width: 200px; background: #2c2c44; color: #fff; }
-  button { margin: 5px; padding: 10px 15px; border-radius: 8px; border: none; cursor: pointer; background: #ffcc00; color: #1e1e2f; font-weight: 600; }
+  h2 { text-align: center; color: #ffcc00; margin-bottom: 15px; font-size: 1.5rem; }
+  .buttons { text-align: center; margin-bottom: 15px; flex-wrap: wrap; display: flex; justify-content: center; gap:8px; }
+  input { padding: 6px; border-radius: 6px; border: none; margin: 3px; width: 150px; background: #2c2c44; color: #fff; font-size: 0.85rem; }
+  button { margin: 3px; padding: 6px 10px; border-radius: 6px; border: none; cursor: pointer; background: #ffcc00; color: #1e1e2f; font-weight: 600; font-size: 0.85rem; }
   button:hover { background: #e6b800; }
-  table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-  th, td { padding: 12px; text-align: left; border: none; }
-  th { color: #ffcc00; font-weight: 600; font-size: 0.95rem; }
+  table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.85rem; }
+  th, td { padding: 6px 8px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.1); }
+  th { color: #ffcc00; font-weight: 600; font-size: 0.85rem; }
   tbody tr:nth-child(even) { background: #2c2c44; }
   tbody tr:nth-child(odd) { background: #1f1f33; }
-  .form-container { display: none; flex-direction: column; align-items: center; gap: 15px; margin-bottom: 20px; }
-
-  /* Responsive */
+  .form-container { display: none; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 15px; }
   @media (max-width: 768px) {
-    input { width: 100%; max-width: 300px; }
-    table, thead, tbody, th, td, tr { display: block; }
-    th { display: none; }
-    td { text-align: right; padding-left: 50%; position: relative; }
-    td::before {
-      content: attr(data-label);
-      position: absolute;
-      left: 15px;
-      font-weight: 600;
-      color: #ffcc00;
-      text-transform: capitalize;
-    }
+    input { width: 90%; max-width: 200px; font-size: 0.8rem; }
+    button { width: 90%; max-width: 200px; font-size: 0.8rem; }
+    table { font-size: 0.8rem; }
+    th, td { padding: 4px 6px; }
   }
 </style>
 <script type="module">
@@ -55,14 +45,11 @@
   let currentUserUID;
   let inventory = [];
 
-  // Real-time inventory listener
   function listenInventory() {
     const inventoryRef = collection(db, "users", currentUserUID, "inventory");
     onSnapshot(inventoryRef, (snapshot) => {
         inventory = [];
-        snapshot.forEach(docSnap => {
-            inventory.push({ id: docSnap.id, ...docSnap.data() });
-        });
+        snapshot.forEach(docSnap => inventory.push({ id: docSnap.id, ...docSnap.data() }));
         renderTable();
     });
   }
@@ -76,17 +63,19 @@
   function renderTable() {
     const tbody = document.querySelector('#inventoryTable tbody');
     tbody.innerHTML = '';
+    if(inventory.length===0){
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No inventory yet</td></tr>';
+      return;
+    }
     inventory.forEach(item => {
       const row = document.createElement('tr');
       row.innerHTML = `
-        <td data-label="Code">${item.code}</td>
-        <td data-label="Name">${item.name}</td>
-        <td data-label="Price">${item.price.toFixed(2)}</td>
-        <td data-label="Stock">${item.stock}</td>
-        <td data-label="Sold">${item.sold || 0}</td>
-        <td data-label="Action">
-          <button onclick="editItem('${item.id}')">Edit</button>
-        </td>
+        <td>${item.code}</td>
+        <td>${item.name}</td>
+        <td>${item.price.toFixed(2)}</td>
+        <td>${item.stock}</td>
+        <td>${item.sold || 0}</td>
+        <td><button onclick="editItem('${item.id}')">Edit</button></td>
       `;
       tbody.appendChild(row);
     });
@@ -107,16 +96,11 @@
     if (password !== "1210") return alert("Wrong password!");
     const item = inventory.find(i => i.id === itemId);
     if (!item) return alert("Item not found!");
-
     const newName = prompt("Enter new name:", item.name);
     const newPrice = parseFloat(prompt("Enter new price:", item.price));
     const newStock = parseInt(prompt("Enter new stock:", item.stock));
     if (!newName || isNaN(newPrice) || isNaN(newStock)) return alert("Invalid input!");
-
-    await updateDoc(doc(db, "users", currentUserUID, "inventory", itemId), {
-      name: newName, price: newPrice, stock: newStock
-    });
-
+    await updateDoc(doc(db, "users", currentUserUID, "inventory", itemId), { name: newName, price: newPrice, stock: newStock });
     alert("Item updated successfully!");
   }
 
@@ -131,13 +115,8 @@
     const name = document.getElementById('addName').value.trim();
     const price = parseFloat(document.getElementById('addPrice').value);
     const stock = parseInt(document.getElementById('addStock').value);
-
     if (!code || !name || isNaN(price) || isNaN(stock)) return alert("Fill all fields!");
-
-    await addDoc(collection(db, "users", currentUserUID, "inventory"), {
-      code, name, price, stock, sold: 0
-    });
-
+    await addDoc(collection(db, "users", currentUserUID, "inventory"), { code, name, price, stock, sold: 0 });
     document.getElementById('addForm').reset();
     toggleAddForm();
     alert("Item added successfully!");
@@ -150,37 +129,37 @@
 </script>
 </head>
 <body>
-  <h2>Warehouse Inventory</h2>
-  <div class="buttons">
-    <input type="text" id="searchInput" placeholder="Search by code or name" onkeyup="searchInventory()">
-    <button onclick="toggleAddForm()">Add Item</button>
-    <button onclick="window.location.href='Restock.html'">Restock Inventory</button>
-  </div>
+<h2>Warehouse Inventory</h2>
+<div class="buttons">
+  <input type="text" id="searchInput" placeholder="Search by code or name" onkeyup="searchInventory()">
+  <button onclick="toggleAddForm()">Add Item</button>
+  <button onclick="window.location.href='Restock.html'">Restock Inventory</button>
+</div>
 
-  <div class="form-container">
-    <form id="addForm" onsubmit="addItem(event)">
-      <input type="text" id="addCode" placeholder="Product Code" required>
-      <input type="text" id="addName" placeholder="Product Name" required>
-      <input type="number" id="addPrice" placeholder="Price" step="0.01" required>
-      <input type="number" id="addStock" placeholder="Stock" required>
-      <button type="submit">Add Product</button>
-    </form>
-  </div>
+<div class="form-container">
+  <form id="addForm" onsubmit="addItem(event)">
+    <input type="text" id="addCode" placeholder="Product Code" required>
+    <input type="text" id="addName" placeholder="Product Name" required>
+    <input type="number" id="addPrice" placeholder="Price" step="0.01" required>
+    <input type="number" id="addStock" placeholder="Stock" required>
+    <button type="submit">Add Product</button>
+  </form>
+</div>
 
-  <table id="inventoryTable">
-    <thead>
-      <tr>
-        <th>Code</th>
-        <th>Name</th>
-        <th>Price</th>
-        <th>Stock</th>
-        <th>Sold</th>
-        <th>Action</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr><td colspan="6" style="text-align:center;">No inventory yet</td></tr>
-    </tbody>
-  </table>
+<table id="inventoryTable">
+  <thead>
+    <tr>
+      <th>Code</th>
+      <th>Name</th>
+      <th>Price</th>
+      <th>Stock</th>
+      <th>Sold</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td colspan="6" style="text-align:center;">No inventory yet</td></tr>
+  </tbody>
+</table>
 </body>
 </html>
