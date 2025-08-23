@@ -25,7 +25,7 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-import { getFirestore, collection, getDocs, addDoc, updateDoc, doc, query, where } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, where } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDuAv_aGmY4VzergDS7g_K3zR-jFYHvGZo",
@@ -42,6 +42,8 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 let currentUserUID, inventory = [], salesCache = {};
+let reverseMode = false;
+
 onAuthStateChanged(auth, async user => {
   if(!user) window.location.href="index.html";
   currentUserUID = user.uid;
@@ -50,7 +52,6 @@ onAuthStateChanged(auth, async user => {
   await loadSalesByDate(document.getElementById('filterDate').value);
 });
 
-// Cache inventory locally to reduce reads
 async function loadInventory(){
   if(inventory.length>0) return;
   const snapshot = await getDocs(collection(db, "users", currentUserUID, "inventory"));
@@ -88,11 +89,13 @@ async function makeSale(event){
   item.sold = (item.sold||0)+quantity;
 
   const saleEntry = { date, code:item.code, name:item.name, price:item.price, quantity };
-  await addDoc(collection(db, "users", currentUserUID, "sales"), saleEntry);
+  const saleRef = await addDoc(collection(db, "users", currentUserUID, "sales"), saleEntry);
+  saleEntry.id = saleRef.id;
+
   await updateDoc(doc(db, "users", currentUserUID, "inventory", item.id), { stock:item.stock, sold:item.sold });
 
   if(!salesCache[date]) salesCache[date]=[];
-  salesCache[date].push(saleEntry); // update local cache
+  salesCache[date].push(saleEntry);
   renderSalesTable(date);
   document.getElementById('salesForm').reset();
 }
@@ -112,14 +115,18 @@ function renderSalesTable(date){
   tbody.innerHTML='';
   const sales = salesCache[date] || [];
   if(sales.length===0){
-    tbody.innerHTML='<tr><td colspan="5" style="text-align:center;">No sales yet</td></tr>';
+    tbody.innerHTML='<tr><td colspan="6" style="text-align:center;">No sales yet</td></tr>';
     updateTotalSales(date);
     return;
   }
   sales.forEach(sale=>{
     const total=(sale.price*sale.quantity).toFixed(2);
     const row=document.createElement('tr');
-    row.innerHTML=`<td>${sale.code}</td><td>${sale.name}</td><td>${sale.price}</td><td>${sale.quantity}</td><td>${total}</td>`;
+    if(reverseMode){
+      row.innerHTML=`<td><input type="checkbox" data-id="${sale.id}"></td><td>${sale.code}</td><td>${sale.name}</td><td>${sale.price}</td><td>${sale.quantity}</td><td>${total}</td>`;
+    }else{
+      row.innerHTML=`<td>${sale.code}</td><td>${sale.name}</td><td>${sale.price}</td><td>${sale.quantity}</td><td>${total}</td>`;
+    }
     tbody.appendChild(row);
   });
   updateTotalSales(date);
@@ -137,9 +144,44 @@ function toggleForm(){
   form.style.display=form.style.display==='flex'?'none':'flex';
 }
 
+function enableReverseMode(){
+  reverseMode = !reverseMode;
+  const btn = document.getElementById('reverseBtn');
+  btn.textContent = reverseMode ? 'Confirm Reverse' : 'Reverse Sale';
+  renderSalesTable(document.getElementById('filterDate').value);
+  if(!reverseMode) return;
+  // attach confirm reverse action
+  btn.onclick = confirmReverseSales;
+}
+
+async function confirmReverseSales(){
+  const date = document.getElementById('filterDate').value;
+  const checkboxes = document.querySelectorAll('#salesTable tbody input[type="checkbox"]:checked');
+  if(checkboxes.length===0) return alert("Select at least one sale to reverse");
+  
+  for(const cb of checkboxes){
+    const saleId = cb.dataset.id;
+    const sale = salesCache[date].find(s=>s.id===saleId);
+    if(!sale) continue;
+
+    const item = inventory.find(i=>i.code===sale.code);
+    if(item){
+      item.stock += sale.quantity;
+      item.sold -= sale.quantity;
+      await updateDoc(doc(db,"users",currentUserUID,"inventory",item.id), { stock:item.stock, sold:item.sold });
+    }
+    await deleteDoc(doc(db,"users",currentUserUID,"sales",saleId));
+    salesCache[date] = salesCache[date].filter(s=>s.id!==saleId);
+  }
+  reverseMode = false;
+  document.getElementById('reverseBtn').textContent = 'Reverse Sale';
+  renderSalesTable(date);
+}
+
 window.makeSale=makeSale;
 window.toggleForm=toggleForm;
 window.filterByDate=filterByDate;
+window.enableReverseMode=enableReverseMode;
 </script>
 </head>
 <body>
@@ -148,6 +190,7 @@ window.filterByDate=filterByDate;
   <div class="buttons">
     <button onclick="toggleForm()">Toggle Sale Form</button>
     <input type="date" id="filterDate" onchange="filterByDate()">
+    <button id="reverseBtn" onclick="enableReverseMode()">Reverse Sale</button>
   </div>
   <div class="form-container" style="display:flex;">
     <form id="salesForm" onsubmit="makeSale(event)">
@@ -161,10 +204,10 @@ window.filterByDate=filterByDate;
     <table id="salesTable">
       <thead>
         <tr>
-          <th>Product Code</th>
-          <th>Product Name</th>
+          <th>Code</th>
+          <th>Name</th>
           <th>Price</th>
-         <th>Quantity</th>
+          <th>Quantity</th>
           <th>Total</th>
         </tr>
       </thead>
@@ -177,5 +220,3 @@ window.filterByDate=filterByDate;
 </div>
 </body>
 </html>
-
-
