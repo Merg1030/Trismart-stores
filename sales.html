@@ -21,14 +21,29 @@
   .total-sales { text-align:center; margin-top:8px; font-size:0.95rem; font-weight:bold; }
   .scroll-container { overflow-x:auto; }
   .out-of-stock { color: #999; background-color: #2a2a2a !important; }
-  .stock-info { font-size: 0.7rem; color: #ffcc00; margin-left: 5px; }
-  .filter-container { display: flex; justify-content: center; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
-  .filter-container select, .filter-container input { width: 140px; }
+  .filter-toggle { background: #2c2c44 !important; color: #ffcc00 !important; font-size: 0.8rem !important; padding: 5px 8px !important; }
+  .filter-container { 
+    display: none; 
+    flex-direction: column; 
+    align-items: center; 
+    gap: 8px; 
+    margin-bottom: 15px; 
+    background: #2c2c44; 
+    padding: 10px; 
+    border-radius: 8px;
+    width: 95%;
+    max-width: 300px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .filter-container.active { display: flex; }
+  .filter-group { display: flex; flex-direction: column; align-items: center; gap: 5px; width: 100%; }
+  .filter-group input, .filter-group button { width: 90%; max-width: 250px; font-size: 0.8rem; padding: 5px; }
+  .filter-title { color: #ffcc00; font-weight: bold; margin-bottom: 5px; font-size: 0.9rem; }
 
   @media(max-width:768px){ 
     input, select, button { width:90%; max-width:220px; } 
     table { font-size:0.75rem; } 
-    .filter-container { flex-direction: column; align-items: center; }
   }
 </style>
 <script type="module">
@@ -52,15 +67,15 @@ const db = getFirestore(app);
 
 let currentUserUID, inventory = [], salesCache = {};
 let reverseMode = false;
-let isProcessing = false; // Flag to prevent multiple operations
-let viewMode = 'daily'; // 'daily' or 'monthly'
+let isProcessing = false;
+let viewMode = 'daily';
 
 onAuthStateChanged(auth, async user => {
   if(!user) window.location.href="index.html";
   currentUserUID = user.uid;
   await loadInventory();
   setTodayDate();
-  await loadSalesByDate(document.getElementById('filterDate').value);
+  await loadSalesByDate(new Date().toISOString().split('T')[0]); // Auto-load today's sales
 });
 
 async function loadInventory(){
@@ -77,7 +92,6 @@ function populateProductOptions(){
     option.value = item.code; 
     option.textContent = `${item.name} (Stock: ${item.stock})`;
     
-    // Disable option if out of stock
     if (item.stock <= 0) {
       option.disabled = true;
       option.classList.add('out-of-stock');
@@ -92,7 +106,6 @@ function setTodayDate(){
   document.getElementById('saleDate').value = today;
   document.getElementById('filterDate').value = today;
   
-  // Set month filter to current month
   const now = new Date();
   document.getElementById('filterMonth').value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 }
@@ -100,7 +113,6 @@ function setTodayDate(){
 async function makeSale(event){
   event.preventDefault();
   
-  // Prevent multiple submissions
   if (isProcessing) {
     alert("Please wait, processing your sale...");
     return;
@@ -117,7 +129,6 @@ async function makeSale(event){
   
   if(item.stock < quantity) return alert(`Insufficient stock for ${item.name}. Only ${item.stock} available.`);
   
-  // Set processing flag
   isProcessing = true;
   const saleButton = document.querySelector('#salesForm button[type="submit"]');
   const originalText = saleButton.textContent;
@@ -137,13 +148,10 @@ async function makeSale(event){
       sold:item.sold 
     });
 
-    // Clear cache for this date to force reload
     delete salesCache[date];
     
-    // Update the product dropdown to reflect new stock levels
     populateProductOptions();
     
-    // Reload sales data
     if (viewMode === 'daily') {
       await loadSalesByDate(date);
     } else {
@@ -156,7 +164,6 @@ async function makeSale(event){
     console.error("Error recording sale:", error);
     alert("Error recording sale. Please try again.");
   } finally {
-    // Reset processing state
     isProcessing = false;
     saleButton.textContent = originalText;
     saleButton.disabled = false;
@@ -167,7 +174,7 @@ async function loadSalesByDate(date){
   if (isProcessing) return;
   
   viewMode = 'daily';
-  const filterButton = document.querySelector('.buttons button:nth-child(2)');
+  const filterButton = document.getElementById('loadDayBtn');
   const originalText = filterButton.textContent;
   filterButton.textContent = "Loading...";
   filterButton.disabled = true;
@@ -195,7 +202,7 @@ async function loadSalesByMonth(monthValue){
   if (isProcessing) return;
   
   viewMode = 'monthly';
-  const filterButton = document.querySelector('.buttons button:nth-child(3)');
+  const filterButton = document.getElementById('loadMonthBtn');
   const originalText = filterButton.textContent;
   filterButton.textContent = "Loading...";
   filterButton.disabled = true;
@@ -212,7 +219,6 @@ async function loadSalesByMonth(monthValue){
       const salesRef = collection(db, "users", currentUserUID, "sales");
       const snapshot = await getDocs(salesRef);
       
-      // Filter by month manually since Firestore doesn't have native month queries
       salesCache[cacheKey] = snapshot.docs
         .map(docSnap => ({ id: docSnap.id, ...docSnap.data() }))
         .filter(sale => {
@@ -294,6 +300,14 @@ function toggleForm(){
   form.style.display=form.style.display==='flex'?'none':'flex';
 }
 
+function toggleFilters(){
+  const filters = document.getElementById('filterContainer');
+  filters.classList.toggle('active');
+  
+  const toggleBtn = document.getElementById('toggleFilters');
+  toggleBtn.textContent = filters.classList.contains('active') ? 'Hide Filters' : 'Show Filters';
+}
+
 function enableReverseMode(){
   if (isProcessing) return;
   
@@ -310,7 +324,6 @@ function enableReverseMode(){
     btn.onclick = enableReverseMode;
   }
   
-  // Re-render the current view
   if (viewMode === 'daily') {
     const date = document.getElementById('filterDate').value;
     renderSalesTable(salesCache[date] || [], `Sales for ${date}`);
@@ -331,11 +344,10 @@ async function confirmReverseSales(){
   
   if(checkboxes.length === 0) {
     alert("Select at least one sale to reverse");
-    enableReverseMode(); // Turn off reverse mode
+    enableReverseMode();
     return;
   }
   
-  // Set processing flag
   isProcessing = true;
   const reverseButton = document.getElementById('reverseBtn');
   const originalText = reverseButton.textContent;
@@ -347,7 +359,6 @@ async function confirmReverseSales(){
       const saleId = cb.dataset.id;
       const saleDate = cb.dataset.date;
       
-      // Find the sale in our cache
       let sale;
       if (viewMode === 'daily') {
         sale = salesCache[saleDate].find(s => s.id === saleId);
@@ -371,7 +382,6 @@ async function confirmReverseSales(){
       
       await deleteDoc(doc(db, "users", currentUserUID, "sales", saleId));
       
-      // Remove from cache
       if (viewMode === 'daily') {
         salesCache[saleDate] = salesCache[saleDate].filter(s => s.id !== saleId);
       } else {
@@ -381,7 +391,6 @@ async function confirmReverseSales(){
       }
     }
     
-    // Update the product dropdown to reflect returned stock
     populateProductOptions();
     
     alert("Sales reversed successfully!");
@@ -389,18 +398,15 @@ async function confirmReverseSales(){
     console.error("Error reversing sales:", error);
     alert("Error reversing sales. Please try again.");
   } finally {
-    // Reset processing state
     isProcessing = false;
     reverseButton.textContent = originalText;
     reverseButton.disabled = false;
     
-    // Exit reverse mode
     reverseMode = false;
     reverseButton.textContent = 'Reverse Sale';
     reverseButton.style.background = '#ffcc00';
     reverseButton.onclick = enableReverseMode;
     
-    // Re-render the current view
     if (viewMode === 'daily') {
       const date = document.getElementById('filterDate').value;
       renderSalesTable(salesCache[date] || [], `Sales for ${date}`);
@@ -417,31 +423,34 @@ window.toggleForm = toggleForm;
 window.filterByDate = filterByDate;
 window.filterByMonth = filterByMonth;
 window.enableReverseMode = enableReverseMode;
+window.toggleFilters = toggleFilters;
 </script>
 </head>
 <body>
 <div class="container">
   <h2>Sales Dashboard</h2>
   
-  <div class="filter-container">
-    <div>
-      <label>Daily View:</label>
-      <input type="date" id="filterDate" onchange="filterByDate()">
-      <button onclick="filterByDate()">Load Day</button>
-    </div>
-    <div>
-      <label>Monthly View:</label>
-      <input type="month" id="filterMonth" onchange="filterByMonth()">
-      <button onclick="filterByMonth()">Load Month</button>
-    </div>
-  </div>
-  
   <div class="buttons">
     <button onclick="toggleForm()">Toggle Sale Form</button>
+    <button class="filter-toggle" id="toggleFilters" onclick="toggleFilters()">Show Filters</button>
     <button id="reverseBtn" onclick="enableReverseMode()">Reverse Sale</button>
   </div>
   
-  <div class="form-container" style="display:flex;">
+  <div id="filterContainer" class="filter-container">
+    <div class="filter-group">
+      <div class="filter-title">Daily Filter</div>
+      <input type="date" id="filterDate">
+      <button id="loadDayBtn" onclick="filterByDate()">Load Day</button>
+    </div>
+    
+    <div class="filter-group">
+      <div class="filter-title">Monthly Filter</div>
+      <input type="month" id="filterMonth">
+      <button id="loadMonthBtn" onclick="filterByMonth()">Load Month</button>
+    </div>
+  </div>
+  
+  <div class="form-container" style="display:none;">
     <form id="salesForm" onsubmit="makeSale(event)">
       <input type="date" id="saleDate" required>
       <select id="productCode" required>
@@ -465,12 +474,12 @@ window.enableReverseMode = enableReverseMode;
         </tr>
       </thead>
       <tbody>
-        <tr><td colspan="6" style="text-align:center;">No sales data loaded</td></tr>
+        <tr><td colspan="6" style="text-align:center;">Loading today's sales...</td></tr>
       </tbody>
     </table>
   </div>
   
-  <div class="total-sales">Select a date or month to view sales</div>
+  <div class="total-sales">Today's Sales: Loading...</div>
 </div>
 </body>
 </html>
