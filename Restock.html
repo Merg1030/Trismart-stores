@@ -24,18 +24,9 @@
   /* Responsive table */
   @media(max-width:768px){
     input, select, button { width: 90%; max-width: 250px; }
-    table, thead, tbody, th, td, tr { display: block; }
-    thead tr { position: absolute; top: -9999px; left: -9999px; }
-    tr { margin-bottom: 10px; border: 1px solid #444; border-radius: 8px; }
-    td { position: relative; padding-left: 50%; text-align: right; }
-    td::before { 
-      content: attr(data-label); 
-      position: absolute; 
-      left: 10px; 
-      font-weight: 600; 
-      color: #ffcc00; 
-      text-transform: capitalize;
-    }
+    .scroll-container { width: 100%; overflow-x: auto; }
+    table { width: 100%; min-width: 600px; }
+    th, td { padding: 6px 4px; font-size: 0.75rem; }
   }
 </style>
 <script type="module">
@@ -65,7 +56,6 @@ onAuthStateChanged(auth, async (user) => {
     if (!user) { window.location.href = "index.html"; return; }
     currentUserUID = user.uid;
     listenInventory();
-    listenRestockHistory();
 });
 
 function listenInventory() {
@@ -74,6 +64,7 @@ function listenInventory() {
         inventory = [];
         snapshot.forEach(docSnap => inventory.push({ id: docSnap.id, ...docSnap.data() }));
         populateSelect();
+        renderInventoryTable();
     });
 }
 
@@ -146,42 +137,31 @@ async function restockItem(event) {
     }
 }
 
-function listenRestockHistory() {
-    const historyRef = query(
-        collection(db, "users", currentUserUID, "restockHistory"),
-        orderBy("date", "desc")
-    );
-    onSnapshot(historyRef, snapshot => {
-        const tbody = document.querySelector('#restockTable tbody');
-        const totalDiv = document.querySelector('.total-value');
-        tbody.innerHTML = '';
-        let totalValue = 0;
+function renderInventoryTable() {
+    const tbody = document.querySelector('#inventoryTable tbody');
+    tbody.innerHTML = '';
+    let totalValue = 0;
 
-        if (snapshot.empty) {
-            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">No restocked items yet</td></tr>`;
-            totalDiv.textContent = "Total Restock Value: ZMW 0.00";
-            return;
-        }
+    if (inventory.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">No inventory items yet</td></tr>`;
+        return;
+    }
 
-        snapshot.forEach(docSnap => {
-            const data = docSnap.data();
-            totalValue += data.totalCost;
-            const date = new Date(data.date.seconds * 1000).toLocaleDateString();
-
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td data-label="Date">${date}</td>
-                <td data-label="Code">${data.itemCode}</td>
-                <td data-label="Name">${data.itemName}</td>
-                <td data-label="Qty">${data.quantity}</td>
-                <td data-label="Price">${data.price.toFixed(2)}</td>
-                <td data-label="Total">${data.totalCost.toFixed(2)}</td>
-            `;
-            tbody.appendChild(row);
-        });
-
-        totalDiv.textContent = `Total Restock Value: ZMW ${totalValue.toFixed(2)}`;
+    inventory.forEach(item => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${item.code}</td>
+            <td>${item.name}</td>
+            <td>${item.price.toFixed(2)}</td>
+            <td>${item.stock}</td>
+            <td>${item.sold || 0}</td>
+            <td>${(item.price * item.stock).toFixed(2)}</td>
+        `;
+        tbody.appendChild(row);
+        totalValue += (item.price * item.stock);
     });
+
+    document.querySelector('.total-value').textContent = `Total Inventory Value: ZMW ${totalValue.toFixed(2)}`;
 }
 
 window.restockItem = restockItem;
@@ -205,22 +185,22 @@ window.restockItem = restockItem;
 </div>
 
 <div class="scroll-container">
-  <table id="restockTable">
+  <table id="inventoryTable">
     <thead>
       <tr>
-        <th>Date</th>
         <th>Code</th>
         <th>Name</th>
-        <th>Qty</th>
         <th>Price</th>
-        <th>Total</th>
+        <th>Stock</th>
+        <th>Sold</th>
+        <th>Total Value</th>
       </tr>
     </thead>
     <tbody>
-      <tr><td colspan="6" style="text-align:center;">No restocked items yet</td></tr>
+      <tr><td colspan="6" style="text-align:center;">Loading inventory...</td></tr>
     </tbody>
   </table>
 </div>
-<div class="total-value">Total Restock Value: ZMW 0.00</div>
+<div class="total-value">Total Inventory Value: ZMW 0.00</div>
 </body>
 </html>
