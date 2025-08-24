@@ -11,6 +11,7 @@
   input { padding:6px; border-radius:6px; border:none; margin:3px; width:150px; background:#2c2c44; color:#fff; font-size:0.85rem; }
   button { padding:6px 10px; border-radius:6px; border:none; cursor:pointer; background:#ffcc00; color:#1e1e2f; font-weight:600; font-size:0.85rem; margin:3px; }
   button:hover { background:#e6b800; }
+  button:disabled { background: #666; color: #999; cursor: not-allowed; }
   table { width:100%; border-collapse:collapse; margin-top:10px; font-size:0.85rem; }
   th, td { padding:6px 8px; text-align:left; border-bottom:1px solid rgba(255,255,255,0.1); }
   th { color:#ffcc00; font-weight:600; font-size:0.85rem; }
@@ -44,6 +45,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 let currentUserUID;
 let inventory = [];
+let isAdding = false; // Flag to track if we're currently adding an item
 
 function listenInventory() {
   const inventoryRef = collection(db, "users", currentUserUID, "inventory");
@@ -118,15 +120,48 @@ function toggleAddForm(){
 
 async function addItem(event){
   event.preventDefault();
+  
+  // Prevent multiple submissions
+  if (isAdding) {
+    alert("Please wait, item is being added...");
+    return;
+  }
+  
   const code = document.getElementById('addCode').value.trim();
   const name = document.getElementById('addName').value.trim();
   const price = parseFloat(document.getElementById('addPrice').value);
   const stock = parseInt(document.getElementById('addStock').value);
+  
   if(!code || !name || isNaN(price) || isNaN(stock)) return alert("Fill all fields!");
-  await addDoc(collection(db, "users", currentUserUID, "inventory"), { code, name, price, stock, sold:0 });
-  document.getElementById('addForm').reset();
-  toggleAddForm();
-  alert("Item added successfully!");
+  
+  // Check if product code already exists
+  const existingItem = inventory.find(item => item.code === code);
+  if (existingItem) {
+    alert(`Product with code "${code}" already exists!`);
+    return;
+  }
+  
+  // Set flag to prevent multiple submissions
+  isAdding = true;
+  const addButton = document.querySelector('#addForm button[type="submit"]');
+  const originalText = addButton.textContent;
+  addButton.textContent = "Adding...";
+  addButton.disabled = true;
+  
+  try {
+    await addDoc(collection(db, "users", currentUserUID, "inventory"), { code, name, price, stock, sold:0 });
+    document.getElementById('addForm').reset();
+    toggleAddForm();
+    alert("Item added successfully!");
+  } catch (error) {
+    console.error("Error adding item:", error);
+    alert("Error adding item. Please try again.");
+  } finally {
+    // Reset button state regardless of success or failure
+    isAdding = false;
+    addButton.textContent = originalText;
+    addButton.disabled = false;
+  }
 }
 
 window.editItem = editItem;
