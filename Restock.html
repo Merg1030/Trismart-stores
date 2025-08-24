@@ -5,24 +5,37 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Restock Inventory</title>
 <style>
-  body { font-family: Arial, sans-serif; background: #1e1e2f; color: #fff; margin: 0; padding: 20px; }
-  h2 { text-align: center; color: #ffcc00; margin-bottom: 15px; font-size: 1.5rem; }
-  .form-container, .table-container { margin-bottom: 15px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
-  select, input { padding: 8px; border-radius: 6px; border: none; margin: 5px; width: 200px; background: #2c2c44; color: #fff; font-size: 0.9rem; }
-  button { padding: 8px 12px; border-radius: 6px; border: none; cursor: pointer; background: #ffcc00; color: #1e1e2f; font-weight: 600; font-size: 0.9rem; margin: 5px; }
+  body { font-family: Arial, sans-serif; background: #1e1e2f; color: #fff; margin: 0; padding: 15px; }
+  h2 { text-align: center; color: #ffcc00; margin-bottom: 15px; font-size: 1.4rem; }
+  .buttons { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }
+  input, select { padding: 8px; border-radius: 6px; border: none; margin: 5px; width: 150px; background: #2c2c44; color: #fff; font-size: 0.85rem; }
+  button { padding: 8px 12px; border-radius: 6px; border: none; cursor: pointer; background: #ffcc00; color: #1e1e2f; font-weight: 600; font-size: 0.85rem; margin: 5px; }
   button:hover { background: #e6b800; }
-  table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.85rem; }
+  button:disabled { background: #666; color: #999; cursor: not-allowed; }
+  table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.8rem; }
   th, td { padding: 8px 6px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.1); }
   th { color: #ffcc00; font-weight: 600; }
   tbody tr:nth-child(even) { background: #2c2c44; }
   tbody tr:nth-child(odd) { background: #1f1f33; }
-  .total-value { text-align: right; font-weight: bold; font-size: 0.95rem; color: #ffcc00; margin-top: 5px; }
+  .form-container { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 15px; }
+  .total-value { text-align: right; font-weight: bold; font-size: 0.95rem; color: #ffcc00; margin-top: 8px; }
+  .scroll-container { overflow-x: auto; }
+  
+  /* Responsive table */
   @media(max-width:768px){
-    select, input, button { width: 90%; max-width: 250px; }
+    input, select, button { width: 90%; max-width: 250px; }
     table, thead, tbody, th, td, tr { display: block; }
-    th { display: none; }
-    td { text-align: right; padding-left: 50%; position: relative; }
-    td::before { content: attr(data-label); position: absolute; left: 15px; font-weight: 600; color: #ffcc00; text-transform: capitalize; }
+    thead tr { position: absolute; top: -9999px; left: -9999px; }
+    tr { margin-bottom: 10px; border: 1px solid #444; border-radius: 8px; }
+    td { position: relative; padding-left: 50%; text-align: right; }
+    td::before { 
+      content: attr(data-label); 
+      position: absolute; 
+      left: 10px; 
+      font-weight: 600; 
+      color: #ffcc00; 
+      text-transform: capitalize;
+    }
   }
 </style>
 <script type="module">
@@ -46,6 +59,7 @@ const db = getFirestore(app);
 
 let currentUserUID;
 let inventory = [];
+let isProcessing = false;
 
 onAuthStateChanged(auth, async (user) => {
     if (!user) { window.location.href = "index.html"; return; }
@@ -60,7 +74,6 @@ function listenInventory() {
         inventory = [];
         snapshot.forEach(docSnap => inventory.push({ id: docSnap.id, ...docSnap.data() }));
         populateSelect();
-        renderRestockTable(); // also update table immediately
     });
 }
 
@@ -80,6 +93,12 @@ document.getElementById('itemSelect')?.addEventListener('change', (e) => {
 
 async function restockItem(event) {
     event.preventDefault();
+    
+    if (isProcessing) {
+        alert("Please wait, processing your request...");
+        return;
+    }
+    
     const itemId = document.getElementById('itemSelect').value;
     const qty = parseInt(document.getElementById('restockQty').value);
     const supplier = document.getElementById('supplier').value.trim();
@@ -90,6 +109,12 @@ async function restockItem(event) {
 
     const item = inventory.find(i => i.id === itemId);
     if (!item) return alert("Item not found");
+
+    isProcessing = true;
+    const restockButton = document.querySelector('#restockForm button[type="submit"]');
+    const originalText = restockButton.textContent;
+    restockButton.textContent = "Processing...";
+    restockButton.disabled = true;
 
     try {
         const itemRef = doc(db, "users", currentUserUID, "inventory", itemId);
@@ -109,39 +134,54 @@ async function restockItem(event) {
             date: new Date()
         });
 
-        item.stock += qty;
-        populateSelect();
-        renderRestockTable(); // update table immediately
         document.getElementById('restockForm').reset();
+        alert("Item restocked successfully!");
     } catch (err) {
         console.error("Restock error:", err);
         alert("Error restocking item");
+    } finally {
+        isProcessing = false;
+        restockButton.textContent = originalText;
+        restockButton.disabled = false;
     }
 }
 
-// Render restock table like warehouse table
-function renderRestockTable() {
-    const tbody = document.querySelector('#restockTable tbody');
-    const totalDiv = document.querySelector('.total-value');
-    tbody.innerHTML = '';
-    let totalValue = 0;
+function listenRestockHistory() {
+    const historyRef = query(
+        collection(db, "users", currentUserUID, "restockHistory"),
+        orderBy("date", "desc")
+    );
+    onSnapshot(historyRef, snapshot => {
+        const tbody = document.querySelector('#restockTable tbody');
+        const totalDiv = document.querySelector('.total-value');
+        tbody.innerHTML = '';
+        let totalValue = 0;
 
-    inventory.forEach(item => {
-        const restockedQty = item.stock - (item.initialStock || item.stock); // if initialStock saved somewhere
-        const totalCost = restockedQty * item.price;
-        totalValue += totalCost;
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td data-label="Code">${item.code}</td>
-            <td data-label="Name">${item.name}</td>
-            <td data-label="Price">${item.price.toFixed(2)}</td>
-            <td data-label="Stock">${item.stock}</td>
-            <td data-label="Sold">${item.sold || 0}</td>
-            <td data-label="Total Restock">${totalCost.toFixed(2)}</td>
-        `;
-        tbody.appendChild(row);
+        if (snapshot.empty) {
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">No restocked items yet</td></tr>`;
+            totalDiv.textContent = "Total Restock Value: ZMW 0.00";
+            return;
+        }
+
+        snapshot.forEach(docSnap => {
+            const data = docSnap.data();
+            totalValue += data.totalCost;
+            const date = new Date(data.date.seconds * 1000).toLocaleDateString();
+
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td data-label="Date">${date}</td>
+                <td data-label="Code">${data.itemCode}</td>
+                <td data-label="Name">${data.itemName}</td>
+                <td data-label="Qty">${data.quantity}</td>
+                <td data-label="Price">${data.price.toFixed(2)}</td>
+                <td data-label="Total">${data.totalCost.toFixed(2)}</td>
+            `;
+            tbody.appendChild(row);
+        });
+
+        totalDiv.textContent = `Total Restock Value: ZMW ${totalValue.toFixed(2)}`;
     });
-    totalDiv.textContent = `Total Restock Value: ZMW ${totalValue.toFixed(2)}`;
 }
 
 window.restockItem = restockItem;
@@ -149,6 +189,10 @@ window.restockItem = restockItem;
 </head>
 <body>
 <h2>Restock Inventory</h2>
+
+<div class="buttons">
+    <button onclick="window.location.href='Warehouse.html'">Back to Warehouse</button>
+</div>
 
 <div class="form-container">
   <form id="restockForm" onsubmit="restockItem(event)">
@@ -160,23 +204,23 @@ window.restockItem = restockItem;
   </form>
 </div>
 
-<div class="table-container">
+<div class="scroll-container">
   <table id="restockTable">
     <thead>
       <tr>
+        <th>Date</th>
         <th>Code</th>
         <th>Name</th>
+        <th>Qty</th>
         <th>Price</th>
-        <th>Stock</th>
-        <th>Sold</th>
-        <th>Total Restock</th>
+        <th>Total</th>
       </tr>
     </thead>
     <tbody>
       <tr><td colspan="6" style="text-align:center;">No restocked items yet</td></tr>
     </tbody>
   </table>
-  <div class="total-value">Total Restock Value: ZMW 0.00</div>
 </div>
+<div class="total-value">Total Restock Value: ZMW 0.00</div>
 </body>
 </html>
