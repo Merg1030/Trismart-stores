@@ -18,16 +18,27 @@
   tbody tr:nth-child(even) { background: #2c2c44; }
   tbody tr:nth-child(odd) { background: #1f1f33; }
   .form-container { display: none; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 15px; }
-  .scroll-container { overflow-x: auto; }
-  .inflow { color: #4caf50; }
-  .outflow { color: #f44336; }
-  
-  /* Responsive table */
+  .inflow { color: #4caf50; font-weight: bold; }
+  .outflow { color: #f44336; font-weight: bold; }
+
+  /* ✅ Responsive table for phones */
   @media(max-width:768px){
     input, select, button { width: 90%; max-width: 250px; }
-    .scroll-container { width: 100%; overflow-x: auto; }
-    table { width: 100%; min-width: 600px; }
-    th, td { padding: 6px 4px; font-size: 0.75rem; }
+    table, thead, tbody, th, td, tr { display: block; width: 100%; }
+    thead { display: none; } /* hide table headers */
+    tr { margin-bottom: 12px; background: #2c2c44; border-radius: 6px; padding: 8px; }
+    td { 
+      display: flex; 
+      justify-content: space-between; 
+      padding: 6px 8px; 
+      border: none; 
+      font-size: 0.85rem;
+    }
+    td::before {
+      content: attr(data-label);
+      font-weight: 600;
+      color: #ffcc00;
+    }
   }
 </style>
 <script type="module">
@@ -82,11 +93,11 @@ function renderTable() {
     balance += entry.type === 'Inflow' ? entry.amount : -entry.amount;
     const row = document.createElement('tr');
     row.innerHTML = `
-      <td>${new Date(entry.date).toLocaleDateString()}</td>
-      <td>${entry.description}</td>
-      <td class="${entry.type.toLowerCase()}">${entry.type}</td>
-      <td>${entry.amount.toFixed(2)}</td>
-      <td>${balance.toFixed(2)}</td>
+      <td data-label="Date">${new Date(entry.date).toLocaleDateString()}</td>
+      <td data-label="Description">${entry.description}</td>
+      <td data-label="Type" class="${entry.type.toLowerCase()}">${entry.type}</td>
+      <td data-label="Amount">${entry.amount.toFixed(2)}</td>
+      <td data-label="Balance">${balance.toFixed(2)}</td>
     `;
     tbody.appendChild(row);
   });
