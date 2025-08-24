@@ -5,26 +5,38 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cash Flow Account</title>
 <style>
-  body { font-family: Arial, sans-serif; background: #1e1e2f; color: #fff; margin: 0; padding: 20px; }
-  h2 { text-align: center; color: #ffcc00; margin-bottom: 15px; font-size: 1.5rem; }
-  .buttons { text-align: center; margin-bottom: 15px; }
-  input, select { padding: 8px; margin: 5px; border-radius: 6px; border: none; width: 200px; background: #2c2c44; color: #fff; font-size: 0.9rem; }
-  button { padding: 8px 12px; border-radius: 6px; border: none; cursor: pointer; background: #ffcc00; color: #1e1e2f; margin: 5px; font-weight: 600; font-size: 0.9rem; }
+  body { font-family: Arial, sans-serif; background: #1e1e2f; color: #fff; margin: 0; padding: 15px; }
+  h2 { text-align: center; color: #ffcc00; margin-bottom: 15px; font-size: 1.4rem; }
+  .buttons { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }
+  input, select { padding: 8px; border-radius: 6px; border: none; margin: 5px; width: 150px; background: #2c2c44; color: #fff; font-size: 0.85rem; }
+  button { padding: 8px 12px; border-radius: 6px; border: none; cursor: pointer; background: #ffcc00; color: #1e1e2f; font-weight: 600; font-size: 0.85rem; margin: 5px; }
   button:hover { background: #e6b800; }
-  table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.85rem; }
+  button:disabled { background: #666; color: #999; cursor: not-allowed; }
+  table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.8rem; }
   th, td { padding: 8px 6px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.1); }
   th { color: #ffcc00; font-weight: 600; }
   tbody tr:nth-child(even) { background: #2c2c44; }
   tbody tr:nth-child(odd) { background: #1f1f33; }
-  .form-container { display: none; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 15px; }
-
+  .form-container { display: none; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 15px; }
+  .scroll-container { overflow-x: auto; }
+  .inflow { color: #4caf50; }
+  .outflow { color: #f44336; }
+  
   /* Responsive table */
   @media(max-width:768px){
-    input, select, button { width: 90%; max-width: 250px; font-size: 0.85rem; }
+    input, select, button { width: 90%; max-width: 250px; }
     table, thead, tbody, th, td, tr { display: block; }
-    th { display: none; }
-    td { text-align: right; padding-left: 50%; position: relative; }
-    td::before { content: attr(data-label); position: absolute; left: 15px; font-weight: 600; color: #ffcc00; text-transform: capitalize; }
+    thead tr { position: absolute; top: -9999px; left: -9999px; }
+    tr { margin-bottom: 10px; border: 1px solid #444; border-radius: 8px; }
+    td { position: relative; padding-left: 50%; text-align: right; }
+    td::before { 
+      content: attr(data-label); 
+      position: absolute; 
+      left: 10px; 
+      font-weight: 600; 
+      color: #ffcc00; 
+      text-transform: capitalize;
+    }
   }
 </style>
 <script type="module">
@@ -47,6 +59,7 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 let currentUserUID;
 let cashflow = [];
+let isProcessing = false;
 
 onAuthStateChanged(auth, async (user) => {
   if (!user) { window.location.href = "index.html"; return; }
@@ -56,7 +69,7 @@ onAuthStateChanged(auth, async (user) => {
 
 function listenCashflow() {
   const cashRef = collection(db, "users", currentUserUID, "cashflow");
-  const q = query(cashRef, orderBy("date", "asc"));
+  const q = query(cashRef, orderBy("date", "desc"));
   onSnapshot(q, snapshot => {
     cashflow = [];
     snapshot.forEach(docSnap => cashflow.push({ id: docSnap.id, ...docSnap.data() }));
@@ -68,17 +81,19 @@ function renderTable() {
   const tbody = document.querySelector('#cashflowTable tbody');
   tbody.innerHTML = '';
   let balance = 0;
+  
   if(cashflow.length === 0){
     tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No entries yet</td></tr>';
     return;
   }
+  
   cashflow.forEach(entry => {
     balance += entry.type === 'Inflow' ? entry.amount : -entry.amount;
     const row = document.createElement('tr');
     row.innerHTML = `
       <td data-label="Date">${new Date(entry.date).toLocaleDateString()}</td>
       <td data-label="Description">${entry.description}</td>
-      <td data-label="Type">${entry.type}</td>
+      <td data-label="Type" class="${entry.type.toLowerCase()}">${entry.type}</td>
       <td data-label="Amount">${entry.amount.toFixed(2)}</td>
       <td data-label="Balance">${balance.toFixed(2)}</td>
     `;
@@ -93,15 +108,39 @@ function toggleForm() {
 
 async function addEntry(event) {
   event.preventDefault();
+  
+  if (isProcessing) {
+    alert("Please wait, processing your request...");
+    return;
+  }
+  
   const date = document.getElementById('entryDate').value;
   const description = document.getElementById('description').value.trim();
   const type = document.getElementById('type').value;
   const amount = parseFloat(document.getElementById('amount').value);
 
-  if (!date || !description || isNaN(amount)) return alert("Fill all fields correctly!");
-  await addDoc(collection(db, "users", currentUserUID, "cashflow"), { date, description, type, amount });
-  document.getElementById('cashflowForm').reset();
-  toggleForm();
+  if (!date || !description || isNaN(amount) || amount <= 0) 
+    return alert("Fill all fields correctly!");
+
+  isProcessing = true;
+  const addButton = document.querySelector('#cashflowForm button[type="submit"]');
+  const originalText = addButton.textContent;
+  addButton.textContent = "Processing...";
+  addButton.disabled = true;
+
+  try {
+    await addDoc(collection(db, "users", currentUserUID, "cashflow"), { date, description, type, amount });
+    document.getElementById('cashflowForm').reset();
+    toggleForm();
+    alert("Entry added successfully!");
+  } catch (error) {
+    console.error("Error adding entry:", error);
+    alert("Error adding entry. Please try again.");
+  } finally {
+    isProcessing = false;
+    addButton.textContent = originalText;
+    addButton.disabled = false;
+  }
 }
 
 window.toggleForm = toggleForm;
@@ -110,9 +149,12 @@ window.addEntry = addEntry;
 </head>
 <body>
 <h2>Cash Flow Account</h2>
+
 <div class="buttons">
   <button onclick="toggleForm()">Add Entry</button>
+  <button onclick="window.location.href='Sales.html'">Back to Sales</button>
 </div>
+
 <div class="form-container">
   <form id="cashflowForm" onsubmit="addEntry(event)">
     <input type="date" id="entryDate" required>
@@ -121,23 +163,26 @@ window.addEntry = addEntry;
       <option value="Inflow">Inflow</option>
       <option value="Outflow">Outflow</option>
     </select>
-    <input type="number" id="amount" step="0.01" placeholder="Amount" required>
+    <input type="number" id="amount" step="0.01" placeholder="Amount" min="0.01" required>
     <button type="submit">Add Entry</button>
   </form>
 </div>
-<table id="cashflowTable">
-  <thead>
-    <tr>
-      <th>Date</th>
-      <th>Description</th>
-      <th>Type</th>
-      <th>Amount</th>
-      <th>Balance</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr><td colspan="5" style="text-align:center;">No entries yet</td></tr>
-  </tbody>
-</table>
+
+<div class="scroll-container">
+  <table id="cashflowTable">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Amount</th>
+        <th>Balance</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td colspan="5" style="text-align:center;">No entries yet</td></tr>
+    </tbody>
+  </table>
+</div>
 </body>
 </html>
