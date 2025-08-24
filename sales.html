@@ -11,6 +11,7 @@
   input, select { padding:6px; border-radius:6px; border:none; background:#2c2c44; color:#fff; font-size:0.85rem; margin:3px; width:160px; }
   button { padding:6px 10px; border-radius:6px; border:none; cursor:pointer; background:#ffcc00; color:#1e1e2f; font-weight:600; font-size:0.85rem; margin:3px; }
   button:hover { background:#e6b800; }
+  button:disabled { background: #666; color: #999; cursor: not-allowed; }
   table { width:100%; border-collapse:collapse; margin-top:15px; font-size:0.8rem; }
   th, td { padding:6px 4px; text-align:left; border-bottom:1px solid rgba(255,255,255,0.1); }
   th { color:#ffcc00; font-weight:600; }
@@ -19,8 +20,16 @@
   .form-container { display:flex; flex-direction:column; align-items:center; gap:8px; margin-bottom:10px; }
   .total-sales { text-align:center; margin-top:8px; font-size:0.95rem; font-weight:bold; }
   .scroll-container { overflow-x:auto; }
+  .out-of-stock { color: #999; background-color: #2a2a2a !important; }
+  .stock-info { font-size: 0.7rem; color: #ffcc00; margin-left: 5px; }
+  .filter-container { display: flex; justify-content: center; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+  .filter-container select, .filter-container input { width: 140px; }
 
-  @media(max-width:768px){ input, select, button { width:90%; max-width:220px; } table { font-size:0.75rem; } }
+  @media(max-width:768px){ 
+    input, select, button { width:90%; max-width:220px; } 
+    table { font-size:0.75rem; } 
+    .filter-container { flex-direction: column; align-items: center; }
+  }
 </style>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
@@ -43,6 +52,8 @@ const db = getFirestore(app);
 
 let currentUserUID, inventory = [], salesCache = {};
 let reverseMode = false;
+let isProcessing = false; // Flag to prevent multiple operations
+let viewMode = 'daily'; // 'daily' or 'monthly'
 
 onAuthStateChanged(auth, async user => {
   if(!user) window.location.href="index.html";
@@ -53,7 +64,6 @@ onAuthStateChanged(auth, async user => {
 });
 
 async function loadInventory(){
-  if(inventory.length>0) return;
   const snapshot = await getDocs(collection(db, "users", currentUserUID, "inventory"));
   inventory = snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
   populateProductOptions();
@@ -64,7 +74,15 @@ function populateProductOptions(){
   select.innerHTML = '<option value="">Select Product</option>';
   inventory.forEach(item => { 
     const option = document.createElement('option'); 
-    option.value=item.code; option.textContent=item.name; 
+    option.value = item.code; 
+    option.textContent = `${item.name} (Stock: ${item.stock})`;
+    
+    // Disable option if out of stock
+    if (item.stock <= 0) {
+      option.disabled = true;
+      option.classList.add('out-of-stock');
+    }
+    
     select.appendChild(option); 
   });
 }
@@ -73,137 +91,372 @@ function setTodayDate(){
   const today = new Date().toISOString().split('T')[0];
   document.getElementById('saleDate').value = today;
   document.getElementById('filterDate').value = today;
+  
+  // Set month filter to current month
+  const now = new Date();
+  document.getElementById('filterMonth').value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 }
 
 async function makeSale(event){
   event.preventDefault();
+  
+  // Prevent multiple submissions
+  if (isProcessing) {
+    alert("Please wait, processing your sale...");
+    return;
+  }
+  
   const productCode = document.getElementById('productCode').value;
   const quantity = parseInt(document.getElementById('quantity').value);
   const date = document.getElementById('saleDate').value;
-  if(!productCode || isNaN(quantity) || !date) return alert("Fill all fields!");
   
-  const item = inventory.find(i => i.code===productCode);
-  if(!item || item.stock < quantity) return alert(`Insufficient stock for ${item?item.name:''}`);
+  if(!productCode || isNaN(quantity) || quantity <= 0 || !date) return alert("Fill all fields with valid values!");
   
-  item.stock -= quantity;
-  item.sold = (item.sold||0)+quantity;
+  const item = inventory.find(i => i.code === productCode);
+  if(!item) return alert("Product not found!");
+  
+  if(item.stock < quantity) return alert(`Insufficient stock for ${item.name}. Only ${item.stock} available.`);
+  
+  // Set processing flag
+  isProcessing = true;
+  const saleButton = document.querySelector('#salesForm button[type="submit"]');
+  const originalText = saleButton.textContent;
+  saleButton.textContent = "Processing...";
+  saleButton.disabled = true;
+  
+  try {
+    item.stock -= quantity;
+    item.sold = (item.sold||0) + quantity;
 
-  const saleEntry = { date, code:item.code, name:item.name, price:item.price, quantity };
-  const saleRef = await addDoc(collection(db, "users", currentUserUID, "sales"), saleEntry);
-  saleEntry.id = saleRef.id;
+    const saleEntry = { date, code:item.code, name:item.name, price:item.price, quantity };
+    const saleRef = await addDoc(collection(db, "users", currentUserUID, "sales"), saleEntry);
+    saleEntry.id = saleRef.id;
 
-  await updateDoc(doc(db, "users", currentUserUID, "inventory", item.id), { stock:item.stock, sold:item.sold });
+    await updateDoc(doc(db, "users", currentUserUID, "inventory", item.id), { 
+      stock:item.stock, 
+      sold:item.sold 
+    });
 
-  if(!salesCache[date]) salesCache[date]=[];
-  salesCache[date].push(saleEntry);
-  renderSalesTable(date);
-  document.getElementById('salesForm').reset();
+    // Clear cache for this date to force reload
+    delete salesCache[date];
+    
+    // Update the product dropdown to reflect new stock levels
+    populateProductOptions();
+    
+    // Reload sales data
+    if (viewMode === 'daily') {
+      await loadSalesByDate(date);
+    } else {
+      await loadSalesByMonth(document.getElementById('filterMonth').value);
+    }
+    
+    document.getElementById('salesForm').reset();
+    alert("Sale recorded successfully!");
+  } catch (error) {
+    console.error("Error recording sale:", error);
+    alert("Error recording sale. Please try again.");
+  } finally {
+    // Reset processing state
+    isProcessing = false;
+    saleButton.textContent = originalText;
+    saleButton.disabled = false;
+  }
 }
 
 async function loadSalesByDate(date){
-  if(!salesCache[date]){
-    const salesRef = collection(db, "users", currentUserUID, "sales");
-    const q = query(salesRef, where("date","==",date));
-    const snapshot = await getDocs(q);
-    salesCache[date] = snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
+  if (isProcessing) return;
+  
+  viewMode = 'daily';
+  const filterButton = document.querySelector('.buttons button:nth-child(2)');
+  const originalText = filterButton.textContent;
+  filterButton.textContent = "Loading...";
+  filterButton.disabled = true;
+  isProcessing = true;
+  
+  try {
+    if(!salesCache[date]){
+      const salesRef = collection(db, "users", currentUserUID, "sales");
+      const q = query(salesRef, where("date","==",date));
+      const snapshot = await getDocs(q);
+      salesCache[date] = snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
+    }
+    renderSalesTable(salesCache[date], `Sales for ${date}`);
+  } catch (error) {
+    console.error("Error loading sales:", error);
+    alert("Error loading sales data.");
+  } finally {
+    isProcessing = false;
+    filterButton.textContent = originalText;
+    filterButton.disabled = false;
   }
-  renderSalesTable(date);
 }
 
-function renderSalesTable(date){
+async function loadSalesByMonth(monthValue){
+  if (isProcessing) return;
+  
+  viewMode = 'monthly';
+  const filterButton = document.querySelector('.buttons button:nth-child(3)');
+  const originalText = filterButton.textContent;
+  filterButton.textContent = "Loading...";
+  filterButton.disabled = true;
+  isProcessing = true;
+  
+  try {
+    const [year, month] = monthValue.split('-');
+    const startDate = `${year}-${month}-01`;
+    const endDate = `${year}-${month}-${new Date(year, month, 0).getDate()}`;
+    
+    const cacheKey = `month-${monthValue}`;
+    
+    if(!salesCache[cacheKey]){
+      const salesRef = collection(db, "users", currentUserUID, "sales");
+      const snapshot = await getDocs(salesRef);
+      
+      // Filter by month manually since Firestore doesn't have native month queries
+      salesCache[cacheKey] = snapshot.docs
+        .map(docSnap => ({ id: docSnap.id, ...docSnap.data() }))
+        .filter(sale => {
+          const saleDate = new Date(sale.date);
+          return saleDate.getFullYear() === parseInt(year) && 
+                 saleDate.getMonth() + 1 === parseInt(month);
+        });
+    }
+    
+    renderSalesTable(salesCache[cacheKey], `Sales for ${monthValue}`);
+  } catch (error) {
+    console.error("Error loading monthly sales:", error);
+    alert("Error loading monthly sales data.");
+  } finally {
+    isProcessing = false;
+    filterButton.textContent = originalText;
+    filterButton.disabled = false;
+  }
+}
+
+function renderSalesTable(sales, title){
   const tbody = document.querySelector('#salesTable tbody');
   tbody.innerHTML='';
-  const sales = salesCache[date] || [];
+  
   if(sales.length===0){
-    tbody.innerHTML='<tr><td colspan="6" style="text-align:center;">No sales yet</td></tr>';
-    updateTotalSales(date);
+    tbody.innerHTML='<tr><td colspan="6" style="text-align:center;">No sales found</td></tr>';
+    updateTotalSales(sales, title);
     return;
   }
-  sales.forEach(sale=>{
+  
+  sales.forEach(sale => {
     const total=(sale.price*sale.quantity).toFixed(2);
     const row=document.createElement('tr');
+    
     if(reverseMode){
-      row.innerHTML=`<td><input type="checkbox" data-id="${sale.id}"></td><td>${sale.code}</td><td>${sale.name}</td><td>${sale.price}</td><td>${sale.quantity}</td><td>${total}</td>`;
-    }else{
-      row.innerHTML=`<td>${sale.code}</td><td>${sale.name}</td><td>${sale.price}</td><td>${sale.quantity}</td><td>${total}</td>`;
+      row.innerHTML=`
+        <td><input type="checkbox" data-id="${sale.id}" data-date="${sale.date}"></td>
+        <td>${sale.date || ''}</td>
+        <td>${sale.code}</td>
+        <td>${sale.name}</td>
+        <td>${sale.price.toFixed(2)}</td>
+        <td>${sale.quantity}</td>
+        <td>${total}</td>
+      `;
+    } else {
+      row.innerHTML=`
+        <td>${sale.date || ''}</td>
+        <td>${sale.code}</td>
+        <td>${sale.name}</td>
+        <td>${sale.price.toFixed(2)}</td>
+        <td>${sale.quantity}</td>
+        <td>${total}</td>
+      `;
     }
+    
     tbody.appendChild(row);
   });
-  updateTotalSales(date);
+  
+  updateTotalSales(sales, title);
 }
 
-function updateTotalSales(date){
-  const total=(salesCache[date]||[]).reduce((acc,s)=>acc+s.price*s.quantity,0).toFixed(2);
-  document.querySelector('.total-sales').textContent=`Total Sales for ${date}: ZMW ${total}`;
+function updateTotalSales(sales, title){
+  const total = sales.reduce((acc,s) => acc + s.price * s.quantity, 0).toFixed(2);
+  document.querySelector('.total-sales').textContent = `${title}: ZMW ${total}`;
 }
 
-function filterByDate(){ loadSalesByDate(document.getElementById('filterDate').value); }
+function filterByDate(){ 
+  loadSalesByDate(document.getElementById('filterDate').value); 
+}
+
+function filterByMonth() {
+  loadSalesByMonth(document.getElementById('filterMonth').value);
+}
 
 function toggleForm(){
+  if (isProcessing) return;
+  
   const form=document.querySelector('.form-container');
   form.style.display=form.style.display==='flex'?'none':'flex';
 }
 
 function enableReverseMode(){
+  if (isProcessing) return;
+  
   reverseMode = !reverseMode;
   const btn = document.getElementById('reverseBtn');
-  btn.textContent = reverseMode ? 'Confirm Reverse' : 'Reverse Sale';
-  renderSalesTable(document.getElementById('filterDate').value);
-  if(!reverseMode) return;
-  // attach confirm reverse action
-  btn.onclick = confirmReverseSales;
+  
+  if (reverseMode) {
+    btn.textContent = 'Confirm Reverse';
+    btn.style.background = '#ff4444';
+    btn.onclick = confirmReverseSales;
+  } else {
+    btn.textContent = 'Reverse Sale';
+    btn.style.background = '#ffcc00';
+    btn.onclick = enableReverseMode;
+  }
+  
+  // Re-render the current view
+  if (viewMode === 'daily') {
+    const date = document.getElementById('filterDate').value;
+    renderSalesTable(salesCache[date] || [], `Sales for ${date}`);
+  } else {
+    const month = document.getElementById('filterMonth').value;
+    const cacheKey = `month-${month}`;
+    renderSalesTable(salesCache[cacheKey] || [], `Sales for ${month}`);
+  }
 }
 
 async function confirmReverseSales(){
-  const date = document.getElementById('filterDate').value;
-  const checkboxes = document.querySelectorAll('#salesTable tbody input[type="checkbox"]:checked');
-  if(checkboxes.length===0) return alert("Select at least one sale to reverse");
-  
-  for(const cb of checkboxes){
-    const saleId = cb.dataset.id;
-    const sale = salesCache[date].find(s=>s.id===saleId);
-    if(!sale) continue;
-
-    const item = inventory.find(i=>i.code===sale.code);
-    if(item){
-      item.stock += sale.quantity;
-      item.sold -= sale.quantity;
-      await updateDoc(doc(db,"users",currentUserUID,"inventory",item.id), { stock:item.stock, sold:item.sold });
-    }
-    await deleteDoc(doc(db,"users",currentUserUID,"sales",saleId));
-    salesCache[date] = salesCache[date].filter(s=>s.id!==saleId);
+  if (isProcessing) {
+    alert("Please wait, another operation is in progress...");
+    return;
   }
-  reverseMode = false;
-  document.getElementById('reverseBtn').textContent = 'Reverse Sale';
-  renderSalesTable(date);
+  
+  const checkboxes = document.querySelectorAll('#salesTable tbody input[type="checkbox"]:checked');
+  
+  if(checkboxes.length === 0) {
+    alert("Select at least one sale to reverse");
+    enableReverseMode(); // Turn off reverse mode
+    return;
+  }
+  
+  // Set processing flag
+  isProcessing = true;
+  const reverseButton = document.getElementById('reverseBtn');
+  const originalText = reverseButton.textContent;
+  reverseButton.textContent = "Reversing...";
+  reverseButton.disabled = true;
+  
+  try {
+    for(const cb of checkboxes){
+      const saleId = cb.dataset.id;
+      const saleDate = cb.dataset.date;
+      
+      // Find the sale in our cache
+      let sale;
+      if (viewMode === 'daily') {
+        sale = salesCache[saleDate].find(s => s.id === saleId);
+      } else {
+        const month = document.getElementById('filterMonth').value;
+        const cacheKey = `month-${month}`;
+        sale = salesCache[cacheKey].find(s => s.id === saleId);
+      }
+      
+      if(!sale) continue;
+
+      const item = inventory.find(i => i.code === sale.code);
+      if(item){
+        item.stock += sale.quantity;
+        item.sold -= sale.quantity;
+        await updateDoc(doc(db, "users", currentUserUID, "inventory", item.id), { 
+          stock: item.stock, 
+          sold: item.sold 
+        });
+      }
+      
+      await deleteDoc(doc(db, "users", currentUserUID, "sales", saleId));
+      
+      // Remove from cache
+      if (viewMode === 'daily') {
+        salesCache[saleDate] = salesCache[saleDate].filter(s => s.id !== saleId);
+      } else {
+        const month = document.getElementById('filterMonth').value;
+        const cacheKey = `month-${month}`;
+        salesCache[cacheKey] = salesCache[cacheKey].filter(s => s.id !== saleId);
+      }
+    }
+    
+    // Update the product dropdown to reflect returned stock
+    populateProductOptions();
+    
+    alert("Sales reversed successfully!");
+  } catch (error) {
+    console.error("Error reversing sales:", error);
+    alert("Error reversing sales. Please try again.");
+  } finally {
+    // Reset processing state
+    isProcessing = false;
+    reverseButton.textContent = originalText;
+    reverseButton.disabled = false;
+    
+    // Exit reverse mode
+    reverseMode = false;
+    reverseButton.textContent = 'Reverse Sale';
+    reverseButton.style.background = '#ffcc00';
+    reverseButton.onclick = enableReverseMode;
+    
+    // Re-render the current view
+    if (viewMode === 'daily') {
+      const date = document.getElementById('filterDate').value;
+      renderSalesTable(salesCache[date] || [], `Sales for ${date}`);
+    } else {
+      const month = document.getElementById('filterMonth').value;
+      const cacheKey = `month-${month}`;
+      renderSalesTable(salesCache[cacheKey] || [], `Sales for ${month}`);
+    }
+  }
 }
 
-window.makeSale=makeSale;
-window.toggleForm=toggleForm;
-window.filterByDate=filterByDate;
-window.enableReverseMode=enableReverseMode;
+window.makeSale = makeSale;
+window.toggleForm = toggleForm;
+window.filterByDate = filterByDate;
+window.filterByMonth = filterByMonth;
+window.enableReverseMode = enableReverseMode;
 </script>
 </head>
 <body>
 <div class="container">
   <h2>Sales Dashboard</h2>
+  
+  <div class="filter-container">
+    <div>
+      <label>Daily View:</label>
+      <input type="date" id="filterDate" onchange="filterByDate()">
+      <button onclick="filterByDate()">Load Day</button>
+    </div>
+    <div>
+      <label>Monthly View:</label>
+      <input type="month" id="filterMonth" onchange="filterByMonth()">
+      <button onclick="filterByMonth()">Load Month</button>
+    </div>
+  </div>
+  
   <div class="buttons">
     <button onclick="toggleForm()">Toggle Sale Form</button>
-    <input type="date" id="filterDate" onchange="filterByDate()">
     <button id="reverseBtn" onclick="enableReverseMode()">Reverse Sale</button>
   </div>
+  
   <div class="form-container" style="display:flex;">
     <form id="salesForm" onsubmit="makeSale(event)">
       <input type="date" id="saleDate" required>
-      <select id="productCode" required></select>
-      <input type="number" id="quantity" placeholder="Quantity" required>
+      <select id="productCode" required>
+        <option value="">Select Product</option>
+      </select>
+      <input type="number" id="quantity" placeholder="Quantity" min="1" required>
       <button type="submit">Record Sale</button>
     </form>
   </div>
+  
   <div class="scroll-container">
     <table id="salesTable">
       <thead>
         <tr>
+          <th>Date</th>
           <th>Code</th>
           <th>Name</th>
           <th>Price</th>
@@ -212,11 +465,12 @@ window.enableReverseMode=enableReverseMode;
         </tr>
       </thead>
       <tbody>
-        <tr><td colspan="5" style="text-align:center;">No sales yet</td></tr>
+        <tr><td colspan="6" style="text-align:center;">No sales data loaded</td></tr>
       </tbody>
     </table>
   </div>
-  <div class="total-sales">Total Sales ZMW0.00</div>
+  
+  <div class="total-sales">Select a date or month to view sales</div>
 </div>
 </body>
 </html>
