@@ -3,102 +3,209 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin Dashboard - User Management</title>
+<title>Trismart Admin Dashboard</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
-  body { font-family: Arial; background: #1e1e2f; color: #fff; margin: 0; padding: 20px; }
-  h2 { text-align: center; color: #ffcc00; margin-bottom: 20px; }
-  table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-  th, td { padding: 10px; border: 1px solid #fff; text-align: center; }
-  th { background: #acaaa5; color: #121212; }
-  tbody tr:nth-child(even) { background: #2c2c2c; }
-  tbody tr:nth-child(odd) { background: #1e1e2d; }
-  button { padding: 5px 10px; border-radius: 5px; border: none; cursor: pointer; margin: 2px; }
-  .approve { background: #28a745; color: #fff; }
-  .disable { background: #dc3545; color: #fff; }
+:root {
+  --primary: #1e1e2f;
+  --secondary: #2c2c44;
+  --accent: #ffcc00;
+  --accent-hover: #e6b800;
+  --text: #ffffff;
+  --text-secondary: #b8b8cc;
+  --card-bg: #27293d;
+  --success: #28a745;
+  --danger: #dc3545;
+  --border-radius: 10px;
+  --transition: all 0.3s ease;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: var(--primary);
+  color: var(--text);
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 250px;
+  background: var(--secondary);
+  padding: 2rem 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar h2 {
+  color: var(--accent);
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.sidebar a {
+  color: var(--text);
+  text-decoration: none;
+  padding: 0.8rem 1rem;
+  margin: 0.3rem 0;
+  border-radius: var(--border-radius);
+  display: flex;
+  align-items: center;
+  transition: var(--transition);
+}
+
+.sidebar a i {
+  margin-right: 1rem;
+  font-size: 1.2rem;
+}
+
+.sidebar a:hover {
+  background: var(--accent);
+  color: var(--primary);
+}
+
+/* Main content */
+.main-content {
+  flex: 1;
+  padding: 2rem;
+}
+
+.header {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 2rem;
+  color: var(--accent);
+}
+
+/* Cards */
+.dashboard-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.5rem;
+}
+
+.card {
+  background: var(--card-bg);
+  padding: 2rem;
+  border-radius: var(--border-radius);
+  text-align: center;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+  transition: var(--transition);
+  cursor: pointer;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+}
+
+.card .icon {
+  font-size: 2.5rem;
+  color: var(--accent);
+  margin-bottom: 0.5rem;
+}
+
+.card .title {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+}
+
+.card .value {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-top: 0.3rem;
+  color: var(--text);
+}
 </style>
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
-  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-  import { getFirestore, collection, getDocs, updateDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyDuAv_aGmY4VzergDS7g_K3zR-jFYHvGZo",
-    authDomain: "trismart-online-app.firebaseapp.com",
-    projectId: "trismart-online-app",
-    storageBucket: "trismart-online-app.firebasestorage.app",
-    messagingSenderId: "867677912389",
-    appId: "1:867677912389:web:3c5ea505cb1e84a003d22c",
-    measurementId: "G-KEWDREKNDB"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
-
-  let currentUserUID;
-
-  onAuthStateChanged(auth, async (user) => {
-    if (!user) { window.location.href = "index.html"; return; }
-    currentUserUID = user.uid;
-    listenUsers();
-  });
-
-  function listenUsers() {
-    const usersRef = collection(db, "users");
-    onSnapshot(usersRef, snapshot => {
-      const tbody = document.querySelector("#usersTable tbody");
-      tbody.innerHTML = '';
-      snapshot.forEach(docSnap => {
-        const data = docSnap.data();
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${docSnap.id}</td>
-          <td>${data.name || ''}</td>
-          <td>${data.email || ''}</td>
-          <td>${data.phone || ''}</td>
-          <td>${data.approved ? 'Approved' : 'Pending'}</td>
-          <td>${data.disabled ? 'Disabled' : 'Active'}</td>
-          <td>
-            <button class="approve" onclick="approveUser('${docSnap.id}')">Approve</button>
-            <button class="disable" onclick="disableUser('${docSnap.id}')">Disable</button>
-          </td>
-        `;
-        tbody.appendChild(row);
-      });
-    });
-  }
-
-  async function approveUser(userId) {
-    const userRef = doc(db, "users", userId);
-    await updateDoc(userRef, { approved: true, disabled: false });
-    alert("User approved successfully!");
-  }
-
-  async function disableUser(userId) {
-    const userRef = doc(db, "users", userId);
-    await updateDoc(userRef, { disabled: true });
-    alert("User disabled successfully!");
-  }
-
-  window.approveUser = approveUser;
-  window.disableUser = disableUser;
-</script>
 </head>
 <body>
-<h2>Admin Dashboard - User Management</h2>
-<table id="usersTable">
-  <thead>
-    <tr>
-      <th>User ID</th>
-      <th>Name</th>
-      <th>Email</th>
-      <th>Phone</th>
-      <th>Status</th>
-      <th>Account</th>
-      <th>Actions</th>
-    </tr>
-  </thead>
-  <tbody></tbody>
-</table>
+
+<div class="sidebar">
+  <h2>Trismart</h2>
+  <a href="admindash.html"><i class="fas fa-home"></i> Dashboard</a>
+  <a href="users.html"><i class="fas fa-users"></i> Users</a>
+  <a href="payments.html"><i class="fas fa-money-bill-wave"></i> Payments</a>
+  
+</div>
+
+<div class="main-content">
+  <div class="header">Admin Dashboard</div>
+  <div class="dashboard-cards">
+    <div class="card" onclick="location.href='user-management.html'">
+      <div class="icon"><i class="fas fa-users"></i></div>
+      <div class="title">Total Users</div>
+      <div class="value" id="totalUsers">0</div>
+    </div>
+    <div class="card" onclick="location.href='payments.html'">
+      <div class="icon"><i class="fas fa-money-bill-wave"></i></div>
+      <div class="title">Payments</div>
+      <div class="value" id="totalPayments">0</div>
+    </div>
+    <div class="card" onclick="location.href='sales.html'">
+      <div class="icon"><i class="fas fa-dollar-sign"></i></div>
+      <div class="title">Revenue</div>
+      <div class="value" id="totalRevenue">0</div>
+    </div>
+    <div class="card" onclick="location.href='payments.html'">
+      <div class="icon"><i class="fas fa-clock"></i></div>
+      <div class="title">Pending Payments</div>
+      <div class="value" id="pendingPayments">0</div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDuAv_aGmY4VzergDS7g_K3zR-jFYHvGZo",
+  authDomain: "trismart-online-app.firebaseapp.com",
+  projectId: "trismart-online-app",
+  storageBucket: "trismart-online-app.firebasestorage.app",
+  messagingSenderId: "867677912389",
+  appId: "1:867677912389:web:3c5ea505cb1e84a003d22c",
+  measurementId: "G-KEWDREKNDB"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+onAuthStateChanged(auth, user => {
+  if (!user) window.location.href = "index.html";
+  else loadDashboard();
+});
+
+async function loadDashboard() {
+  // Total Users
+  const usersSnap = await getDocs(collection(db, "users"));
+  const users = [];
+  usersSnap.forEach(docSnap => users.push(docSnap.data()));
+  document.getElementById('totalUsers').textContent = users.length;
+
+  // Total Payments
+  const paymentsSnap = await getDocs(collection(db, "payments"));
+  const payments = [];
+  paymentsSnap.forEach(docSnap => payments.push(docSnap.data()));
+  document.getElementById('totalPayments').textContent = payments.length;
+
+  // Revenue
+  const totalRevenue = payments.filter(p => p.status === 'paid')
+                               .reduce((sum, p) => sum + (p.amount || 0), 0);
+  document.getElementById('totalRevenue').textContent = `$${totalRevenue}`;
+
+  // Pending Payments
+  const pendingPayments = payments.filter(p => p.status === 'due').length;
+  document.getElementById('pendingPayments').textContent = pendingPayments;
+}
+</script>
+
 </body>
 </html>
