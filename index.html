@@ -6,456 +6,68 @@
   <title>Trismart - Authentication</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    :root {
-      --primary: #1e1e2f;
-      --secondary: #2c2c44;
-      --accent: #ffcc00;
-      --accent-hover: #e6b800;
-      --text: #ffffff;
-      --text-secondary: #b8b8cc;
-      --card-bg: #27293d;
-      --success: #4caf50;
-      --danger: #f44336;
-      --info: #2196f3;
-      --border-radius: 12px;
-      --transition: all 0.3s ease;
-    }
-
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, var(--primary) 0%, #2d2d47 100%);
-      color: var(--text);
-      line-height: 1.6;
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-    }
-
-    .auth-container {
-      background: var(--card-bg);
-      border-radius: var(--border-radius);
-      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
-      width: 100%;
-      max-width: 450px;
-      overflow: hidden;
-      position: relative;
-    }
-
-    .auth-header {
-      background: linear-gradient(135deg, var(--secondary) 0%, #3a3a5e 100%);
-      padding: 2rem;
-      text-align: center;
-    }
-
-    .logo {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      font-size: 1.8rem;
-      font-weight: 700;
-      color: var(--accent);
-      margin-bottom: 1rem;
-    }
-
-    .logo i {
-      font-size: 2.2rem;
-    }
-
-    .auth-tabs {
-      display: flex;
-      background: rgba(0, 0, 0, 0.2);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .auth-tab {
-      flex: 1;
-      padding: 1rem;
-      text-align: center;
-      cursor: pointer;
-      transition: var(--transition);
-      font-weight: 600;
-      color: var(--text-secondary);
-      border-bottom: 3px solid transparent;
-    }
-
-    .auth-tab.active {
-      color: var(--accent);
-      border-bottom: 3px solid var(--accent);
-      background: rgba(255, 255, 255, 0.05);
-    }
-
-    .auth-tab:hover:not(.active) {
-      background: rgba(255, 255, 255, 0.03);
-      color: var(--text);
-    }
-
-    .auth-content {
-      padding: 2rem;
-    }
-
-    .auth-section {
-      display: none;
-      animation: fadeIn 0.5s ease;
-    }
-
-    .auth-section.active {
-      display: block;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .form-group {
-      margin-bottom: 1.5rem;
-      position: relative;
-    }
-
-    .form-group label {
-      display: block;
-      margin-bottom: 0.5rem;
-      font-weight: 500;
-      color: var(--text-secondary);
-    }
-
-    .input-with-icon {
-      position: relative;
-    }
-
-    .input-with-icon i {
-      position: absolute;
-      left: 15px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--text-secondary);
-    }
-
-    .input-with-icon input {
-      padding-left: 45px;
-    }
-
-    input {
-      width: 100%;
-      padding: 14px;
-      border-radius: 8px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      background: rgba(0, 0, 0, 0.2);
-      color: var(--text);
-      font-size: 1rem;
-      transition: var(--transition);
-    }
-
-    input:focus {
-      outline: none;
-      border-color: var(--accent);
-      box-shadow: 0 0 0 2px rgba(255, 204, 0, 0.2);
-    }
-
-    input::placeholder {
-      color: var(--text-secondary);
-    }
-
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 100%;
-      padding: 14px;
-      border-radius: 8px;
-      border: none;
-      font-weight: 600;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: var(--transition);
-      text-decoration: none;
-      gap: 8px;
-    }
-
-    .btn-primary {
-      background: var(--accent);
-      color: var(--primary);
-    }
-
-    .btn-primary:hover {
-      background: var(--accent-hover);
-      transform: translateY(-2px);
-    }
-
-    .btn-secondary {
-      background: rgba(255, 255, 255, 0.1);
-      color: var(--text);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-    }
-
-    .btn-secondary:hover {
-      background: rgba(255, 255, 255, 0.2);
-      transform: translateY(-2px);
-    }
-
-    .btn-logout {
-      background: var(--danger);
-      color: white;
-    }
-
-    .btn-logout:hover {
-      background: #d32f2f;
-      transform: translateY(-2px);
-    }
-
-    .form-footer {
-      margin-top: 1.5rem;
-      text-align: center;
-      color: var(--text-secondary);
-      font-size: 0.9rem;
-    }
-
-    .form-footer a {
-      color: var(--accent);
-      text-decoration: none;
-    }
-
-    .form-footer a:hover {
-      text-decoration: underline;
-    }
-
-    .alert {
-      padding: 12px;
-      border-radius: 8px;
-      margin-bottom: 1.5rem;
-      display: none;
-    }
-
-    .alert-success {
-      background: rgba(76, 175, 80, 0.2);
-      border: 1px solid var(--success);
-      color: #a5d6a7;
-    }
-
-    .alert-error {
-      background: rgba(244, 67, 54, 0.2);
-      border: 1px solid var(--danger);
-      color: #ffab91;
-    }
-
-    .payment-message {
-      background: rgba(255, 204, 0, 0.2);
-      border: 1px solid var(--accent);
-      color: var(--accent);
-      padding: 15px;
-      border-radius: 8px;
-      margin-top: 20px;
-      text-align: center;
-      display: none;
-    }
-
-    /* Modal Styles */
-    .modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.8);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-      opacity: 0;
-      visibility: hidden;
-      transition: var(--transition);
-    }
-
-    .modal-overlay.active {
-      opacity: 1;
-      visibility: visible;
-    }
-
-    .modal {
-      background: var(--card-bg);
-      border-radius: var(--border-radius);
-      width: 90%;
-      max-width: 500px;
-      padding: 2rem;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
-      transform: translateY(-50px);
-      transition: var(--transition);
-      position: relative;
-    }
-
-    .modal-overlay.active .modal {
-      transform: translateY(0);
-    }
-
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1.5rem;
-    }
-
-    .modal-title {
-      font-size: 1.5rem;
-      color: var(--accent);
-    }
-
-    .modal-close {
-      background: none;
-      border: none;
-      color: var(--text-secondary);
-      font-size: 1.5rem;
-      cursor: pointer;
-      transition: var(--transition);
-    }
-
-    .modal-close:hover {
-      color: var(--text);
-    }
-
-    .payment-details {
-      background: rgba(0, 0, 0, 0.2);
-      border-radius: 8px;
-      padding: 1.5rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .payment-option {
-      margin-bottom: 1rem;
-      padding-bottom: 1rem;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .payment-option:last-child {
-      margin-bottom: 0;
-      padding-bottom: 0;
-      border-bottom: none;
-    }
-
-    .payment-option-title {
-      font-weight: 600;
-      color: var(--accent);
-      margin-bottom: 0.5rem;
-    }
-
-    .payment-option-details {
-      color: var(--text);
-      font-size: 0.95rem;
-    }
-
-    .transaction-form {
-      margin-top: 1.5rem;
-    }
-
-    .success-message {
-      text-align: center;
-      padding: 1.5rem;
-    }
-
-    .success-icon {
-      font-size: 3rem;
-      color: var(--success);
-      margin-bottom: 1rem;
-    }
-
-    /* Month Selection Styles */
-    .month-selection {
-      margin: 1.5rem 0;
-    }
-
-    .month-selection-title {
-      font-weight: 600;
-      margin-bottom: 1rem;
-      color: var(--accent);
-    }
-
-    .months-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-    }
-
-    .month-checkbox {
-      display: none;
-    }
-
-    .month-label {
-      display: block;
-      padding: 10px;
-      text-align: center;
-      background: rgba(0, 0, 0, 0.2);
-      border-radius: 6px;
-      cursor: pointer;
-      transition: var(--transition);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .month-checkbox:checked + .month-label {
-      background: var(--accent);
-      color: var(--primary);
-      font-weight: 600;
-      border-color: var(--accent);
-    }
-
-    .month-label.disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    .amount-info {
-      background: rgba(255, 204, 0, 0.1);
-      border: 1px solid rgba(255, 204, 0, 0.3);
-      border-radius: 8px;
-      padding: 10px;
-      margin-top: 1rem;
-      text-align: center;
-      font-size: 0.9rem;
-    }
-
-    /* Responsive adjustments */
-    @media (max-width: 480px) {
-      .auth-container {
-        border-radius: 0;
-      }
-      
-      .auth-header {
-        padding: 1.5rem;
-      }
-      
-      .auth-content {
-        padding: 1.5rem;
-      }
-      
-      .logo {
-        font-size: 1.5rem;
-      }
-      
-      .logo i {
-        font-size: 1.8rem;
-      }
-      
-      .auth-tab {
-        padding: 0.8rem;
-        font-size: 0.9rem;
-      }
-      
-      .modal {
-        padding: 1.5rem;
-      }
-      
-      .months-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-    }
-  </style>
+:root{--p:#1e1e2f;--s:#2c2c44;--a:#ffcc00;--ah:#e6b800;--t:#fff;--ts:#b8b8cc;--cbg:#27293d;--br:8px;--tr:all .3s ease}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:linear-gradient(135deg,var(--p)0%,#2d2d47 100%);color:var(--t);min-height:100vh;display:flex;justify-content:center;align-items:center;padding:10px}
+.auth-container{background:var(--cbg);border-radius:var(--br);box-shadow:0 8px 20px rgba(0,0,0,.5);width:100%;max-width:100%;overflow:hidden}
+.auth-header{background:linear-gradient(135deg,var(--s)0%,#3a3a5e 100%);padding:1.2rem;text-align:center}
+.logo{display:flex;align-items:center;justify-content:center;gap:8px;font-size:1.3rem;font-weight:700;color:var(--a);margin-bottom:.8rem}
+.logo i{font-size:1.5rem}
+.auth-tabs{display:flex;background:rgba(0,0,0,.2);border-bottom:1px solid rgba(255,255,255,.1)}
+.auth-tab{flex:1;padding:.8rem;text-align:center;cursor:pointer;transition:var(--tr);font-weight:600;color:var(--ts);border-bottom:2px solid transparent;font-size:.9rem}
+.auth-tab.active{color:var(--a);border-bottom:2px solid var(--a);background:rgba(255,255,255,.05)}
+.auth-tab:hover:not(.active){background:rgba(255,255,255,.03);color:var(--t)}
+.auth-content{padding:1.2rem}
+.auth-section{display:none;animation:fadeIn .5s ease}
+.auth-section.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.form-group{margin-bottom:1rem;position:relative}
+.form-group label{display:block;margin-bottom:.4rem;font-weight:500;color:var(--ts);font-size:.9rem}
+.input-with-icon{position:relative}
+.input-with-icon i{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--ts);font-size:.9rem}
+.input-with-icon input{padding-left:38px}
+input{width:100%;padding:12px;border-radius:6px;border:1px solid rgba(255,255,255,.1);background:rgba(0,0,0,.2);color:var(--t);font-size:.95rem;transition:var(--tr)}
+input:focus{outline:none;border-color:var(--a);box-shadow:0 0 0 2px rgba(255,204,0,.2)}
+input::placeholder{color:var(--ts);font-size:.9rem}
+.btn{display:inline-flex;align-items:center;justify-content:center;width:100%;padding:12px;border-radius:6px;border:none;font-weight:600;font-size:.95rem;cursor:pointer;transition:var(--tr);text-decoration:none;gap:6px}
+.btn-primary{background:var(--a);color:var(--p)}
+.btn-primary:hover{background:var(--ah);transform:translateY(-1px)}
+.btn-secondary{background:rgba(255,255,255,.1);color:var(--t);border:1px solid rgba(255,255,255,.2)}
+.btn-secondary:hover{background:rgba(255,255,255,.2);transform:translateY(-1px)}
+.btn-logout{background:#f44336;color:#fff}
+.btn-logout:hover{background:#d32f2f;transform:translateY(-1px)}
+.form-footer{margin-top:1.2rem;text-align:center;color:var(--ts);font-size:.85rem}
+.form-footer a{color:var(--a);text-decoration:none}
+.form-footer a:hover{text-decoration:underline}
+.alert{padding:10px;border-radius:6px;margin-bottom:1.2rem;display:none;font-size:.9rem}
+.alert-success{background:rgba(76,175,80,.2);border:1px solid #4caf50;color:#a5d6a7}
+.alert-error{background:rgba(244,67,54,.2);border:1px solid #f44336;color:#ffab91}
+.payment-message{background:rgba(255,204,0,.2);border:1px solid var(--a);color:var(--a);padding:12px;border-radius:6px;margin-top:15px;text-align:center;display:none;font-size:.9rem}
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.8);display:flex;justify-content:center;align-items:center;z-index:1000;opacity:0;visibility:hidden;transition:var(--tr)}
+.modal-overlay.active{opacity:1;visibility:visible}
+.modal{background:var(--cbg);border-radius:var(--br);width:95%;max-width:100%;padding:1.2rem;box-shadow:0 10px 25px rgba(0,0,0,.5);transform:translateY(-30px);transition:var(--tr);position:relative}
+.modal-overlay.active .modal{transform:translateY(0)}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem}
+.modal-title{font-size:1.2rem;color:var(--a)}
+.modal-close{background:none;border:none;color:var(--ts);font-size:1.3rem;cursor:pointer;transition:var(--tr)}
+.modal-close:hover{color:var(--t)}
+.payment-details{background:rgba(0,0,0,.2);border-radius:6px;padding:1.2rem;margin-bottom:1.2rem;font-size:.9rem}
+.payment-option{margin-bottom:.8rem;padding-bottom:.8rem;border-bottom:1px solid rgba(255,255,255,.1)}
+.payment-option:last-child{margin-bottom:0;padding-bottom:0;border-bottom:none}
+.payment-option-title{font-weight:600;color:var(--a);margin-bottom:.4rem;font-size:.95rem}
+.payment-option-details{color:var(--t);font-size:.9rem}
+.transaction-form{margin-top:1.2rem}
+.success-message{text-align:center;padding:1.2rem}
+.success-icon{font-size:2.5rem;color:#4caf50;margin-bottom:.8rem}
+.month-selection{margin:1.2rem 0}
+.month-selection-title{font-weight:600;margin-bottom:.8rem;color:var(--a);font-size:.95rem}
+.months-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.month-checkbox{display:none}
+.month-label{display:block;padding:8px;text-align:center;background:rgba(0,0,0,.2);border-radius:4px;cursor:pointer;transition:var(--tr);border:1px solid rgba(255,255,255,.1);font-size:.85rem}
+.month-checkbox:checked+.month-label{background:var(--a);color:var(--p);font-weight:600;border-color:var(--a)}
+.month-label.disabled{opacity:.5;cursor:not-allowed}
+.amount-info{background:rgba(255,204,0,.1);border:1px solid rgba(255,204,0,.3);border-radius:6px;padding:8px;margin-top:.8rem;text-align:center;font-size:.85rem}
+</style>
 </head>
 <body>
   <div class="auth-container">
@@ -1134,3 +746,4 @@
 
 </body>
 </html>
+
