@@ -366,6 +366,60 @@
       margin-bottom: 1rem;
     }
 
+    /* Month Selection Styles */
+    .month-selection {
+      margin: 1.5rem 0;
+    }
+
+    .month-selection-title {
+      font-weight: 600;
+      margin-bottom: 1rem;
+      color: var(--accent);
+    }
+
+    .months-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .month-checkbox {
+      display: none;
+    }
+
+    .month-label {
+      display: block;
+      padding: 10px;
+      text-align: center;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: var(--transition);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .month-checkbox:checked + .month-label {
+      background: var(--accent);
+      color: var(--primary);
+      font-weight: 600;
+      border-color: var(--accent);
+    }
+
+    .month-label.disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .amount-info {
+      background: rgba(255, 204, 0, 0.1);
+      border: 1px solid rgba(255, 204, 0, 0.3);
+      border-radius: 8px;
+      padding: 10px;
+      margin-top: 1rem;
+      text-align: center;
+      font-size: 0.9rem;
+    }
+
     /* Responsive adjustments */
     @media (max-width: 480px) {
       .auth-container {
@@ -395,6 +449,10 @@
       
       .modal {
         padding: 1.5rem;
+      }
+      
+      .months-grid {
+        grid-template-columns: repeat(2, 1fr);
       }
     }
   </style>
@@ -590,10 +648,10 @@
         <p>Please enter your payment details below:</p>
         
         <div class="form-group">
-          <label for="paymentAmount">Amount Paid</label>
+          <label for="paymentAmount">Amount Paid (K)</label>
           <div class="input-with-icon">
             <i class="fas fa-dollar-sign"></i>
-            <input type="number" id="paymentAmount" placeholder="Amount">
+            <input type="number" id="paymentAmount" placeholder="Amount" oninput="updateMonthSelection()">
           </div>
         </div>
         
@@ -602,6 +660,17 @@
           <div class="input-with-icon">
             <i class="fas fa-receipt"></i>
             <input type="text" id="transactionId" placeholder="Transaction ID">
+          </div>
+        </div>
+        
+        <!-- Month Selection Section -->
+        <div class="month-selection">
+          <div class="month-selection-title">Select months you're paying for:</div>
+          <div class="months-grid" id="monthsGrid">
+            <!-- Months will be populated by JavaScript -->
+          </div>
+          <div class="amount-info" id="amountInfo">
+            Enter amount to see available months
           </div>
         </div>
         
@@ -664,9 +733,89 @@
 
   // Current user data
   let currentUser = null;
+  const monthlyFee = 40; // K40 monthly fee
+  const monthNames = ["January", "February", "March", "April", "May", "June",
+                     "July", "August", "September", "October", "November", "December"];
+
+  // Initialize month selection
+  function initMonthSelection() {
+    const monthsGrid = document.getElementById('monthsGrid');
+    monthsGrid.innerHTML = '';
+    
+    const currentMonth = new Date().getMonth();
+    
+    for (let i = 0; i < 12; i++) {
+      const monthIndex = (currentMonth + i) % 12;
+      const year = new Date().getFullYear() + Math.floor((currentMonth + i) / 12);
+      
+      const checkboxId = `month-${monthIndex}-${year}`;
+      
+      const monthElement = document.createElement('div');
+      monthElement.innerHTML = `
+        <input type="checkbox" id="${checkboxId}" class="month-checkbox" name="months" value="${monthIndex}-${year}">
+        <label for="${checkboxId}" class="month-label disabled">${monthNames[monthIndex]} ${year}</label>
+      `;
+      
+      monthsGrid.appendChild(monthElement);
+    }
+  }
+
+  // Update month selection based on amount
+  function updateMonthSelection() {
+    const amount = parseFloat(document.getElementById('paymentAmount').value) || 0;
+    const maxMonths = Math.floor(amount / monthlyFee);
+    
+    const checkboxes = document.querySelectorAll('.month-checkbox');
+    const amountInfo = document.getElementById('amountInfo');
+    
+    if (amount <= 0) {
+      amountInfo.textContent = "Enter amount to see available months";
+      checkboxes.forEach(checkbox => {
+        checkbox.disabled = true;
+        checkbox.checked = false;
+        checkbox.nextElementSibling.classList.add('disabled');
+      });
+      return;
+    }
+    
+    // Enable months based on amount
+    let enabledCount = 0;
+    checkboxes.forEach((checkbox, index) => {
+      if (index < maxMonths) {
+        checkbox.disabled = false;
+        checkbox.nextElementSibling.classList.remove('disabled');
+        enabledCount++;
+      } else {
+        checkbox.disabled = true;
+        checkbox.checked = false;
+        checkbox.nextElementSibling.classList.add('disabled');
+      }
+    });
+    
+    // Update info text
+    if (maxMonths === 0) {
+      amountInfo.textContent = `Amount too low. Minimum payment is K${monthlyFee} for one month.`;
+    } else if (maxMonths === 1) {
+      amountInfo.textContent = `You can select 1 month with K${amount}`;
+    } else {
+      amountInfo.textContent = `You can select up to ${maxMonths} months with K${amount}`;
+    }
+    
+    // Auto-select months if amount matches exactly
+    if (amount % monthlyFee === 0 && amount > 0) {
+      checkboxes.forEach((checkbox, index) => {
+        if (index < maxMonths) {
+          checkbox.checked = true;
+        }
+      });
+    }
+  }
 
   // Always start on login
-  window.addEventListener('DOMContentLoaded', () => showSection('login'));
+  window.addEventListener('DOMContentLoaded', () => {
+    showSection('login');
+    initMonthSelection();
+  });
 
   // Tab navigation
   document.querySelectorAll('.auth-tab').forEach(tab => {
@@ -721,11 +870,15 @@
   
   function showTransactionIdModal() {
     closeModal('paymentModal');
+    // Reset month selection when opening the modal
+    document.getElementById('paymentAmount').value = '';
+    document.getElementById('transactionId').value = '';
+    initMonthSelection();
     showModal('transactionIdModal');
   }
   
   async function submitPayment() {
-    const amount = document.getElementById('paymentAmount').value;
+    const amount = parseFloat(document.getElementById('paymentAmount').value);
     const transactionId = document.getElementById('transactionId').value;
     
     if (!amount || !transactionId) {
@@ -733,14 +886,40 @@
       return;
     }
     
+    // Get selected months
+    const selectedMonths = [];
+    document.querySelectorAll('.month-checkbox:checked').forEach(checkbox => {
+      selectedMonths.push(checkbox.value);
+    });
+    
+    if (selectedMonths.length === 0) {
+      showAlert('Please select at least one month', 'error');
+      return;
+    }
+    
+    // Validate amount matches selected months
+    const expectedAmount = selectedMonths.length * monthlyFee;
+    if (amount < expectedAmount) {
+      showAlert(`Amount K${amount} is too low for ${selectedMonths.length} months. Required: K${expectedAmount}`, 'error');
+      return;
+    }
+    
     try {
+      // Format months for display
+      const formattedMonths = selectedMonths.map(monthValue => {
+        const [monthIndex, year] = monthValue.split('-').map(Number);
+        return `${monthNames[monthIndex]} ${year}`;
+      }).join(', ');
+      
       // Save payment to Firestore
       await addDoc(collection(db, "payments"), {
         userId: currentUser.uid,
         userEmail: currentUser.email,
         userName: currentUser.name || 'Unknown',
-        amount: parseFloat(amount),
+        amount: amount,
         transactionId: transactionId,
+        months: formattedMonths,
+        monthValues: selectedMonths,
         status: 'pending',
         date: new Date(),
         type: 'account_reactivation'
@@ -753,6 +932,7 @@
       // Clear the form fields for next time
       document.getElementById('paymentAmount').value = '';
       document.getElementById('transactionId').value = '';
+      initMonthSelection();
       
     } catch (error) {
       showAlert('Error submitting payment: ' + error.message, 'error');
@@ -849,7 +1029,7 @@
         // Determine redirect based on role
         const redirectUrl = userData.role === "admin" ? "admindash.html" : "dashboard.html";
         
-        showAlert("Login successful", "success");
+        showAlert("Login successful", 'success');
         setTimeout(() => {
           window.location.href = redirectUrl;
         }, 1500);
@@ -870,7 +1050,7 @@
         
         const redirectUrl = role === "admin" ? "admindash.html" : "dashboard.html";
         
-        showAlert("Login successful", "success");
+        showAlert("Login successful", 'success');
         setTimeout(() => {
           window.location.href = redirectUrl;
         }, 1500);
@@ -906,6 +1086,7 @@
   window.showTransactionIdModal = showTransactionIdModal;
   window.submitPayment = submitPayment;
   window.closeModal = closeModal;
+  window.updateMonthSelection = updateMonthSelection;
 
    // -------------------------------
   // 1️⃣ Redirect after 15 minutes of inactivity
