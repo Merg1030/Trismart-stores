@@ -168,6 +168,49 @@ function setTodayDate() {
 window.toggleForm = toggleForm;
 window.addEntry = addEntry;
 window.onload = setTodayDate;
+
+     // -------------------------------
+  // 1️⃣ Redirect after 15 minutes of inactivity
+  // -------------------------------
+  let inactivityTime = function () {
+    let timer;
+    const maxInactivity = 15 * 60 * 1000; // 15 minutes in milliseconds
+
+    function resetTimer() {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+       
+        window.location.href = "index.html";
+      }, maxInactivity);
+    }
+
+    // Listen to user events
+    window.onload = resetTimer;
+    document.onmousemove = resetTimer;
+    document.onkeydown = resetTimer;
+    document.onclick = resetTimer;
+    document.onscroll = resetTimer;
+  };
+
+  inactivityTime();
+
+  // -------------------------------
+  // 2️⃣ Disable right-click
+  // -------------------------------
+  document.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+    
+  });
+
+  // -------------------------------
+  // 3️⃣ Disable Ctrl+C, Ctrl+X, Ctrl+V
+  // -------------------------------
+  document.addEventListener('keydown', function(e) {
+    if (e.ctrlKey && (e.key === 'c' || e.key === 'x' || e.key === 'v')) {
+      e.preventDefault();
+      
+    }
+  });
 </script>
 </head>
 <body>
@@ -209,3 +252,4 @@ window.onload = setTodayDate;
 <div class="total-balance">Current Balance: ZMW 0.00</div>
 </body>
 </html>
+
