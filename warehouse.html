@@ -495,16 +495,16 @@ window.handleEditWithPassword = handleEditWithPassword;
 </div>
 
 <div class="buttons">
-  <input type="text" id="searchInput" placeholder="Search by code or name" onkeyup="searchInventory()">
+  <input type="text" id="searchInput" placeholder="Search by code or name" onkeyup="searchInventory()" autocomplete="off">
   <button onclick="toggleAddForm()">Add Item</button>
 </div>
 
 <div class="form-container">
   <form id="addForm" onsubmit="addItem(event)">
-    <input type="text" id="addCode" placeholder="Product Code" required>
-    <input type="text" id="addName" placeholder="Product Name" required>
-    <input type="number" id="addPrice" placeholder="Price" step="0.01" required>
-    <input type="number" id="addStock" placeholder="Stock" required>
+    <input type="text" id="addCode" placeholder="Product Code" required autocomplete="off">
+    <input type="text" id="addName" placeholder="Product Name" required autocomplete="off">
+    <input type="number" id="addPrice" placeholder="Price" step="0.01" required autocomplete="off">
+    <input type="number" id="addStock" placeholder="Stock" required autocomplete="off">
     <button type="submit">Add Product</button>
   </form>
 </div>
@@ -533,9 +533,9 @@ window.handleEditWithPassword = handleEditWithPassword;
     <span class="close">&times;</span>
     <h3 class="modal-title">Set Up Your Password</h3>
     <p>Please set a password to secure your inventory data.</p>
-    <input type="password" id="newPassword" placeholder="New Password" onkeyup="checkPasswordStrength(this.value)" class="modal-input">
+    <input type="password" id="newPassword" placeholder="New Password" onkeyup="checkPasswordStrength(this.value)" class="modal-input" autocomplete="new-password">
     <div id="passwordStrength" class="password-strength"></div>
-    <input type="password" id="confirmPassword" placeholder="Confirm Password" class="modal-input">
+    <input type="password" id="confirmPassword" placeholder="Confirm Password" class="modal-input" autocomplete="new-password">
     <div class="modal-buttons">
       <button onclick="setupPassword()">Set Password</button>
       <button onclick="showModal('securitySetupModal')">Set Security Question</button>
@@ -549,7 +549,7 @@ window.handleEditWithPassword = handleEditWithPassword;
     <span class="close">&times;</span>
     <h3 class="modal-title">Edit Options</h3>
     <input type="hidden" id="editItemId">
-    <input type="password" id="editPassword" placeholder="Enter Password" class="modal-input">
+    <input type="password" id="editPassword" placeholder="Enter Password" class="modal-input" autocomplete="off">
     <div class="modal-buttons">
       <button onclick="handleEditWithPassword()">Edit Item</button>
       <button onclick="showModal('resetPasswordModal')">Reset Password</button>
@@ -564,9 +564,9 @@ window.handleEditWithPassword = handleEditWithPassword;
     <span class="close">&times;</span>
     <h3 class="modal-title">Reset Password</h3>
     <p id="securityQuestionDisplay">No security question set up. Please set up a security question first.</p>
-    <input type="text" id="securityAnswer" placeholder="Your Answer" class="modal-input">
-    <input type="password" id="resetNewPassword" placeholder="New Password" class="modal-input">
-    <input type="password" id="resetConfirmPassword" placeholder="Confirm New Password" class="modal-input">
+    <input type="text" id="securityAnswer" placeholder="Your Answer" class="modal-input" autocomplete="off">
+    <input type="password" id="resetNewPassword" placeholder="New Password" class="modal-input" autocomplete="new-password">
+    <input type="password" id="resetConfirmPassword" placeholder="Confirm New Password" class="modal-input" autocomplete="new-password">
     <div class="modal-buttons">
       <button onclick="resetPassword()">Reset Password</button>
     </div>
@@ -579,8 +579,8 @@ window.handleEditWithPassword = handleEditWithPassword;
     <span class="close">&times;</span>
     <h3 class="modal-title">Set Up Security Question</h3>
     <p>This will be used to reset your password if you forget it.</p>
-    <input type="text" id="securityQuestion" placeholder="Security Question (e.g., What's your pet's name?)" class="modal-input">
-    <input type="text" id="securityAnswerSetup" placeholder="Your Answer" class="modal-input">
+    <input type="text" id="securityQuestion" placeholder="Security Question (e.g., What's your pet's name?)" class="modal-input" autocomplete="off">
+    <input type="text" id="securityAnswerSetup" placeholder="Your Answer" class="modal-input" autocomplete="off">
     <div class="modal-buttons">
       <button onclick="setupSecurityQuestion()">Save Security Question</button>
     </div>
@@ -598,6 +598,11 @@ document.getElementById('resetPasswordModal').addEventListener('click', async fu
   } catch (error) {
     console.error("Error loading security question:", error);
   }
+});
+
+// Clear search input on page load
+window.addEventListener('load', function() {
+  document.getElementById('searchInput').value = '';
 });
 </script>
 </body>
