@@ -120,11 +120,30 @@
   .btn-delete:hover {
     background: #c82333;
   }
+  .back-to-dashboard {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    padding: 6px 10px;
+    font-size: 0.75rem;
+    background: #4CAF50;
+    color: white;
+    border-radius: 4px;
+    z-index: 99;
+    min-width: auto;
+    flex: none;
+  }
   @media (max-width: 480px) {
     body { padding: 8px; font-size: 13px; }
     button { padding: 8px 10px; font-size: 0.85rem; min-width: 100px; }
     th, td { padding: 6px 4px; }
     .modal-content { padding: 12px; margin: 20% auto; }
+    .back-to-dashboard {
+      padding: 5px 8px;
+      font-size: 0.7rem;
+      bottom: 8px;
+      right: 8px;
+    }
   }
 </style>
 <script type="module">
@@ -543,7 +562,6 @@ window.handleDeleteItem = handleDeleteItem;
     <input type="number" id="addPrice" placeholder="Price" step="0.01" required autocomplete="off">
     <input type="number" id="addStock" placeholder="Stock" required autocomplete="off">
     <button type="submit">Add Product</button>
-   <button onclick="window.location.href='Dashboard.html'">Back to Dashboard</button>
   </form>
 </div>
 
@@ -564,6 +582,9 @@ window.handleDeleteItem = handleDeleteItem;
 </table>
 
 <div class="total-value">Total Stock Value: ZMW 0.00</div>
+
+<!-- Small Back to Dashboard Button -->
+<button class="back-to-dashboard" onclick="window.location.href='Dashboard.html'">Dashboard</button>
 
 <!-- Password Setup Modal -->
 <div id="passwordSetupModal" class="modal">
@@ -646,5 +667,3 @@ window.addEventListener('load', function() {
 </script>
 </body>
 </html>
-
-
