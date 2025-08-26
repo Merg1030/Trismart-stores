@@ -533,7 +533,7 @@ window.handleDeleteItem = handleDeleteItem;
 
 <div class="buttons">
   <input type="text" id="searchInput" placeholder="Search by code or name" onkeyup="searchInventory()" autocomplete="off">
-  <button onclick="toggleAddForm()">Add Item</button><button onclick="window.location.href='Dashboard.html'">Back to Dashboard</button>
+  <button onclick="toggleAddForm()">Add Item</button>
 </div>
 
 <div class="form-container">
@@ -543,6 +543,7 @@ window.handleDeleteItem = handleDeleteItem;
     <input type="number" id="addPrice" placeholder="Price" step="0.01" required autocomplete="off">
     <input type="number" id="addStock" placeholder="Stock" required autocomplete="off">
     <button type="submit">Add Product</button>
+   <button onclick="window.location.href='Dashboard.html'">Back to Dashboard</button>
   </form>
 </div>
 
@@ -601,7 +602,7 @@ window.handleDeleteItem = handleDeleteItem;
   <div class="modal-content">
     <span class="close">&times;</span>
     <h3 class="modal-title">Reset Password</h3>
-    <p id="securityQuestionDisplay">No security question set up. Please set up a security question first.</p>
+    <p id="securityQuestionDisplay">Enter security question</p>
     <input type="text" id="securityAnswer" placeholder="Your Answer" class="modal-input" autocomplete="off">
     <input type="password" id="resetNewPassword" placeholder="New Password" class="modal-input" autocomplete="new-password">
     <input type="password" id="resetConfirmPassword" placeholder="Confirm New Password" class="modal-input" autocomplete="new-password">
@@ -645,4 +646,5 @@ window.addEventListener('load', function() {
 </script>
 </body>
 </html>
+
 
