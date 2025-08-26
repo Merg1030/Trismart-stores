@@ -133,6 +133,16 @@
     min-width: auto;
     flex: none;
   }
+  .security-status {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background: #2c2c44;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    color: #ffcc00;
+  }
   @media (max-width: 480px) {
     body { padding: 8px; font-size: 13px; }
     button { padding: 8px 10px; font-size: 0.85rem; min-width: 100px; }
@@ -143,6 +153,11 @@
       font-size: 0.7rem;
       bottom: 8px;
       right: 8px;
+    }
+    .security-status {
+      top: 5px;
+      right: 5px;
+      font-size: 0.7rem;
     }
   }
 </style>
@@ -168,6 +183,7 @@ let currentUserUID;
 let inventory = [];
 let isAdding = false;
 let userPassword = null;
+let hasSecurityQuestion = false;
 
 function listenInventory() {
   const inventoryRef = collection(db, "users", currentUserUID, "inventory");
@@ -186,9 +202,23 @@ onAuthStateChanged(auth, async user => {
   const passwordDoc = await getDoc(doc(db, "users", currentUserUID, "preferences", "password"));
   if (passwordDoc.exists()) {
     userPassword = passwordDoc.data().value;
+    // Hide the set password button since password is already set
+    document.getElementById('setPasswordBtn').style.display = 'none';
+  }
+  
+  // Check if user has security question set
+  const securityDoc = await getDoc(doc(db, "users", currentUserUID, "preferences", "security"));
+  if (securityDoc.exists()) {
+    hasSecurityQuestion = true;
+    // Update security status indicator
+    document.getElementById('securityStatus').textContent = "Security: Set";
   } else {
-    // Show password setup modal for new users
-    showModal('passwordSetupModal');
+    document.getElementById('securityStatus').textContent = "Security: Not Set";
+  }
+  
+  // Show setup modal for new users without password
+  if (!passwordDoc.exists()) {
+    showModal('newUserSetupModal');
   }
   
   listenInventory();
@@ -236,7 +266,7 @@ async function editItem(itemId){
   // If no password is set, allow editing without password
   if (!userPassword) {
     alert("No password set. Please set a password first.");
-    showModal('passwordSetupModal');
+    showModal('newUserSetupModal');
     return;
   }
   
@@ -361,8 +391,10 @@ async function setupPassword() {
     });
     
     userPassword = newPassword;
+    // Hide the set password button
+    document.getElementById('setPasswordBtn').style.display = 'none';
     alert("Password set successfully!");
-    closeModal('passwordSetupModal');
+    closeModal('newUserSetupModal');
   } catch (error) {
     console.error("Error setting password:", error);
     alert("Error setting password. Please try again.");
@@ -438,6 +470,8 @@ async function setupSecurityQuestion() {
       createdAt: new Date()
     });
     
+    hasSecurityQuestion = true;
+    document.getElementById('securityStatus').textContent = "Security: Set";
     alert("Security question set up successfully!");
     closeModal('securitySetupModal');
   } catch (error) {
@@ -545,8 +579,10 @@ window.handleDeleteItem = handleDeleteItem;
 <body>
 <h2>Warehouse Inventory</h2>
 
+<div class="security-status" id="securityStatus">Security: Checking...</div>
+
 <div class="header-buttons">
-  <button onclick="showModal('passwordSetupModal')">Set Password</button>
+  <button id="setPasswordBtn" onclick="showModal('newUserSetupModal')" style="display:none;">Set Password</button>
   <button onclick="window.location.href='Restock.html'">Restock</button>
 </div>
 
@@ -586,18 +622,19 @@ window.handleDeleteItem = handleDeleteItem;
 <!-- Small Back to Dashboard Button -->
 <button class="back-to-dashboard" onclick="window.location.href='dashboard.html'">Back to Dashboard</button>
 
-<!-- Password Setup Modal -->
-<div id="passwordSetupModal" class="modal">
+<!-- New User Setup Modal -->
+<div id="newUserSetupModal" class="modal">
   <div class="modal-content">
     <span class="close">&times;</span>
-    <h3 class="modal-title">Set Up Your Password</h3>
-    <p>Please set a password to secure your inventory data.</p>
+    <h3 class="modal-title">Set Up Your Inventory Security</h3>
+    <p>Please set a password and security question to secure your inventory data.</p>
     <input type="password" id="newPassword" placeholder="New Password" onkeyup="checkPasswordStrength(this.value)" class="modal-input" autocomplete="new-password">
     <div id="passwordStrength" class="password-strength"></div>
     <input type="password" id="confirmPassword" placeholder="Confirm Password" class="modal-input" autocomplete="new-password">
+    <input type="text" id="securityQuestion" placeholder="Security Question (e.g., What's your pet's name?)" class="modal-input" autocomplete="off">
+    <input type="text" id="securityAnswerSetup" placeholder="Your Answer" class="modal-input" autocomplete="off">
     <div class="modal-buttons">
-      <button onclick="setupPassword()">Set Password</button>
-      <button onclick="showModal('securitySetupModal')">Set Security Question</button>
+      <button onclick="setupPassword(); setupSecurityQuestion();">Set Password & Security</button>
     </div>
   </div>
 </div>
@@ -613,7 +650,7 @@ window.handleDeleteItem = handleDeleteItem;
       <button onclick="handleEditWithPassword()">Edit Item</button>
       <button class="btn-delete" onclick="handleDeleteItem()">Delete Item</button>
       <button onclick="showModal('resetPasswordModal')">Reset Password</button>
-      <button onclick="showModal('securitySetupModal')">Change Security</button>
+      <button onclick="showModal('securitySetupModal')" id="changeSecurityBtn">Change Security</button>
     </div>
   </div>
 </div>
@@ -637,12 +674,10 @@ window.handleDeleteItem = handleDeleteItem;
 <div id="securitySetupModal" class="modal">
   <div class="modal-content">
     <span class="close">&times;</span>
-    <h3 class="modal-title">Set Up Security Question</h3>
-    <p>This will be used to reset your password if you forget it.</p>
-    <input type="text" id="securityQuestion" placeholder="Security Question (e.g., What's your pet's name?)" class="modal-input" autocomplete="off">
-    <input type="text" id="securityAnswerSetup" placeholder="Your Answer" class="modal-input" autocomplete="off">
+    <h3 class="modal-title">Change Security Question</h3>
+    <p>Only admin can change security questions directly in the database.</p>
     <div class="modal-buttons">
-      <button onclick="setupSecurityQuestion()">Save Security Question</button>
+      <button onclick="closeModal('securitySetupModal')">OK</button>
     </div>
   </div>
 </div>
@@ -664,7 +699,13 @@ document.getElementById('resetPasswordModal').addEventListener('click', async fu
 window.addEventListener('load', function() {
   document.getElementById('searchInput').value = '';
 });
+
+// Disable security question change for non-admin users
+document.getElementById('changeSecurityBtn').addEventListener('click', function(e) {
+  e.preventDefault();
+  alert("Only admin can change security questions directly in the database.");
+  showModal('securitySetupModal');
+});
 </script>
 </body>
 </html>
-
