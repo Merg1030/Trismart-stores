@@ -73,8 +73,11 @@ function listenInventory() {
 function populateSelect() {
     const select = document.getElementById('itemSelect');
     select.innerHTML = '<option value="">Select Item</option>';
+    
     inventory.forEach(item => {
-        select.innerHTML += `<option value="${item.id}" data-price="${item.price}" data-code="${item.code}" data-stock="${item.stock}">${item.name}</option>`;
+        // Format: (Code) Name - Stock: Qty
+        const displayText = `(${item.code}) ${item.name} - Stock: ${item.stock}`;
+        select.innerHTML += `<option value="${item.id}" data-price="${item.price}" data-code="${item.code}" data-stock="${item.stock}" data-name="${item.name}">${displayText}</option>`;
     });
 }
 
@@ -89,7 +92,7 @@ document.getElementById('itemSelect')?.addEventListener('change', (e) => {
         // Show product information
         productInfo.style.display = 'block';
         productInfo.innerHTML = `
-            Product: <span>${option.text}</span> | 
+            Product: <span>${option.dataset.name}</span> | 
             Code: <span>${option.dataset.code}</span> | 
             Current Stock: <span>${option.dataset.stock}</span>
         `;
@@ -177,7 +180,7 @@ function listenRestockHistory() {
         let totalValue = 0;
 
         if (snapshot.empty) {
-            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">No restocked items yet</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;">No restocked items yet</td></tr>`;
             totalDiv.textContent = "Total Restock Value: ZMW 0.00";
             return;
         }
@@ -248,4 +251,3 @@ window.toggleForm = toggleForm;
 <div class="total-value">Total Restock Value: ZMW 0.00</div>
 </body>
 </html>
-
