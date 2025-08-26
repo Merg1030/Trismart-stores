@@ -113,6 +113,13 @@
     width: 100%;
     margin-bottom: 10px;
   }
+  .btn-delete {
+    background: #dc3545;
+    color: white;
+  }
+  .btn-delete:hover {
+    background: #c82333;
+  }
   @media (max-width: 480px) {
     body { padding: 8px; font-size: 13px; }
     button { padding: 8px 10px; font-size: 0.85rem; min-width: 100px; }
@@ -123,7 +130,7 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-import { getFirestore, collection, addDoc, updateDoc, doc, onSnapshot, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, updateDoc, doc, onSnapshot, setDoc, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDuAv_aGmY4VzergDS7g_K3zR-jFYHvGZo",
@@ -445,6 +452,35 @@ async function handleEditWithPassword() {
   editItem(itemId);
 }
 
+// Delete item after password verification
+async function handleDeleteItem() {
+  const itemId = document.getElementById('editItemId').value;
+  const password = document.getElementById('editPassword').value;
+  
+  if (!password) {
+    alert("Please enter your password");
+    return;
+  }
+  
+  if (password !== userPassword) {
+    alert("Wrong password!");
+    return;
+  }
+  
+  if (!confirm("Are you sure you want to delete this item? This action cannot be undone.")) {
+    return;
+  }
+  
+  try {
+    await deleteDoc(doc(db, "users", currentUserUID, "inventory", itemId));
+    alert("Item deleted successfully!");
+    closeModal('editOptionsModal');
+  } catch (error) {
+    console.error("Error deleting item:", error);
+    alert("Error deleting item. Please try again.");
+  }
+}
+
 // Modal functions
 function showModal(modalId) {
   document.getElementById(modalId).style.display = 'block';
@@ -484,6 +520,7 @@ window.showModal = showModal;
 window.closeModal = closeModal;
 window.showEditOptions = showEditOptions;
 window.handleEditWithPassword = handleEditWithPassword;
+window.handleDeleteItem = handleDeleteItem;
 </script>
 </head>
 <body>
@@ -552,6 +589,7 @@ window.handleEditWithPassword = handleEditWithPassword;
     <input type="password" id="editPassword" placeholder="Enter Password" class="modal-input" autocomplete="off">
     <div class="modal-buttons">
       <button onclick="handleEditWithPassword()">Edit Item</button>
+      <button class="btn-delete" onclick="handleDeleteItem()">Delete Item</button>
       <button onclick="showModal('resetPasswordModal')">Reset Password</button>
       <button onclick="showModal('securitySetupModal')">Change Security</button>
     </div>
