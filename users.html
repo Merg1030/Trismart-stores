@@ -21,11 +21,7 @@
   --transition: all 0.3s ease;
 }
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
   font-family: 'Segoe UI', sans-serif;
@@ -35,14 +31,7 @@ body {
   padding: 20px;
 }
 
-.header {
-  text-align: center;
-  padding: 1rem;
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: var(--accent);
-  margin-bottom: 1.5rem;
-}
+.header { text-align: center; padding: 1rem; font-size: 1.8rem; font-weight: 700; color: var(--accent); margin-bottom: 1.5rem; }
 
 .table-container {
   background: var(--card-bg);
@@ -55,7 +44,7 @@ body {
 .user-table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 800px;
+  min-width: 900px;
 }
 
 .user-table th {
@@ -68,172 +57,30 @@ body {
   top: 0;
 }
 
-.user-table td {
-  padding: 14px 12px;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
-}
+.user-table td { padding: 14px 12px; border-bottom: 1px solid rgba(255,255,255,0.1); }
 
-.user-table tr:last-child td {
-  border-bottom: none;
-}
+.user-table tr:last-child td { border-bottom: none; }
 
-.user-table tr:hover {
-  background-color: rgba(255,255,255,0.03);
-}
+.user-table tr:hover { background-color: rgba(255,255,255,0.03); }
 
-.status-badge {
-  padding: 6px 10px;
-  border-radius: 20px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  display: inline-block;
-  text-align: center;
-  min-width: 80px;
-}
+.status-badge { padding: 6px 10px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; display: inline-block; text-align: center; min-width: 80px; }
 
-.status-active {
-  background: var(--success);
-  color: #fff;
-}
+.status-active { background: var(--success); color: #fff; }
+.status-inactive { background: var(--danger); color: #fff; }
+.status-pending { background: var(--warning); color: #000; }
 
-.status-inactive {
-  background: var(--danger);
-  color: #fff;
-}
+.btn { padding: 8px 12px; border-radius: 6px; border: none; cursor: pointer; font-weight: 600; transition: var(--transition); font-size: 0.85rem; display: inline-flex; align-items: center; justify-content: center; gap: 5px; }
+.btn-sm { padding: 6px 10px; font-size: 0.8rem; }
 
-.status-pending {
-  background: var(--warning);
-  color: #000;
-}
+.btn-action { background: var(--accent); color: #000; }
+.btn-action:hover { background: var(--accent-hover); transform: translateY(-2px); }
 
-.action-buttons {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
+.user-id { font-family: monospace; font-size: 0.9rem; color: var(--text-secondary); }
+.phone-cell { white-space: nowrap; }
+.loading, .empty-state { text-align: center; padding: 3rem; color: var(--text-secondary); }
 
-.btn {
-  padding: 8px 12px;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
-  font-weight: 600;
-  transition: var(--transition);
-  font-size: 0.85rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-}
+input[type="date"] { padding: 4px; border-radius: 6px; border: 1px solid #ccc; font-size: 0.85rem; }
 
-.btn-sm {
-  padding: 6px 10px;
-  font-size: 0.8rem;
-}
-
-.btn-approve {
-  background: var(--success);
-  color: #fff;
-}
-.btn-approve:hover { 
-  background: #218838; 
-  transform: translateY(-2px);
-}
-
-.btn-disable {
-  background: var(--danger);
-  color: #fff;
-}
-.btn-disable:hover { 
-  background: #c82333; 
-  transform: translateY(-2px);
-}
-
-.btn-toggle {
-  background: var(--secondary);
-  color: var(--text);
-}
-.btn-toggle:hover { 
-  background: #3c3c5c; 
-  transform: translateY(-2px);
-}
-
-.user-id {
-  font-family: monospace;
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-}
-
-.phone-cell {
-  white-space: nowrap;
-}
-
-.loading {
-  text-align: center;
-  padding: 3rem;
-  color: var(--text-secondary);
-}
-
-.empty-state {
-  text-align: center;
-  padding: 3rem;
-  color: var(--text-secondary);
-}
-
-/* Responsive table */
-@media (max-width: 992px) {
-  .user-table {
-    min-width: 700px;
-  }
-}
-
-@media (max-width: 768px) {
-  body {
-    padding: 15px 10px;
-  }
-  
-  .header {
-    font-size: 1.5rem;
-    padding: 0.8rem;
-  }
-  
-  .user-table th,
-  .user-table td {
-    padding: 12px 8px;
-  }
-  
-  .action-buttons {
-    flex-direction: column;
-    gap: 5px;
-  }
-  
-  .btn {
-    width: 100%;
-  }
-}
-
-/* For very small screens */
-@media (max-width: 480px) {
-  .table-container {
-    border-radius: 8px;
-  }
-  
-  .user-table {
-    min-width: 600px;
-  }
-  
-  .user-table th,
-  .user-table td {
-    padding: 10px 6px;
-    font-size: 0.9rem;
-  }
-  
-  .status-badge {
-    min-width: 70px;
-    font-size: 0.8rem;
-    padding: 5px 8px;
-  }
-}
 </style>
 </head>
 <body>
@@ -250,14 +97,13 @@ body {
         <th>Phone</th>
         <th>Status</th>
         <th>Account</th>
-        <th>Actions</th>
+        <th>Signed Up Date</th>
+        <th>Action</th>
       </tr>
     </thead>
     <tbody id="usersTableBody">
       <tr>
-        <td colspan="7">
-          <div class="loading">Loading users...</div>
-        </td>
+        <td colspan="8"><div class="loading">Loading users...</div></td>
       </tr>
     </tbody>
   </table>
@@ -293,7 +139,7 @@ function listenUsers() {
     const tableBody = document.getElementById("usersTableBody");
     
     if (snapshot.empty) {
-      tableBody.innerHTML = '<tr><td colspan="7"><div class="empty-state">No users found</div></td></tr>';
+      tableBody.innerHTML = '<tr><td colspan="8"><div class="empty-state">No users found</div></td></tr>';
       return;
     }
     
@@ -304,8 +150,20 @@ function listenUsers() {
       const userId = docSnap.id;
       const truncatedId = userId.substring(0, 8) + '...';
       
-      const row = document.createElement("tr");
+      let signupDateHtml = '';
+      if (data.signupDate) {
+        signupDateHtml = `<span>${data.signupDate}</span>`;
+      } else {
+        signupDateHtml = `<input type="date" onchange="setSignupDate('${userId}', this)" />`;
+      }
+
+      // Determine action button text
+      let actionText = '';
+      if (!data.approved) actionText = 'Approve';
+      else if (!data.disabled) actionText = 'Disable';
+      else actionText = 'Activate';
       
+      const row = document.createElement("tr");
       row.innerHTML = `
         <td class="user-id" title="${userId}">${truncatedId}</td>
         <td>${data.name || 'Not provided'}</td>
@@ -321,72 +179,60 @@ function listenUsers() {
             ${data.approved ? 'Approved' : 'Pending'}
           </span>
         </td>
+        <td>${signupDateHtml}</td>
         <td>
-          <div class="action-buttons">
-            <button class="btn btn-approve btn-sm" onclick="approveUser('${userId}')">
-              <i class="fas fa-check"></i> Approve
-            </button>
-            <button class="btn btn-disable btn-sm" onclick="disableUser('${userId}')">
-              <i class="fas fa-ban"></i> Disable
-            </button>
-            <button class="btn btn-toggle btn-sm" onclick="toggleStatus('${userId}', ${data.disabled})">
-              <i class="fas fa-sync-alt"></i> Toggle
-            </button>
-          </div>
+          <button class="btn btn-action btn-sm" onclick="handleUserAction('${userId}', ${data.approved}, ${data.disabled})">
+            ${actionText}
+          </button>
         </td>
       `;
-      
       tableBody.appendChild(row);
     });
   });
 }
 
-window.approveUser = async (userId) => {
-  if (!confirm("Are you sure you want to approve this user and their payments?")) return;
-  
+// Set signup date
+window.setSignupDate = async (userId, inputElem) => {
+  const date = inputElem.value;
+  if (!date) return;
   try {
-    // Get pending payments for this user
-    const paymentsRef = collection(db, "payments");
-    const q = query(paymentsRef, where("userId", "==", userId), where("status", "==", "pending"));
-    const paymentSnap = await getDocs(q);
-
-    // Approve all pending payments
-    paymentSnap.forEach(async (docSnap) => {
-      await updateDoc(doc(db, "payments", docSnap.id), { status: "approved" });
-    });
-
-    // Activate user account
     const userRef = doc(db, "users", userId);
-    await updateDoc(userRef, { approved: true, disabled: false });
-
-    alert("Payment approved and user activated!");
+    await updateDoc(userRef, { signupDate: date });
+    const span = document.createElement('span');
+    span.textContent = date;
+    inputElem.replaceWith(span);
+    alert("Signup date set!");
   } catch (error) {
     console.error(error);
-    alert("Error approving user: " + error.message);
+    alert("Error setting signup date: " + error.message);
   }
 }
 
-window.disableUser = async (userId) => {
-  if (!confirm("Are you sure you want to disable this user?")) return;
-  
+// Unified action button
+window.handleUserAction = async (userId, approved, disabled) => {
   try {
     const userRef = doc(db, "users", userId);
-    await updateDoc(userRef, { disabled: true });
-    alert("User disabled!");
-  } catch (error) {
-    console.error(error);
-    alert("Error disabling user: " + error.message);
-  }
-}
 
-window.toggleStatus = async (userId, currentStatus) => {
-  try {
-    const userRef = doc(db, "users", userId);
-    await updateDoc(userRef, { disabled: !currentStatus });
-    alert(`User status changed to ${!currentStatus ? 'Active' : 'Inactive'}`);
+    if (!approved) {
+      // Approve user and payments
+      const paymentsRef = collection(db, "payments");
+      const q = query(paymentsRef, where("userId", "==", userId), where("status", "==", "pending"));
+      const paymentSnap = await getDocs(q);
+      paymentSnap.forEach(async (docSnap) => {
+        await updateDoc(doc(db, "payments", docSnap.id), { status: "approved" });
+      });
+      await updateDoc(userRef, { approved: true, disabled: false });
+      alert("User approved and activated!");
+    } else if (!disabled) {
+      await updateDoc(userRef, { disabled: true });
+      alert("User disabled!");
+    } else {
+      await updateDoc(userRef, { disabled: false });
+      alert("User re-activated!");
+    }
   } catch (error) {
     console.error(error);
-    alert("Error changing user status: " + error.message);
+    alert("Error performing action: " + error.message);
   }
 }
 </script>
