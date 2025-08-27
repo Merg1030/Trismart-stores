@@ -143,6 +143,23 @@
     font-size: 0.75rem;
     color: #ffcc00;
   }
+  .edit-form-container {
+    display: none;
+    background: #2c2c44;
+    padding: 15px;
+    border-radius: 8px;
+    margin: 10px 0;
+  }
+  .form-row {
+    display: flex;
+    margin-bottom: 10px;
+    align-items: center;
+  }
+  .form-label {
+    width: 120px;
+    margin-right: 10px;
+    color: #ffcc00;
+  }
   @media (max-width: 480px) {
     body { padding: 8px; font-size: 13px; }
     button { padding: 8px 10px; font-size: 0.85rem; min-width: 100px; }
@@ -158,6 +175,14 @@
       top: 5px;
       right: 5px;
       font-size: 0.7rem;
+    }
+    .form-row {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .form-label {
+      width: 100%;
+      margin-bottom: 5px;
     }
   }
 </style>
@@ -260,27 +285,6 @@ function searchInventory(){
     const name=row.cells[1].innerText.toLowerCase();
     row.style.display=(code.includes(filter) || name.includes(filter))?'':'none';
   });
-}
-
-async function editItem(itemId){
-  // If no password is set, allow editing without password
-  if (!userPassword) {
-    alert("No password set. Please set a password first.");
-    showModal('newUserSetupModal');
-    return;
-  }
-  
-  const password = prompt("Enter password to edit:");
-  if(password !== userPassword) return alert("Wrong password!");
-  
-  const item = inventory.find(i=>i.id===itemId);
-  if(!item) return alert("Item not found!");
-  const newName = prompt("Enter new name:", item.name);
-  const newPrice = parseFloat(prompt("Enter new price:", item.price));
-  const newStock = parseInt(prompt("Enter new stock:", item.stock));
-  if(!newName || isNaN(newPrice) || isNaN(newStock)) return alert("Invalid input!");
-  await updateDoc(doc(db, "users", currentUserUID, "inventory", itemId), { name:newName, price:newPrice, stock:newStock });
-  alert("Item updated successfully!");
 }
 
 function toggleAddForm(){
@@ -502,7 +506,58 @@ async function handleEditWithPassword() {
   }
   
   closeModal('editOptionsModal');
-  editItem(itemId);
+  showEditForm(itemId);
+}
+
+// Show the edit form with item data pre-filled
+function showEditForm(itemId) {
+  const item = inventory.find(i => i.id === itemId);
+  if (!item) return alert("Item not found!");
+  
+  // Fill the form with item data
+  document.getElementById('editItemIdForm').value = itemId;
+  document.getElementById('editCode').value = item.code;
+  document.getElementById('editName').value = item.name;
+  document.getElementById('editPrice').value = item.price;
+  document.getElementById('editStock').value = item.stock;
+  document.getElementById('editSold').value = item.sold || 0;
+  
+  // Show the edit form
+  document.getElementById('editFormContainer').style.display = 'block';
+}
+
+// Save the edited item
+async function saveEditedItem(event) {
+  event.preventDefault();
+  
+  const itemId = document.getElementById('editItemIdForm').value;
+  const code = document.getElementById('editCode').value.trim();
+  const name = document.getElementById('editName').value.trim();
+  const price = parseFloat(document.getElementById('editPrice').value);
+  const stock = parseInt(document.getElementById('editStock').value);
+  const sold = parseInt(document.getElementById('editSold').value);
+  
+  if(!code || !name || isNaN(price) || isNaN(stock) || isNaN(sold)) {
+    return alert("Fill all fields with valid values!");
+  }
+  
+  try {
+    await updateDoc(doc(db, "users", currentUserUID, "inventory", itemId), { 
+      code, name, price, stock, sold 
+    });
+    
+    // Hide the edit form
+    document.getElementById('editFormContainer').style.display = 'none';
+    alert("Item updated successfully!");
+  } catch (error) {
+    console.error("Error updating item:", error);
+    alert("Error updating item. Please try again.");
+  }
+}
+
+// Cancel editing
+function cancelEdit() {
+  document.getElementById('editFormContainer').style.display = 'none';
 }
 
 // Delete item after password verification
@@ -561,7 +616,6 @@ window.onclick = function(event) {
   }
 };
 
-window.editItem = editItem;
 window.searchInventory = searchInventory;
 window.toggleAddForm = toggleAddForm;
 window.addItem = addItem;
@@ -574,6 +628,8 @@ window.closeModal = closeModal;
 window.showEditOptions = showEditOptions;
 window.handleEditWithPassword = handleEditWithPassword;
 window.handleDeleteItem = handleDeleteItem;
+window.saveEditedItem = saveEditedItem;
+window.cancelEdit = cancelEdit;
 </script>
 </head>
 <body>
@@ -598,6 +654,38 @@ window.handleDeleteItem = handleDeleteItem;
     <input type="number" id="addPrice" placeholder="Price" step="0.01" required autocomplete="off">
     <input type="number" id="addStock" placeholder="Stock" required autocomplete="off">
     <button type="submit">Add Product</button>
+  </form>
+</div>
+
+<!-- Edit Form Container -->
+<div id="editFormContainer" class="edit-form-container">
+  <h3 style="color: #ffcc00; margin-top: 0;">Edit Item</h3>
+  <form id="editForm" onsubmit="saveEditedItem(event)">
+    <input type="hidden" id="editItemIdForm">
+    <div class="form-row">
+      <label class="form-label">Product Code:</label>
+      <input type="text" id="editCode" required autocomplete="off">
+    </div>
+    <div class="form-row">
+      <label class="form-label">Product Name:</label>
+      <input type="text" id="editName" required autocomplete="off">
+    </div>
+    <div class="form-row">
+      <label class="form-label">Price:</label>
+      <input type="number" id="editPrice" step="0.01" required autocomplete="off">
+    </div>
+    <div class="form-row">
+      <label class="form-label">Stock:</label>
+      <input type="number" id="editStock" required autocomplete="off">
+    </div>
+    <div class="form-row">
+      <label class="form-label">Sold:</label>
+      <input type="number" id="editSold" required autocomplete="off">
+    </div>
+    <div style="display: flex; gap: 10px; margin-top: 15px;">
+      <button type="submit">Save Changes</button>
+      <button type="button" onclick="cancelEdit()" style="background: #6c757d;">Cancel</button>
+    </div>
   </form>
 </div>
 
@@ -675,7 +763,7 @@ window.handleDeleteItem = handleDeleteItem;
   <div class="modal-content">
     <span class="close">&times;</span>
     <h3 class="modal-title">Change Security Question</h3>
-    <p>Only admin can change security questions directly in the database.</p>
+    <p>Contact Trismart service center to have your security quetion Changed</p>
     <div class="modal-buttons">
       <button onclick="closeModal('securitySetupModal')">OK</button>
     </div>
@@ -703,7 +791,6 @@ window.addEventListener('load', function() {
 // Disable security question change for non-admin users
 document.getElementById('changeSecurityBtn').addEventListener('click', function(e) {
   e.preventDefault();
- ;
   showModal('securitySetupModal');
 });
 </script>
