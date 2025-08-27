@@ -28,17 +28,16 @@
     table { width: 100%; font-size: 0.75rem; }
     th, td { padding: 6px 4px; }
     
-    /* Make table fit screen */
     table { 
       display: block;
       overflow-x: auto;
     }
     
-    th:nth-child(1), td:nth-child(1) { width: 20%; } /* Date */
-    th:nth-child(2), td:nth-child(2) { width: 25%; } /* Description */
-    th:nth-child(3), td:nth-child(3) { width: 15%; } /* Type */
-    th:nth-child(4), td:nth-child(4) { width: 20%; } /* Amount */
-    th:nth-child(5), td:nth-child(5) { width: 20%; } /* Balance */
+    th:nth-child(1), td:nth-child(1) { width: 20%; }
+    th:nth-child(2), td:nth-child(2) { width: 25%; }
+    th:nth-child(3), td:nth-child(3) { width: 15%; }
+    th:nth-child(4), td:nth-child(4) { width: 20%; }
+    th:nth-child(5), td:nth-child(5) { width: 20%; }
     
     th, td {
       white-space: nowrap;
@@ -77,7 +76,8 @@ onAuthStateChanged(auth, async (user) => {
 
 function listenCashflow() {
   const cashRef = collection(db, "users", currentUserUID, "cashflow");
-  const q = query(cashRef, orderBy("date", "desc"));
+  // 🔹 Changed to ascending order
+  const q = query(cashRef, orderBy("date", "asc"));
   onSnapshot(q, snapshot => {
     cashflow = [];
     snapshot.forEach(docSnap => cashflow.push({ id: docSnap.id, ...docSnap.data() }));
@@ -169,48 +169,26 @@ window.toggleForm = toggleForm;
 window.addEntry = addEntry;
 window.onload = setTodayDate;
 
-     // -------------------------------
-  // 1️⃣ Redirect after 15 minutes of inactivity
-  // -------------------------------
-  let inactivityTime = function () {
-    let timer;
-    const maxInactivity = 15 * 60 * 1000; // 15 minutes in milliseconds
+// 🔒 Inactivity logout + protections
+let inactivityTime = function () {
+  let timer;
+  const maxInactivity = 15 * 60 * 1000;
+  function resetTimer() {
+    clearTimeout(timer);
+    timer = setTimeout(() => { window.location.href = "index.html"; }, maxInactivity);
+  }
+  window.onload = resetTimer;
+  document.onmousemove = resetTimer;
+  document.onkeydown = resetTimer;
+  document.onclick = resetTimer;
+  document.onscroll = resetTimer;
+};
+inactivityTime();
 
-    function resetTimer() {
-      clearTimeout(timer);
-      timer = setTimeout(() => {
-       
-        window.location.href = "index.html";
-      }, maxInactivity);
-    }
-
-    // Listen to user events
-    window.onload = resetTimer;
-    document.onmousemove = resetTimer;
-    document.onkeydown = resetTimer;
-    document.onclick = resetTimer;
-    document.onscroll = resetTimer;
-  };
-
-  inactivityTime();
-
-  // -------------------------------
-  // 2️⃣ Disable right-click
-  // -------------------------------
-  document.addEventListener('contextmenu', function(e) {
-    e.preventDefault();
-    
-  });
-
-  // -------------------------------
-  // 3️⃣ Disable Ctrl+C, Ctrl+X, Ctrl+V
-  // -------------------------------
-  document.addEventListener('keydown', function(e) {
-    if (e.ctrlKey && (e.key === 'c' || e.key === 'x' || e.key === 'v')) {
-      e.preventDefault();
-      
-    }
-  });
+document.addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('keydown', e => {
+  if (e.ctrlKey && (e.key === 'c' || e.key === 'x' || e.key === 'v')) e.preventDefault();
+});
 </script>
 </head>
 <body>
@@ -252,4 +230,3 @@ window.onload = setTodayDate;
 <div class="total-balance">Current Balance: ZMW 0.00</div>
 </body>
 </html>
-
