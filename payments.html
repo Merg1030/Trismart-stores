@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Trismart - Admin Ledger</title>
+<style>
+:root {
+  --primary: #1e1e2f;
+  --card-bg: #27293d;
+  --accent: #ffcc00;
+  --success: #4caf50;
+  --danger: #f44336;
+  --pending: #ff9800;
+  --text: #ffffff;
+  --border-radius: 12px;
+}
+* { box-sizing: border-box; }
+body { font-family: 'Segoe UI', sans-serif; background: var(--primary); color: var(--text); margin:0; padding:2rem; }
+h1 { color: var(--accent); margin-bottom: 1rem; }
+.card { background: var(--card-bg); border-radius: var(--border-radius); padding:1rem; margin-bottom:2rem; }
+select, button { padding:0.5rem; border-radius:8px; border:none; margin-right:0.5rem; cursor:pointer; }
+table { width:100%; border-collapse: collapse; margin-top:1rem; }
+th, td { padding:0.8rem; border-bottom:1px solid rgba(255,255,255,0.1); text-align:left; vertical-align: middle; }
+tr:hover { background: rgba(255,255,255,0.05); }
+.status { font-weight:600; text-transform: capitalize; }
+.status-success { color: var(--success); }
+.status-danger { color: var(--danger); }
+.action-btn { margin-right: 6px; padding: 6px 10px; border-radius: 6px; border:none; cursor:pointer; }
+.action-approve { background: var(--success); color:#fff; }
+.inline-controls { display:flex; gap:6px; align-items:center; flex-wrap: wrap; }
+.badge { display:inline-block; padding:2px 8px; border-radius:999px; background: rgba(255,255,255,0.08); font-size:12px; }
+tfoot td { font-weight: 700; }
+.nowrap { white-space: nowrap; }
+</style>
+</head>
+<body>
+
+<h1>Admin Ledger</h1>
+
+<div class="card">
+  <div class="inline-controls">
+    <label for="userSelect">Select User:</label>
+    <select id="userSelect">
+      <option value="all">-- All Users --</option>
+    </select>
+
+    <span class="badge" id="summaryBadge">Approved Balance: K0</span>
+  </div>
+</div>
+
+<div class="card">
+  <table id="ledgerTable">
+    <thead>
+      <tr>
+        <th class="nowrap">Date</th>
+        <th>User</th>
+        <th>Description</th>
+        <th class="nowrap">Amount Paid</th>
+        <th class="nowrap">Running Balance (K)</th>
+        <th>Status</th>
+        <th style="width: 320px;">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td colspan="7">Loading transactions...</td></tr>
+    </tbody>
+    <tfoot>
+      <tr>
+        <td colspan="7" id="footerNote"></td>
+      </tr>
+    </tfoot>
+  </table>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import {
+  getFirestore,
+  collection,
+  onSnapshot,
+  doc,
+  updateDoc,
+  getDocs
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDuAv_aGmY4VzergDS7g_K3zR-jFYHvGZo",
+  authDomain: "trismart-online-app.firebaseapp.com",
+  projectId: "trismart-online-app",
+  storageBucket: "trismart-online-app.firebasestorage.app",
+  messagingSenderId: "867677912389",
+  appId: "1:867677912389:web:3c5ea505cb1e84a003d22c",
+  measurementId: "G-KEWDREKNDB"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const userSelect = document.getElementById("userSelect");
+const ledgerTableBody = document.querySelector("#ledgerTable tbody");
+const footerNote = document.getElementById("footerNote");
+const summaryBadge = document.getElementById("summaryBadge");
+
+let usersMap = {}; // id => name
+const MONTHS = [
+  "January","February","March","April","May","June",
+  "July","August","September","October","November","December"
+];
+
+function monthName(m1to12) {
+  return MONTHS[(m1to12 - 1 + 12) % 12];
+}
+
+// Load users into dropdown
+async function loadUsers() {
+  const snapshot = await getDocs(collection(db, "users"));
+  snapshot.forEach(docSnap => {
+    const data = docSnap.data();
+    usersMap[docSnap.id] = data.name || "Unknown";
+    const option = document.createElement("option");
+    option.value = docSnap.id;
+    option.textContent = data.name || "Unknown";
+    userSelect.appendChild(option);
+  });
+}
+
+// Builds a Month select (1..12) defaulting to current month
+function buildMonthSelect(idSuffix) {
+  const sel = document.createElement("select");
+  sel.className = "month-select";
+  sel.id = `month-${idSuffix}`;
+  const now = new Date();
+  const defaultMonth = now.getMonth() + 1;
+  for (let m = 1; m <= 12; m++) {
+    const opt = document.createElement("option");
+    opt.value = m;
+    opt.textContent = monthName(m);
+    if (m === defaultMonth) opt.selected = true;
+    sel.appendChild(opt);
+  }
+  return sel;
+}
+
+// Builds a Year select (current year -1, current, +1)
+function buildYearSelect(idSuffix) {
+  const sel = document.createElement("select");
+  sel.className = "year-select";
+  sel.id = `year-${idSuffix}`;
+  const nowYear = new Date().getFullYear();
+  const years = [nowYear - 1, nowYear, nowYear + 1];
+  years.forEach(y => {
+    const opt = document.createElement("option");
+    opt.value = y;
+    opt.textContent = y;
+    if (y === nowYear) opt.selected = true;
+    sel.appendChild(opt);
+  });
+  return sel;
+}
+
+// Render ledger (running balance adds ONLY approved payments)
+function renderLedger(payments) {
+  ledgerTableBody.innerHTML = "";
+  let runningBalance = 0;
+  let approvedTotal = 0;
+
+  // Row builder
+  payments.forEach(p => {
+    const userName = usersMap[p.userId] || "Unknown";
+    const isApproved = p.status === "approved";
+
+    // Running balance increases only with approved payments
+    if (isApproved) {
+      runningBalance += Number(p.amount || 0);
+    }
+
+    const tr = document.createElement("tr");
+
+    const dateText = p.date?.seconds
+      ? new Date(p.date.seconds * 1000).toLocaleString()
+      : "—";
+
+    // Description display (if approved with stored month/year, show “Payment for {Month Year}”)
+    let descriptionCellText = p.description || "";
+    if (!descriptionCellText && p.periodMonth && p.periodYear) {
+      descriptionCellText = `Payment for ${monthName(p.periodMonth)} ${p.periodYear}`;
+    }
+
+    tr.innerHTML = `
+      <td class="nowrap">${dateText}</td>
+      <td>${userName}</td>
+      <td>${descriptionCellText}</td>
+      <td>${Number(p.amount || 0)}</td>
+      <td>${runningBalance}</td>
+      <td class="status ${isApproved ? "status-success" : "status-danger"}">
+        ${isApproved ? "approved" : "unapproved"}
+      </td>
+      <td></td>
+    `;
+
+    const actionsTd = tr.lastElementChild;
+
+    if (!isApproved) {
+      // Pending/unapproved: show Month+Year selects + Approve button
+      const controls = document.createElement("div");
+      controls.className = "inline-controls";
+
+      const monthSel = buildMonthSelect(p.id);
+      const yearSel = buildYearSelect(p.id);
+
+      const approveBtn = document.createElement("button");
+      approveBtn.className = "action-btn action-approve";
+      approveBtn.textContent = "Approve";
+      approveBtn.addEventListener("click", async () => {
+        approveBtn.disabled = true;
+        monthSel.disabled = true;
+        yearSel.disabled = true;
+
+        const m = Number(monthSel.value);
+        const y = Number(yearSel.value);
+        const description = `Payment for ${monthName(m)} ${y}`;
+
+        try {
+          // Lock in month/year/description + mark as approved
+          await updateDoc(doc(db, "payments", p.id), {
+            status: "approved",
+            periodMonth: m,
+            periodYear: y,
+            description
+          });
+        } catch (e) {
+          console.error(e);
+          alert("Failed to approve. Please try again.");
+          approveBtn.disabled = false;
+          monthSel.disabled = false;
+          yearSel.disabled = false;
+        }
+      });
+
+      controls.appendChild(monthSel);
+      controls.appendChild(yearSel);
+      controls.appendChild(approveBtn);
+      actionsTd.appendChild(controls);
+    } else {
+      // Approved: locked forever
+      actionsTd.textContent = "—";
+    }
+
+    ledgerTableBody.appendChild(tr);
+
+    if (isApproved) {
+      approvedTotal += Number(p.amount || 0);
+    }
+  });
+
+  summaryBadge.textContent = `Approved Balance: K${approvedTotal}`;
+  
+}
+
+// Real-time payments listener with user filter & stable order
+function listenPayments() {
+  const paymentsRef = collection(db, "payments");
+  onSnapshot(paymentsRef, snapshot => {
+    let allPayments = [];
+    snapshot.forEach(docSnap => allPayments.push({ id: docSnap.id, ...docSnap.data() }));
+
+    const selectedUser = userSelect.value;
+    if (selectedUser !== "all") {
+      allPayments = allPayments.filter(p => p.userId === selectedUser);
+    }
+
+    // Sort by date (fallback to 0 if missing)
+    allPayments.sort((a, b) => {
+      const ta = a.date?.seconds || 0;
+      const tb = b.date?.seconds || 0;
+      return ta - tb;
+    });
+
+    renderLedger(allPayments);
+  });
+}
+
+userSelect.addEventListener("change", listenPayments);
+
+// Init
+await loadUsers();
+listenPayments();
+</script>
+
+</body>
+</html>

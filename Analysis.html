@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Trismart — Daily Profit Analysis</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root{
+      --bg:#0f1220;
+      --panel:#191b2a;
+      --accent:#ffcc00;
+      --muted:#b8b8cc;
+      --card:#27293d;
+      --radius:12px;
+      --glass: rgba(255,255,255,0.03);
+      --danger:#f44336;
+      --success:#4caf50;
+      --info:#2196f3;
+      --warning:#ff9800;
+      --profit:#4caf50;
+      --cost:#f44336;
+      --revenue:#2196f3;
+    }
+    *{box-sizing:border-box; margin:0; padding:0}
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family: "Segoe UI", Roboto, system-ui, -apple-system, "Helvetica Neue", Arial;
+      background: linear-gradient(135deg,var(--bg) 0%, #23263b 100%);
+      color:#fff;
+      display:flex;
+      overflow-x: hidden;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 280px;
+      background: var(--panel);
+      border-right: 1px solid rgba(255,255,255,0.04);
+      display: flex;
+      flex-direction: column;
+      transition: all 0.3s ease;
+      height: 100vh;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .sidebar-header {
+      padding: 18px;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      min-height: 70px;
+    }
+
+    .sidebar-header h2 {
+      font-size: 1.1rem;
+      margin: 0;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 18px;
+      color: var(--muted);
+      text-decoration: none;
+      transition: all 0.3s ease;
+      border-left: 3px solid transparent;
+    }
+
+    .nav-item:hover {
+      background: rgba(255,255,255,0.03);
+      color: #fff;
+    }
+
+    .nav-item.active {
+      background: rgba(255,255,255,0.05);
+      color: var(--accent);
+      border-left-color: var(--accent);
+    }
+
+    .nav-item i {
+      font-size: 1.1rem;
+      min-width: 20px;
+    }
+
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      padding: 24px;
+      overflow-y: auto;
+      height: 100vh;
+    }
+
+    .container{
+      width:100%;
+      max-width:100%;
+      height:100%;
+      display:flex;
+      flex-direction:column;
+      gap:24px;
+    }
+
+    /* Dashboard Header */
+    .dashboard-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      margin-bottom:12px;
+      flex-wrap:wrap;
+    }
+    
+    h1{
+      margin:0;
+      font-size:1.8rem;
+      background:linear-gradient(90deg, var(--accent), #fff);
+      -webkit-background-clip:text;
+      -webkit-text-fill-color:transparent;
+    }
+    
+    .small{
+      color:var(--muted);
+      font-size:0.9rem;
+    }
+    
+    .controls{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    
+    .btn{
+      padding:10px 16px;
+      border-radius:10px;
+      border:none;
+      background:var(--accent);
+      color:#111;
+      font-weight:700;
+      cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      transition:all 0.2s;
+    }
+    
+    .btn:hover{
+      opacity:0.9;
+      transform:translateY(-1px);
+    }
+    
+    .btn.ghost{
+      background:transparent;
+      border:1px solid rgba(255,255,255,0.06);
+      color:var(--muted);
+    }
+    
+    .btn.success{
+      background:var(--success);
+      color:#fff;
+    }
+    
+    .btn.info{
+      background:var(--info);
+      color:#fff;
+    }
+    
+    .btn.danger{
+      background:var(--danger);
+      color:#fff;
+    }
+    
+    .btn.warning{
+      background:var(--warning);
+      color:#fff;
+    }
+    
+    /* Summary Cards */
+    .summary-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));
+      gap:16px;
+      margin-bottom:24px;
+    }
+    
+    .summary-card{
+      background:linear-gradient(135deg, rgba(255,255,255,0.03), rgba(0,0,0,0.1));
+      padding:20px;
+      border-radius:var(--radius);
+      border:1px solid rgba(255,255,255,0.03);
+      display:flex;
+      flex-direction:column;
+      transition:transform 0.3s ease;
+    }
+    
+    .summary-card:hover{
+      transform:translateY(-4px);
+      border-color:rgba(255,255,255,0.08);
+    }
+    
+    .summary-card.profit{
+      border-left:4px solid var(--profit);
+    }
+    
+    .summary-card.revenue{
+      border-left:4px solid var(--revenue);
+    }
+    
+    .summary-card.cost{
+      border-left:4px solid var(--cost);
+    }
+    
+    .summary-card.inventory{
+      border-left:4px solid var(--accent);
+    }
+    
+    .summary-value{
+      font-size:2rem;
+      font-weight:700;
+      margin:8px 0;
+    }
+    
+    .summary-label{
+      color:var(--muted);
+      font-size:0.9rem;
+      display:flex;
+      align-items:center;
+      gap:6px;
+    }
+    
+    .summary-change{
+      font-size:0.85rem;
+      padding:2px 8px;
+      border-radius:999px;
+      background:rgba(255,255,255,0.05);
+      margin-left:auto;
+    }
+    
+    .summary-change.positive{
+      background:rgba(76, 175, 80, 0.15);
+      color:#4caf50;
+    }
+    
+    .summary-change.negative{
+      background:rgba(244, 67, 54, 0.15);
+      color:#f44336;
+    }
+    
+    /* Charts Section */
+    .charts-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(400px, 1fr));
+      gap:20px;
+      margin-bottom:24px;
+    }
+    
+    .chart-container{
+      background:var(--panel);
+      border-radius:var(--radius);
+      padding:20px;
+      border:1px solid rgba(255,255,255,0.04);
+      display:flex;
+      flex-direction:column;
+      height:300px;
+    }
+    
+    .chart-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:16px;
+    }
+    
+    .chart-title{
+      font-size:1.1rem;
+      font-weight:600;
+    }
+    
+    .chart-subtitle{
+      color:var(--muted);
+      font-size:0.9rem;
+    }
+    
+    /* Products Table */
+    .table-container{
+      background:var(--panel);
+      border-radius:var(--radius);
+      padding:20px;
+      border:1px solid rgba(255,255,255,0.04);
+      flex:1;
+      display:flex;
+      flex-direction:column;
+    }
+    
+    .table-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:16px;
+    }
+    
+    .table-wrap{
+      overflow:auto;
+      flex:1;
+      max-height:400px;
+      border-radius:8px;
+    }
+    
+    table{
+      width:100%;
+      border-collapse:collapse;
+      font-size:0.95rem;
+    }
+    
+    th,td{
+      padding:12px 10px;
+      text-align:left;
+      border-bottom:1px solid rgba(255,255,255,0.04);
+    }
+    
+    th{
+      color:var(--muted);
+      font-weight:700;
+      position:sticky;
+      top:0;
+      background:linear-gradient(180deg,var(--panel),transparent);
+      z-index:1;
+    }
+    
+    tr:hover td{
+      background:rgba(255,255,255,0.03);
+    }
+    
+    /* Badges */
+    .badge{
+      padding:4px 8px;
+      border-radius:999px;
+      font-size:0.8rem;
+      font-weight:600;
+      display:inline-block;
+    }
+    
+    .badge.profit{
+      background:rgba(76, 175, 80, 0.15);
+      color:#4caf50;
+    }
+    
+    .badge.cost{
+      background:rgba(244, 67, 54, 0.15);
+      color:#f44336;
+    }
+    
+    .badge.revenue{
+      background:rgba(33, 150, 243, 0.15);
+      color:#2196f3;
+    }
+    
+    .badge.warning{
+      background:rgba(255, 152, 0, 0.15);
+      color:#ff9800;
+    }
+    
+    /* Profit Meter */
+    .profit-meter{
+      background:linear-gradient(135deg, rgba(0,0,0,0.3), rgba(0,0,0,0.1));
+      border-radius:var(--radius);
+      padding:20px;
+      border:1px solid rgba(255,255,255,0.03);
+      margin-bottom:24px;
+    }
+    
+    .meter-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:16px;
+    }
+    
+    .meter-bar{
+      height:12px;
+      background:rgba(255,255,255,0.05);
+      border-radius:999px;
+      overflow:hidden;
+      position:relative;
+      margin:20px 0;
+    }
+    
+    .meter-fill{
+      height:100%;
+      background:linear-gradient(90deg, var(--danger), var(--warning), var(--success));
+      border-radius:999px;
+      transition:width 1s ease;
+    }
+    
+    .meter-labels{
+      display:flex;
+      justify-content:space-between;
+      font-size:0.85rem;
+      color:var(--muted);
+    }
+    
+    /* Loading */
+    .loading{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      padding:40px;
+      color:var(--muted);
+    }
+    
+    .loading-spinner{
+      width:40px;
+      height:40px;
+      border:3px solid rgba(255,255,255,0.1);
+      border-top-color:var(--accent);
+      border-radius:50%;
+      animation:spin 1s linear infinite;
+      margin-bottom:16px;
+    }
+    
+    @keyframes spin{
+      to{transform:rotate(360deg);}
+    }
+    
+    /* Empty State */
+    .empty{
+      color:var(--muted);
+      padding:40px;
+      text-align:center;
+    }
+    
+    /* Mobile Responsive */
+    @media (max-width: 1024px){
+      .charts-grid{
+        grid-template-columns:1fr;
+      }
+      
+      .chart-container{
+        height:280px;
+      }
+    }
+    
+    @media (max-width: 768px){
+      body{
+        flex-direction:column;
+      }
+      
+      .sidebar{
+        width:100%;
+        height:auto;
+        position:relative;
+      }
+      
+      .main-content{
+        height:auto;
+        padding:16px;
+      }
+      
+      .summary-grid{
+        grid-template-columns:repeat(2, 1fr);
+      }
+      
+      .charts-grid{
+        grid-template-columns:1fr;
+      }
+    }
+    
+    @media (max-width: 480px){
+      .summary-grid{
+        grid-template-columns:1fr;
+      }
+      
+      .dashboard-header{
+        flex-direction:column;
+        align-items:flex-start;
+        gap:16px;
+      }
+      
+      .controls{
+        width:100%;
+        justify-content:space-between;
+      }
+      
+      .btn span{
+        display:none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h2>Trismart Analytics</h2>
+    </div>
+    
+    <div style="padding:18px; flex:1; overflow-y:auto;">
+      <a href="sales-dashboard.html" class="nav-item">
+        <i class="fas fa-home"></i>
+        <span>Dashboard</span>
+      </a>
+      
+      <a href="sales-dashboard.html" class="nav-item">
+        <i class="fas fa-box"></i>
+        <span>HQ Stock</span>
+      </a>
+      
+      <a href="Restock.html" class="nav-item">
+        <i class="fas fa-truck-loading"></i>
+        <span>GRV Restock</span>
+      </a>
+      
+      <a href="history.html" class="nav-item">
+        <i class="fas fa-history"></i>
+        <span>Transfer History</span>
+      </a>
+      
+      <a href="#" class="nav-item active">
+        <i class="fas fa-chart-line"></i>
+        <span>Profit Analysis</span>
+      </a>
+      
+      <div style="margin-top:30px; padding:12px; background:rgba(255,255,255,0.02); border-radius:8px;">
+        <div class="small" style="text-align:center;">
+          <i class="fas fa-info-circle"></i>
+          <div style="margin-top:4px;">Analysis updates in real-time</div>
+        </div>
+      </div>
+    </div>
+    
+    <div style="padding:18px; border-top:1px solid rgba(255,255,255,0.04);">
+      <div class="small" style="text-align:center;">
+        <i class="fas fa-user-circle"></i>
+        <div id="currentUserEmail" style="margin-top:4px;">Loading...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <div class="container">
+      <!-- Dashboard Header -->
+      <div class="dashboard-header">
+        <div>
+          <h1>Daily Profit Analysis</h1>
+          <div class="small">Real-time profit projections based on current inventory & GRV cost data</div>
+        </div>
+        
+        <div class="controls">
+          <button class="btn ghost" id="btnRefresh">
+            <i class="fas fa-sync-alt"></i>
+            <span>Refresh</span>
+          </button>
+          <button class="btn info" id="btnExportData">
+            <i class="fas fa-file-export"></i>
+            <span>Export Report</span>
+          </button>
+          <button class="btn success" id="btnPrint">
+            <i class="fas fa-print"></i>
+            <span>Print</span>
+          </button>
+        </div>
+      </div>
+      
+      <!-- Summary Cards -->
+      <div class="summary-grid">
+        <div class="summary-card profit">
+          <div class="summary-label">
+            <i class="fas fa-chart-line"></i>
+            <span>Projected Daily Profit</span>
+            <span class="summary-change positive" id="profitChange">+0%</span>
+          </div>
+          <div class="summary-value" id="totalProfit">ZMW 0.00</div>
+          <div class="small">If all inventory sold at current prices</div>
+        </div>
+        
+        <div class="summary-card revenue">
+          <div class="summary-label">
+            <i class="fas fa-money-bill-wave"></i>
+            <span>Potential Revenue</span>
+          </div>
+          <div class="summary-value" id="totalRevenue">ZMW 0.00</div>
+          <div class="small">Total inventory value at selling price</div>
+        </div>
+        
+        <div class="summary-card cost">
+          <div class="summary-label">
+            <i class="fas fa-tags"></i>
+            <span>Total Cost</span>
+          </div>
+          <div class="summary-value" id="totalCost">ZMW 0.00</div>
+          <div class="small">Based on GRV purchase prices</div>
+        </div>
+        
+        <div class="summary-card inventory">
+          <div class="summary-label">
+            <i class="fas fa-boxes"></i>
+            <span>Total Inventory</span>
+          </div>
+          <div class="summary-value" id="totalInventory">0</div>
+          <div class="small">Items in stock across all products</div>
+        </div>
+      </div>
+      
+      <!-- Profit Meter -->
+      <div class="profit-meter">
+        <div class="meter-header">
+          <div>
+            <div class="chart-title">Profit Margin</div>
+            <div class="chart-subtitle">Ratio of profit to revenue</div>
+          </div>
+          <div class="summary-value" id="profitMargin">0%</div>
+        </div>
+        <div class="meter-bar">
+          <div class="meter-fill" id="profitMeterFill" style="width:0%"></div>
+        </div>
+        <div class="meter-labels">
+          <span>0%</span>
+          <span>25%</span>
+          <span>50%</span>
+          <span>75%</span>
+          <span>100%</span>
+        </div>
+      </div>
+      
+      <!-- Charts Section -->
+      <div class="charts-grid">
+        <div class="chart-container">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title">Top Profitable Products</div>
+              <div class="chart-subtitle">Highest profit per item</div>
+            </div>
+            <select class="btn ghost" id="topProductsFilter" style="font-size:0.9rem;">
+              <option value="profit">By Profit</option>
+              <option value="margin">By Margin</option>
+              <option value="revenue">By Revenue</option>
+            </select>
+          </div>
+          <div id="topProductsChart" style="flex:1; display:flex; align-items:center; justify-content:center;">
+            <div class="loading">
+              <div class="loading-spinner"></div>
+              <div>Loading chart...</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="chart-container">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title">Profit Distribution</div>
+              <div class="chart-subtitle">Cost vs Revenue vs Profit</div>
+            </div>
+          </div>
+          <div id="profitDistributionChart" style="flex:1; display:flex; align-items:center; justify-content:center;">
+            <div class="loading">
+              <div class="loading-spinner"></div>
+              <div>Loading chart...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Products Analysis Table -->
+      <div class="table-container">
+        <div class="table-header">
+          <div>
+            <div class="chart-title">Detailed Product Analysis</div>
+            <div class="chart-subtitle">Cost, revenue, and profit per product</div>
+          </div>
+          <input type="text" id="searchProducts" class="btn ghost" placeholder="Search products..." style="width:200px; background:transparent; color:#fff;">
+        </div>
+        
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Product Code</th>
+                <th>Product Name</th>
+                <th>Stock</th>
+                <th>Cost Price (ZMW)</th>
+                <th>Sell Price (ZMW)</th>
+                <th>Profit/Unit (ZMW)</th>
+                <th>Total Cost (ZMW)</th>
+                <th>Total Revenue (ZMW)</th>
+                <th>Total Profit (ZMW)</th>
+                <th>Margin</th>
+              </tr>
+            </thead>
+            <tbody id="productsAnalysisBody">
+              <tr>
+                <td colspan="10" class="empty">
+                  <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <div>Loading analysis data...</div>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+  import {
+    getAuth,
+    onAuthStateChanged
+  } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+  import {
+    getFirestore,
+    collection,
+    query,
+    orderBy,
+    onSnapshot,
+    getDocs,
+    where
+  } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+  // Firebase config (same as your other files)
+  const firebaseConfig = {
+    apiKey: "AIzaSyDuAv_aGmY4VzergDS7g_K3zR-jFYHvGZo",
+    authDomain: "trismart-online-app.firebaseapp.com",
+    projectId: "trismart-online-app",
+    storageBucket: "trismart-online-app.firebasestorage.app",
+    messagingSenderId: "867677912389",
+    appId: "1:867677912389:web:3c5ea505cb1e84a003d22c",
+    measurementId: "G-KEWDREKNDB"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  // Admin email
+  const ADMIN_EMAIL = 'chrischishe@gmail.com';
+
+  // Elements
+  const currentUserEmail = document.getElementById('currentUserEmail');
+  const btnRefresh = document.getElementById('btnRefresh');
+  const btnExportData = document.getElementById('btnExportData');
+  const btnPrint = document.getElementById('btnPrint');
+  const searchProducts = document.getElementById('searchProducts');
+  const topProductsFilter = document.getElementById('topProductsFilter');
+  
+  // Summary elements
+  const totalProfit = document.getElementById('totalProfit');
+  const totalRevenue = document.getElementById('totalRevenue');
+  const totalCost = document.getElementById('totalCost');
+  const totalInventory = document.getElementById('totalInventory');
+  const profitChange = document.getElementById('profitChange');
+  const profitMargin = document.getElementById('profitMargin');
+  const profitMeterFill = document.getElementById('profitMeterFill');
+  
+  // Table body
+  const productsAnalysisBody = document.getElementById('productsAnalysisBody');
+  
+  // Chart containers
+  const topProductsChart = document.getElementById('topProductsChart');
+  const profitDistributionChart = document.getElementById('profitDistributionChart');
+
+  // Global variables
+  let currentUser = null;
+  let productsCache = [];
+  let grvsCache = [];
+  let analysisData = [];
+  let lastAnalysis = null;
+
+  // Format helpers - CHANGED FROM USD TO ZMW
+  function formatMoney(v) { 
+    return 'ZMW ' + Number(v || 0).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,'); 
+  }
+  
+  function formatPercent(v) { 
+    return Math.round(v * 100) + '%'; 
+  }
+  
+  function escapeHtml(s=''){ 
+    return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); 
+  }
+
+  // Auth guard
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      window.location.href = 'index.html';
+      return;
+    }
+    currentUser = user;
+    currentUserEmail.textContent = user.email;
+
+    // Load data
+    await fetchAllData();
+    performAnalysis();
+    renderCharts();
+    
+    // Start real-time listeners
+    startRealTimeListeners();
+  });
+
+  // Fetch all required data
+  async function fetchAllData() {
+    try {
+      // Fetch products
+      const productsQuery = query(collection(db, "products"), orderBy("code"));
+      const productsSnapshot = await getDocs(productsQuery);
+      productsCache = productsSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+
+      // Fetch GRVs
+      const grvsQuery = query(collection(db, "grvs"), orderBy("number", "desc"));
+      const grvsSnapshot = await getDocs(grvsQuery);
+      grvsCache = grvsSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+
+      console.log(`Loaded ${productsCache.length} products and ${grvsCache.length} GRVs`);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      alert('Failed to load data. Please refresh.');
+    }
+  }
+
+  // Start real-time listeners
+  function startRealTimeListeners() {
+    // Products listener
+    const productsQuery = query(collection(db, "products"), orderBy("code"));
+    onSnapshot(productsQuery, (snapshot) => {
+      productsCache = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      performAnalysis();
+      renderCharts();
+    });
+
+    // GRVs listener
+    const grvsQuery = query(collection(db, "grvs"), orderBy("number", "desc"));
+    onSnapshot(grvsQuery, (snapshot) => {
+      grvsCache = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      performAnalysis();
+      renderCharts();
+    });
+  }
+
+  // Calculate average cost from GRV history
+  function getAverageCost(productCode) {
+    let totalQuantity = 0;
+    let totalCost = 0;
+    
+    grvsCache.forEach(grv => {
+      grv.items.forEach(item => {
+        if (item.code === productCode) {
+          totalQuantity += item.quantity || 0;
+          totalCost += item.total || 0;
+        }
+      });
+    });
+    
+    if (totalQuantity === 0) return 0;
+    return totalCost / totalQuantity;
+  }
+
+  // Perform analysis
+  function performAnalysis() {
+    analysisData = [];
+    let totalProfitVal = 0;
+    let totalRevenueVal = 0;
+    let totalCostVal = 0;
+    let totalInventoryVal = 0;
+
+    productsCache.forEach(product => {
+      const stock = Number(product.stock) || 0;
+      const sellPrice = Number(product.price) || 0;
+      const avgCost = getAverageCost(product.code);
+      
+      const totalCostItem = avgCost * stock;
+      const totalRevenueItem = sellPrice * stock;
+      const totalProfitItem = totalRevenueItem - totalCostItem;
+      const profitPerUnit = sellPrice - avgCost;
+      const margin = sellPrice > 0 ? totalProfitItem / totalRevenueItem : 0;
+
+      analysisData.push({
+        id: product.id,
+        code: product.code || 'N/A',
+        name: product.name || 'Unknown',
+        stock: stock,
+        costPrice: avgCost,
+        sellPrice: sellPrice,
+        profitPerUnit: profitPerUnit,
+        totalCost: totalCostItem,
+        totalRevenue: totalRevenueItem,
+        totalProfit: totalProfitItem,
+        margin: margin
+      });
+
+      totalProfitVal += totalProfitItem;
+      totalRevenueVal += totalRevenueItem;
+      totalCostVal += totalCostItem;
+      totalInventoryVal += stock;
+    });
+
+    // Sort by profit (highest first)
+    analysisData.sort((a, b) => b.totalProfit - a.totalProfit);
+
+    // Update summary
+    updateSummary(totalProfitVal, totalRevenueVal, totalCostVal, totalInventoryVal);
+    
+    // Render table
+    renderAnalysisTable();
+    
+    // Store for comparison
+    lastAnalysis = {
+      totalProfit: totalProfitVal,
+      totalRevenue: totalRevenueVal,
+      totalCost: totalCostVal,
+      totalInventory: totalInventoryVal
+    };
+  }
+
+  // Update summary cards
+  function updateSummary(profit, revenue, cost, inventory) {
+    totalProfit.textContent = formatMoney(profit);
+    totalRevenue.textContent = formatMoney(revenue);
+    totalCost.textContent = formatMoney(cost);
+    totalInventory.textContent = inventory.toLocaleString();
+    
+    // Calculate profit margin
+    const margin = revenue > 0 ? (profit / revenue) * 100 : 0;
+    profitMargin.textContent = Math.round(margin) + '%';
+    profitMeterFill.style.width = Math.min(margin, 100) + '%';
+    
+    // Calculate profit change (if we have previous data)
+    if (lastAnalysis) {
+      const change = lastAnalysis.totalProfit > 0 ? 
+        ((profit - lastAnalysis.totalProfit) / lastAnalysis.totalProfit) * 100 : 0;
+      profitChange.textContent = (change >= 0 ? '+' : '') + Math.round(change) + '%';
+      profitChange.className = change >= 0 ? 'summary-change positive' : 'summary-change negative';
+    }
+  }
+
+  // Render analysis table
+  function renderAnalysisTable() {
+    const searchTerm = searchProducts.value.toLowerCase();
+    let filteredData = analysisData;
+    
+    if (searchTerm) {
+      filteredData = analysisData.filter(item => 
+        item.code.toLowerCase().includes(searchTerm) || 
+        item.name.toLowerCase().includes(searchTerm)
+      );
+    }
+    
+    if (filteredData.length === 0) {
+      productsAnalysisBody.innerHTML = `
+        <tr>
+          <td colspan="10" class="empty">No products match your search</td>
+        </tr>
+      `;
+      return;
+    }
+    
+    let html = '';
+    filteredData.forEach(item => {
+      const marginPercent = Math.round(item.margin * 100);
+      const marginClass = marginPercent >= 30 ? 'badge profit' : 
+                         marginPercent >= 10 ? 'badge warning' : 'badge cost';
+      
+      html += `
+        <tr>
+          <td><strong>${escapeHtml(item.code)}</strong></td>
+          <td>${escapeHtml(item.name)}</td>
+          <td>${item.stock}</td>
+          <td>${formatMoney(item.costPrice)}</td>
+          <td>${formatMoney(item.sellPrice)}</td>
+          <td class="${item.profitPerUnit >= 0 ? 'badge profit' : 'badge cost'}">
+            ${formatMoney(item.profitPerUnit)}
+          </td>
+          <td>${formatMoney(item.totalCost)}</td>
+          <td>${formatMoney(item.totalRevenue)}</td>
+          <td class="${item.totalProfit >= 0 ? 'badge profit' : 'badge cost'}">
+            ${formatMoney(item.totalProfit)}
+          </td>
+          <td><span class="${marginClass}">${marginPercent}%</span></td>
+        </tr>
+      `;
+    });
+    
+    productsAnalysisBody.innerHTML = html;
+  }
+
+  // Render charts
+  function renderCharts() {
+    renderTopProductsChart();
+    renderProfitDistributionChart();
+  }
+
+  // Render top products chart
+  function renderTopProductsChart() {
+    const filter = topProductsFilter.value;
+    let sortedData = [...analysisData];
+    
+    switch(filter) {
+      case 'margin':
+        sortedData.sort((a, b) => b.margin - a.margin);
+        break;
+      case 'revenue':
+        sortedData.sort((a, b) => b.totalRevenue - a.totalRevenue);
+        break;
+      default: // profit
+        sortedData.sort((a, b) => b.totalProfit - a.totalProfit);
+    }
+    
+    const top10 = sortedData.slice(0, 10);
+    
+    if (top10.length === 0) {
+      topProductsChart.innerHTML = '<div class="empty">No data available</div>';
+      return;
+    }
+    
+    // Create simple bar chart
+    const maxValue = Math.max(...top10.map(item => 
+      filter === 'margin' ? item.margin * 100 : 
+      filter === 'revenue' ? item.totalRevenue : 
+      item.totalProfit
+    ));
+    
+    const chartHeight = 200;
+    const barWidth = 30;
+    const spacing = 15;
+    
+    let svg = `<svg width="100%" height="${chartHeight}" viewBox="0 0 ${(barWidth + spacing) * top10.length} ${chartHeight}">`;
+    
+    top10.forEach((item, index) => {
+      const x = index * (barWidth + spacing);
+      const value = filter === 'margin' ? item.margin * 100 : 
+                   filter === 'revenue' ? item.totalRevenue : 
+                   item.totalProfit;
+      const height = (value / maxValue) * (chartHeight - 40);
+      const y = chartHeight - height - 20;
+      const color = filter === 'margin' ? '#4caf50' : 
+                   filter === 'revenue' ? '#2196f3' : '#ff9800';
+      
+      svg += `
+        <g>
+          <rect x="${x}" y="${y}" width="${barWidth}" height="${height}" fill="${color}" rx="4"/>
+          <text x="${x + barWidth/2}" y="${chartHeight - 5}" text-anchor="middle" font-size="10" fill="#b8b8cc">
+            ${item.code.substring(0, 6)}
+          </text>
+          <text x="${x + barWidth/2}" y="${y - 5}" text-anchor="middle" font-size="11" font-weight="bold" fill="#fff">
+            ${filter === 'margin' ? Math.round(value) + '%' : formatMoney(value).replace('ZMW ', '')}
+          </text>
+        </g>
+      `;
+    });
+    
+    svg += '</svg>';
+    
+    topProductsChart.innerHTML = `
+      <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center;">
+        ${svg}
+      </div>
+    `;
+  }
+
+  // Render profit distribution chart
+  function renderProfitDistributionChart() {
+    const totalProfitVal = analysisData.reduce((sum, item) => sum + item.totalProfit, 0);
+    const totalCostVal = analysisData.reduce((sum, item) => sum + item.totalCost, 0);
+    const totalRevenueVal = analysisData.reduce((sum, item) => sum + item.totalRevenue, 0);
+    
+    if (totalRevenueVal === 0) {
+      profitDistributionChart.innerHTML = '<div class="empty">No revenue data available</div>';
+      return;
+    }
+    
+    // Create pie chart
+    const size = 180;
+    const radius = size / 2;
+    const center = radius;
+    
+    const profitPercent = (totalProfitVal / totalRevenueVal) * 100;
+    const costPercent = (totalCostVal / totalRevenueVal) * 100;
+    
+    // Create donut chart
+    let svg = `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">`;
+    
+    // Draw cost segment (from 0 to costPercent)
+    const costAngle = (costPercent / 100) * 360;
+    const costEndAngle = costAngle;
+    const costX = center + radius * Math.cos((costEndAngle - 90) * Math.PI / 180);
+    const costY = center + radius * Math.sin((costEndAngle - 90) * Math.PI / 180);
+    
+    svg += `
+      <path d="M ${center} ${center}
+               L ${center} ${center - radius}
+               A ${radius} ${radius} 0 ${costAngle > 180 ? 1 : 0} 1 ${costX} ${costY}
+               Z" 
+            fill="#f44336" fill-opacity="0.8"/>
+    `;
+    
+    // Draw profit segment (from costPercent to 100)
+    const profitAngle = (profitPercent / 100) * 360;
+    const profitEndAngle = costAngle + profitAngle;
+    const profitX = center + radius * Math.cos((profitEndAngle - 90) * Math.PI / 180);
+    const profitY = center + radius * Math.sin((profitEndAngle - 90) * Math.PI / 180);
+    
+    svg += `
+      <path d="M ${center} ${center}
+               L ${costX} ${costY}
+               A ${radius} ${radius} 0 ${profitAngle > 180 ? 1 : 0} 1 ${profitX} ${profitY}
+               Z" 
+            fill="#4caf50" fill-opacity="0.8"/>
+    `;
+    
+    // Draw hole in middle
+    svg += `<circle cx="${center}" cy="${center}" r="${radius * 0.5}" fill="#191b2a"/>`;
+    
+    // Add labels
+    svg += `
+      <text x="${center}" y="${center - 10}" text-anchor="middle" font-size="16" font-weight="bold" fill="#fff">
+        ${Math.round(profitPercent)}%
+      </text>
+      <text x="${center}" y="${center + 15}" text-anchor="middle" font-size="12" fill="#b8b8cc">
+        Profit
+      </text>
+    `;
+    
+    // Add legend
+    svg += `
+      <g transform="translate(${size + 20}, 20)">
+        <rect x="0" y="0" width="12" height="12" fill="#4caf50" rx="2"/>
+        <text x="20" y="10" font-size="12" fill="#fff">Profit: ${formatMoney(totalProfitVal)}</text>
+        
+        <rect x="0" y="25" width="12" height="12" fill="#f44336" rx="2"/>
+        <text x="20" y="35" font-size="12" fill="#fff">Cost: ${formatMoney(totalCostVal)}</text>
+        
+        <rect x="0" y="50" width="12" height="12" fill="#2196f3" rx="2"/>
+        <text x="20" y="60" font-size="12" fill="#fff">Revenue: ${formatMoney(totalRevenueVal)}</text>
+      </g>
+    `;
+    
+    svg += '</svg>';
+    
+    profitDistributionChart.innerHTML = `
+      <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; padding:10px;">
+        ${svg}
+      </div>
+    `;
+  }
+
+  // Event listeners
+  btnRefresh.addEventListener('click', async () => {
+    btnRefresh.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Refreshing...</span>';
+    await fetchAllData();
+    performAnalysis();
+    renderCharts();
+    setTimeout(() => {
+      btnRefresh.innerHTML = '<i class="fas fa-sync-alt"></i><span>Refresh</span>';
+    }, 500);
+  });
+
+  btnExportData.addEventListener('click', () => {
+    if (analysisData.length === 0) {
+      alert('No data to export');
+      return;
+    }
+    
+    const headers = ['Code', 'Name', 'Stock', 'Cost Price (ZMW)', 'Sell Price (ZMW)', 'Profit/Unit (ZMW)', 'Total Cost (ZMW)', 'Total Revenue (ZMW)', 'Total Profit (ZMW)', 'Margin %'];
+    const rows = analysisData.map(item => [
+      item.code,
+      item.name,
+      item.stock,
+      item.costPrice.toFixed(2),
+      item.sellPrice.toFixed(2),
+      item.profitPerUnit.toFixed(2),
+      item.totalCost.toFixed(2),
+      item.totalRevenue.toFixed(2),
+      item.totalProfit.toFixed(2),
+      Math.round(item.margin * 100)
+    ]);
+    
+    const csv = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+    ].join('\n');
+    
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `profit-analysis-${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    
+    alert('Report exported successfully!');
+  });
+
+  btnPrint.addEventListener('click', () => {
+    window.print();
+  });
+
+  searchProducts.addEventListener('input', () => {
+    renderAnalysisTable();
+  });
+
+  topProductsFilter.addEventListener('change', () => {
+    renderTopProductsChart();
+  });
+
+  // Auto-refresh every 5 minutes
+  setInterval(async () => {
+    console.log('Auto-refreshing analysis data...');
+    await fetchAllData();
+    performAnalysis();
+    renderCharts();
+  }, 5 * 60 * 1000);
+
+  // Initial chart render
+  setTimeout(() => {
+    renderCharts();
+  }, 1000);
+
+</script>
+</body>
+</html>

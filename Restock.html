@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Trismart — GRV Restock System (HQ)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root{
+      --bg:#0f1220;
+      --panel:#191b2a;
+      --accent:#ffcc00;
+      --muted:#b8b8cc;
+      --card:#27293d;
+      --radius:12px;
+      --glass: rgba(255,255,255,0.03);
+      --danger:#f44336;
+      --success:#4caf50;
+      --info:#2196f3;
+      --warning:#ff9800;
+    }
+    
+    *{box-sizing:border-box; margin:0; padding:0}
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family: "Segoe UI", Roboto, system-ui, -apple-system, "Helvetica Neue", Arial;
+      background: linear-gradient(135deg,var(--bg) 0%, #23263b 100%);
+      color:#fff;
+      padding:20px;
+    }
+
+    .container{
+      max-width:1400px;
+      margin:20px auto;
+      background:var(--panel);
+      border-radius:var(--radius);
+      padding:25px;
+      border:1px solid rgba(255,255,255,0.04);
+      box-shadow:0 10px 30px rgba(0,0,0,0.5);
+    }
+
+    .header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:30px;
+      flex-wrap:wrap;
+      gap:15px;
+    }
+
+    h1{
+      margin:0;
+      font-size:1.8rem;
+      color:#90caf9;
+    }
+
+    .small{
+      color:var(--muted);
+      font-size:0.9rem;
+    }
+
+    .btn{
+      padding:10px 16px;
+      border-radius:10px;
+      border:none;
+      background:var(--accent);
+      color:#111;
+      font-weight:700;
+      cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      transition:all 0.2s;
+    }
+
+    .btn:hover{
+      opacity:0.9;
+      transform:translateY(-1px);
+    }
+
+    .btn.ghost{
+      background:transparent;
+      border:1px solid rgba(255,255,255,0.06);
+      color:var(--muted);
+    }
+
+    .btn.success{
+      background:var(--success);
+      color:#fff;
+    }
+
+    .btn.info{
+      background:var(--info);
+      color:#fff;
+    }
+
+    .btn.danger{
+      background:var(--danger);
+      color:#fff;
+    }
+
+    .btn.warning{
+      background:var(--warning);
+      color:#fff;
+    }
+
+    .grv-form{
+      background:#262a40;
+      border-radius:10px;
+      padding:20px;
+      margin-bottom:30px;
+      border:1px solid rgba(255,255,255,0.03);
+    }
+
+    .form-row{
+      display:flex;
+      gap:10px;
+      margin-bottom:12px;
+      flex-wrap:wrap;
+    }
+
+    .form-row input, .form-row select{
+      flex:1;
+      min-width:180px;
+      padding:10px;
+      border-radius:8px;
+      border:1px solid rgba(255,255,255,0.06);
+      background:rgba(255,255,255,0.03);
+      color:#fff;
+      font-size:0.95rem;
+    }
+
+    .form-row input:focus, .form-row select:focus{
+      outline:none;
+      border-color:var(--accent);
+    }
+
+    .item-list{
+      margin:20px 0;
+      overflow-x:auto;
+    }
+
+    .item-list-table{
+      width:100%;
+      border-collapse:collapse;
+      margin-bottom:15px;
+      font-size:0.95rem;
+    }
+
+    .item-list-table th{
+      background:rgba(255,255,255,0.05);
+      color:var(--muted);
+      font-weight:600;
+      padding:12px 8px;
+      text-align:left;
+      border-bottom:2px solid rgba(255,255,255,0.1);
+    }
+
+    .item-list-table td{
+      padding:10px 8px;
+      border-bottom:1px solid rgba(255,255,255,0.05);
+      background:rgba(255,255,255,0.02);
+    }
+
+    .item-list-table tr:hover td{
+      background:rgba(255,255,255,0.04);
+    }
+
+    .grv-table{
+      width:100%;
+      border-collapse:collapse;
+      margin-top:25px;
+      font-size:0.95rem;
+    }
+
+    .grv-table th{
+      background:rgba(255,255,255,0.05);
+      color:var(--muted);
+      font-weight:600;
+      padding:14px 10px;
+      text-align:left;
+      border-bottom:2px solid rgba(255,255,255,0.1);
+      position:sticky;
+      top:0;
+    }
+
+    .grv-table td{
+      padding:12px 10px;
+      border-bottom:1px solid rgba(255,255,255,0.05);
+      background:rgba(255,255,255,0.02);
+      cursor:pointer;
+    }
+
+    .grv-table tr:hover td{
+      background:rgba(255,255,255,0.06);
+    }
+
+    .stats{
+      display:flex;
+      gap:15px;
+      margin-bottom:25px;
+      flex-wrap:wrap;
+    }
+
+    .stat-card{
+      flex:1;
+      min-width:180px;
+      background:linear-gradient(135deg, rgba(255,255,255,0.03), rgba(0,0,0,0.1));
+      padding:15px;
+      border-radius:8px;
+      border:1px solid rgba(255,255,255,0.03);
+    }
+
+    .stat-value{
+      font-size:1.8rem;
+      font-weight:700;
+      margin:5px 0;
+    }
+
+    .stat-label{
+      color:var(--muted);
+      font-size:0.85rem;
+    }
+
+    .badge{
+      padding:4px 8px;
+      border-radius:999px;
+      font-size:0.8rem;
+      font-weight:600;
+      display:inline-block;
+    }
+
+    .badge.success{
+      background:rgba(76, 175, 80, 0.15);
+      color:#4caf50;
+    }
+
+    .badge.info{
+      background:rgba(33, 150, 243, 0.15);
+      color:#2196f3;
+    }
+
+    .empty{
+      color:var(--muted);
+      padding:40px;
+      text-align:center;
+      font-size:1.1rem;
+    }
+
+    .modal{
+      display:none;
+      position:fixed;
+      z-index:1000;
+      left:0;
+      top:0;
+      width:100%;
+      height:100%;
+      overflow:auto;
+      background:rgba(0,0,0,0.7);
+    }
+
+    .modal-content{
+      background:var(--panel);
+      margin:5% auto;
+      padding:25px;
+      border-radius:12px;
+      width:95%;
+      max-width:700px;
+      border:1px solid rgba(255,255,255,0.04);
+      max-height:85vh;
+      overflow-y:auto;
+    }
+
+    .close{
+      float:right;
+      color:#aaa;
+      font-size:28px;
+      cursor:pointer;
+      font-weight:bold;
+      line-height:1;
+    }
+
+    .close:hover{
+      color:#fff;
+    }
+
+    .actions{
+      display:flex;
+      gap:8px;
+      margin-top:15px;
+      justify-content:flex-end;
+    }
+
+    .section-title{
+      margin:25px 0 15px 0;
+      color:#90caf9;
+      font-size:1.2rem;
+      padding-bottom:8px;
+      border-bottom:1px solid rgba(255,255,255,0.05);
+    }
+
+    @media (max-width:768px){
+      .container{
+        padding:15px;
+      }
+      
+      .header{
+        flex-direction:column;
+        align-items:flex-start;
+      }
+      
+      .form-row{
+        flex-direction:column;
+      }
+      
+      .form-row input, .form-row select{
+        width:100%;
+      }
+      
+      .stats{
+        flex-direction:column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <div>
+        <a href="sales-dashboard.html" class="btn ghost" style="margin-bottom:10px;">
+          <i class="fas fa-arrow-left"></i> Back to HQ Stock
+        </a>
+        <h1>GRV Restock System (HQ)</h1>
+        <div class="small">Batch restock products in HQ warehouse using Goods Received Vouchers</div>
+      </div>
+      <div id="currentUser" class="small"></div>
+    </div>
+
+    <!-- Statistics -->
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-label">Total GRVs</div>
+        <div class="stat-value" id="totalGRVs">0</div>
+        <div class="small">All time</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total Items Restocked</div>
+        <div class="stat-value" id="totalItems">0</div>
+        <div class="small">Quantity added</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total Value</div>
+        <div class="stat-value" id="totalValue">ZMW 0.00</div>
+        <div class="small">All GRVs</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Latest GRV</div>
+        <div class="stat-value" id="latestGRV">#0</div>
+        <div class="small">Most recent</div>
+      </div>
+    </div>
+
+    <!-- GRV Creation Form -->
+    <div class="section-title">Create New GRV</div>
+    <div class="grv-form">
+      <div class="form-row">
+        <select id="itemSelect">
+          <option value="">Select product to restock</option>
+        </select>
+        <input type="number" id="itemQty" placeholder="Quantity" min="1" value="1">
+        <input type="number" id="itemPrice" placeholder="Price per unit (ZMW)" min="0" step="0.01" value="0.00">
+        <button class="btn info" id="addItemBtn">
+          <i class="fas fa-plus"></i> Add Item
+        </button>
+      </div>
+
+      <!-- Batch Items List -->
+      <div class="item-list">
+        <table class="item-list-table">
+          <thead>
+            <tr>
+              <th width="15%">Code</th>
+              <th width="30%">Product Name</th>
+              <th width="15%">Quantity</th>
+              <th width="15%">Unit Price (ZMW)</th>
+              <th width="15%">Total (ZMW)</th>
+              <th width="10%">Remove</th>
+            </tr>
+          </thead>
+          <tbody id="itemListTbody">
+            <tr>
+              <td colspan="6" class="empty">No items added yet</td>
+            </tr>
+          </tbody>
+        </table>
+        
+        <div class="actions">
+          <div style="flex:1">
+            <strong id="batchTotal">Batch Total: ZMW 0.00</strong>
+          </div>
+          <button class="btn ghost" id="clearBatchBtn">
+            <i class="fas fa-trash"></i> Clear All
+          </button>
+          <button class="btn success" id="submitGRVBtn">
+            <i class="fas fa-check"></i> Create GRV
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- GRV History Table -->
+    <div class="section-title">GRV History</div>
+    <table class="grv-table">
+      <thead>
+        <tr>
+          <th width="15%">GRV Number</th>
+          <th width="15%">Date</th>
+          <th width="20%">Items</th>
+          <th width="15%">Total Items</th>
+          <th width="20%">Total Value (ZMW)</th>
+          <th width="15%">Status</th>
+        </tr>
+      </thead>
+      <tbody id="grvTableBody">
+        <tr>
+          <td colspan="6" class="empty">Loading GRV history...</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- GRV Detail Modal -->
+  <div id="detailModal" class="modal">
+    <div class="modal-content">
+      <span class="close" id="closeModal">&times;</span>
+      <div id="modalContent"></div>
+    </div>
+  </div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+  import {
+    getAuth,
+    onAuthStateChanged,
+    signOut
+  } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+  import {
+    getFirestore,
+    collection,
+    query,
+    orderBy,
+    onSnapshot,
+    addDoc,
+    doc,
+    updateDoc,
+    getDocs,
+    serverTimestamp,
+    where,
+    runTransaction
+  } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+  // Firebase config (using your existing config)
+  const firebaseConfig = {
+    apiKey: "AIzaSyDuAv_aGmY4VzergDS7g_K3zR-jFYHvGZo",
+    authDomain: "trismart-online-app.firebaseapp.com",
+    projectId: "trismart-online-app",
+    storageBucket: "trismart-online-app.firebasestorage.app",
+    messagingSenderId: "867677912389",
+    appId: "1:867677912389:web:3c5ea505cb1e84a003d22c",
+    measurementId: "G-KEWDREKNDB"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  // Admin email
+  const ADMIN_EMAIL = 'chrischishe@gmail.com';
+
+  // Elements
+  const currentUserEl = document.getElementById('currentUser');
+  const itemSelect = document.getElementById('itemSelect');
+  const itemQty = document.getElementById('itemQty');
+  const itemPrice = document.getElementById('itemPrice');
+  const addItemBtn = document.getElementById('addItemBtn');
+  const itemListTbody = document.getElementById('itemListTbody');
+  const batchTotal = document.getElementById('batchTotal');
+  const clearBatchBtn = document.getElementById('clearBatchBtn');
+  const submitGRVBtn = document.getElementById('submitGRVBtn');
+  const grvTableBody = document.getElementById('grvTableBody');
+  const detailModal = document.getElementById('detailModal');
+  const closeModal = document.getElementById('closeModal');
+  const modalContent = document.getElementById('modalContent');
+  
+  // Stats elements
+  const totalGRVs = document.getElementById('totalGRVs');
+  const totalItems = document.getElementById('totalItems');
+  const totalValue = document.getElementById('totalValue');
+  const latestGRV = document.getElementById('latestGRV');
+
+  // Global variables
+  let currentUser = null;
+  let isAdmin = false;
+  let productsCache = [];
+  let grvsCache = [];
+  let batchItems = [];
+  let grvSnapshotUnsub = null;
+
+  // Format helpers - CHANGED FROM USD TO ZMW
+  function formatMoney(v) { return 'ZMW ' + Number(v || 0).toFixed(2); }
+  function escapeHtml(s=''){ return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+  
+  function formatDate(timestamp) {
+    if (!timestamp) return 'N/A';
+    try {
+      const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+      return date.toLocaleDateString();
+    } catch (e) {
+      return 'Invalid date';
+    }
+  }
+
+  // Auth guard
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      window.location.href = 'index.html';
+      return;
+    }
+    currentUser = user;
+    currentUserEl.textContent = user.email;
+    isAdmin = (user.email || '').toLowerCase() === ADMIN_EMAIL.toLowerCase();
+
+    if (!isAdmin) {
+      alert('You need admin privileges to use GRV system');
+      window.location.href = 'sales-dashboard.html';
+      return;
+    }
+
+    await fetchProducts();
+    attachGRVListener();
+  });
+
+  // Fetch products for dropdown
+  async function fetchProducts() {
+    const q = query(collection(db, "products"), orderBy("code"));
+    const snapshot = await getDocs(q);
+    productsCache = snapshot.docs.map(docSnap => ({
+      id: docSnap.id,
+      ...docSnap.data()
+    }));
+    
+    populateItemSelect();
+  }
+
+  // Populate item dropdown
+  function populateItemSelect() {
+    itemSelect.innerHTML = '<option value="">Select product to restock</option>';
+    productsCache.forEach(product => {
+      const option = document.createElement('option');
+      option.value = product.id;
+      option.textContent = `${product.code} - ${product.name} (Current: ${product.stock || 0})`;
+      itemSelect.appendChild(option);
+    });
+  }
+
+  // Attach GRV listener
+  function attachGRVListener() {
+    if (grvSnapshotUnsub) grvSnapshotUnsub();
+    const q = query(collection(db, "grvs"), orderBy("number", "desc"));
+    grvSnapshotUnsub = onSnapshot(q, (snapshot) => {
+      grvsCache = snapshot.docs.map(docSnap => ({
+        id: docSnap.id,
+        ...docSnap.data()
+      }));
+      
+      updateStats();
+      renderGRVTable();
+      
+    }, (err) => {
+      console.error('GRV snapshot error', err);
+      grvTableBody.innerHTML = '<tr><td colspan="6" class="empty">Error loading GRV history</td></tr>';
+    });
+  }
+
+  // Update statistics
+  function updateStats() {
+    const total = grvsCache.length;
+    const items = grvsCache.reduce((sum, grv) => 
+      sum + grv.items.reduce((itemSum, item) => itemSum + (item.quantity || 0), 0), 0);
+    const value = grvsCache.reduce((sum, grv) => sum + (grv.total || 0), 0);
+    const latest = grvsCache[0]?.number || 0;
+    
+    totalGRVs.textContent = total;
+    totalItems.textContent = items;
+    totalValue.textContent = formatMoney(value);
+    latestGRV.textContent = `#${latest}`;
+  }
+
+  // Add item to batch
+  addItemBtn.addEventListener('click', function(e) {
+    e.preventDefault();
+    const productId = itemSelect.value;
+    const quantity = parseInt(itemQty.value);
+    const price = parseFloat(itemPrice.value);
+
+    if (!productId || isNaN(quantity) || isNaN(price)) {
+      alert('Please fill all fields correctly!');
+      return;
+    }
+
+    const product = productsCache.find(p => p.id === productId);
+    if (!product) {
+      alert('Product not found!');
+      return;
+    }
+
+    // Add to batch items
+    batchItems.push({
+      productId,
+      code: product.code,
+      name: product.name,
+      quantity,
+      price,
+      total: +(quantity * price).toFixed(2)
+    });
+
+    renderBatchItems();
+    
+    // Reset form
+    itemSelect.value = '';
+    itemQty.value = '1';
+    itemPrice.value = '0.00';
+  });
+
+  // Render batch items
+  function renderBatchItems() {
+    if (batchItems.length === 0) {
+      itemListTbody.innerHTML = `
+        <tr>
+          <td colspan="6" class="empty">No items added yet</td>
+        </tr>
+      `;
+      batchTotal.textContent = 'Batch Total: ZMW 0.00'; // CHANGED
+      return;
+    }
+
+    let html = '';
+    let grandTotal = 0;
+    
+    batchItems.forEach((item, index) => {
+      grandTotal += item.total;
+      html += `
+        <tr>
+          <td>${escapeHtml(item.code)}</td>
+          <td>${escapeHtml(item.name)}</td>
+          <td>${item.quantity}</td>
+          <td>${formatMoney(item.price)}</td>
+          <td>${formatMoney(item.total)}</td>
+          <td>
+            <button onclick="removeBatchItem(${index})" class="btn danger" style="padding: 5px 10px; font-size: 0.8rem;">
+              <i class="fas fa-times"></i>
+            </button>
+          </td>
+        </tr>
+      `;
+    });
+
+    itemListTbody.innerHTML = html;
+    batchTotal.textContent = `Batch Total: ${formatMoney(grandTotal)}`;
+  }
+
+  // Remove batch item (global function)
+  window.removeBatchItem = function(index) {
+    batchItems.splice(index, 1);
+    renderBatchItems();
+  };
+
+  // Clear batch
+  clearBatchBtn.addEventListener('click', function() {
+    if (batchItems.length === 0) return;
+    if (confirm('Clear all items from batch?')) {
+      batchItems = [];
+      renderBatchItems();
+    }
+  });
+
+  // Submit GRV
+  submitGRVBtn.addEventListener('click', async function() {
+    if (batchItems.length === 0) {
+      alert('Add at least one item to create GRV!');
+      return;
+    }
+
+    // Get next GRV number
+    let grvNumber = (grvsCache[0]?.number || 0) + 1;
+    const date = new Date().toISOString().split('T')[0];
+    const total = batchItems.reduce((sum, item) => sum + item.total, 0);
+
+    if (!confirm(`Create GRV #${grvNumber} with ${batchItems.length} items?`)) {
+      return;
+    }
+
+    try {
+      // Create GRV document
+      const grvEntry = {
+        number: grvNumber,
+        date,
+        items: batchItems.map(item => ({
+          productId: item.productId,
+          code: item.code,
+          name: item.name,
+          quantity: item.quantity,
+          price: item.price,
+          total: item.total
+        })),
+        total: total,
+        createdBy: currentUser.uid,
+        createdByEmail: currentUser.email,
+        createdAt: serverTimestamp(),
+        status: 'completed'
+      };
+
+      const docRef = await addDoc(collection(db, "grvs"), grvEntry);
+      grvEntry.id = docRef.id;
+
+      // Update product stocks
+      for (const item of batchItems) {
+        const product = productsCache.find(p => p.id === item.productId);
+        if (product) {
+          const productRef = doc(db, "products", product.id);
+          const newStock = (product.stock || 0) + item.quantity;
+          
+          await updateDoc(productRef, {
+            stock: newStock,
+            updatedAt: serverTimestamp(),
+            lastRestocked: new Date().toISOString()
+          });
+        }
+      }
+
+      // Add to cache and render
+      grvsCache.unshift(grvEntry);
+      updateStats();
+      renderGRVTable();
+      
+      // Clear batch
+      batchItems = [];
+      renderBatchItems();
+      
+      alert(`GRV #${grvNumber} created successfully!`);
+      
+    } catch (error) {
+      console.error('Error creating GRV:', error);
+      alert('Failed to create GRV. Please check console.');
+    }
+  });
+
+  // Render GRV table
+  function renderGRVTable() {
+    if (grvsCache.length === 0) {
+      grvTableBody.innerHTML = `
+        <tr>
+          <td colspan="6" class="empty">No GRVs yet. Create your first one above!</td>
+        </tr>
+      `;
+      return;
+    }
+
+    let html = '';
+    grvsCache.forEach(grv => {
+      const totalItems = grv.items.reduce((sum, item) => sum + (item.quantity || 0), 0);
+      const statusBadge = grv.status === 'completed' ? 
+        `<span class="badge success">Completed</span>` : 
+        `<span class="badge info">${grv.status || 'Pending'}</span>`;
+      
+      html += `
+        <tr onclick="showGRVDetail('${grv.id}')">
+          <td><strong>GRV #${grv.number}</strong></td>
+          <td>${formatDate(grv.createdAt) || grv.date}</td>
+          <td>${grv.items.length} product(s)</td>
+          <td>${totalItems}</td>
+          <td>${formatMoney(grv.total)}</td>
+          <td>${statusBadge}</td>
+        </tr>
+      `;
+    });
+
+    grvTableBody.innerHTML = html;
+  }
+
+  // Show GRV detail
+  window.showGRVDetail = function(grvId) {
+    const grv = grvsCache.find(g => g.id === grvId);
+    if (!grv) return;
+
+    const totalItems = grv.items.reduce((sum, item) => sum + (item.quantity || 0), 0);
+    
+    let itemsHtml = '';
+    grv.items.forEach(item => {
+      itemsHtml += `
+        <tr>
+          <td>${escapeHtml(item.code)}</td>
+          <td>${escapeHtml(item.name)}</td>
+          <td>${item.quantity}</td>
+          <td>${formatMoney(item.price)}</td>
+          <td>${formatMoney(item.total)}</td>
+        </tr>
+      `;
+    });
+
+    modalContent.innerHTML = `
+      <h2 style="margin-top: 0; color: #90caf9;">GRV #${grv.number}</h2>
+      <div style="margin-bottom: 20px;">
+        <p><strong>Date:</strong> ${formatDate(grv.createdAt) || grv.date}</p>
+        <p><strong>Created by:</strong> ${grv.createdByEmail || currentUser.email}</p>
+        <p><strong>Status:</strong> ${grv.status || 'completed'}</p>
+      </div>
+      
+      <h3 style="margin-bottom: 15px;">Items Received</h3>
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+        <thead>
+          <tr style="background: rgba(255,255,255,0.05);">
+            <th style="padding: 10px; text-align: left; border-bottom: 2px solid rgba(255,255,255,0.1);">Code</th>
+            <th style="padding: 10px; text-align: left; border-bottom: 2px solid rgba(255,255,255,0.1);">Name</th>
+            <th style="padding: 10px; text-align: left; border-bottom: 2px solid rgba(255,255,255,0.1);">Qty</th>
+            <th style="padding: 10px; text-align: left; border-bottom: 2px solid rgba(255,255,255,0.1);">Unit Price (ZMW)</th>
+            <th style="padding: 10px; text-align: left; border-bottom: 2px solid rgba(255,255,255,0.1);">Total (ZMW)</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${itemsHtml}
+        </tbody>
+      </table>
+      
+      <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1);">
+        <div>
+          <strong>Total Items:</strong> ${totalItems}
+        </div>
+        <div style="font-size: 1.2rem; font-weight: bold; color: var(--accent);">
+          GRV Total: ${formatMoney(grv.total)}
+        </div>
+      </div>
+    `;
+
+    detailModal.style.display = 'block';
+  };
+
+  // Close modal
+  closeModal.addEventListener('click', function() {
+    detailModal.style.display = 'none';
+  });
+
+  window.addEventListener('click', function(event) {
+    if (event.target == detailModal) {
+      detailModal.style.display = 'none';
+    }
+  });
+
+  // Keyboard shortcuts
+  document.addEventListener('keydown', function(e) {
+    // Ctrl+Enter to submit GRV
+    if (e.ctrlKey && e.key === 'Enter') {
+      submitGRVBtn.click();
+    }
+    // Escape to close modal
+    if (e.key === 'Escape') {
+      detailModal.style.display = 'none';
+    }
+  });
+
+  // Clean up
+  window.addEventListener('beforeunload', () => { 
+    if (grvSnapshotUnsub) grvSnapshotUnsub();
+  });
+
+</script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</body>
+</html>

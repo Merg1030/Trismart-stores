@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daily Earnings</title>
+<style>
+  body { font-family: Arial, sans-serif; background:#1e1e2f; color:#fff; margin:0; padding:20px; }
+  h2 { text-align:center; color:#ffcc00; margin-bottom:15px; font-size:1.4rem; }
+  .controls { display:flex; justify-content:center; gap:10px; margin-bottom:15px; flex-wrap:wrap; }
+  input, button { padding:8px; border-radius:6px; border:none; font-size:0.9rem; }
+  input { background:#2c2c44; color:#fff; }
+  button { background:#ffcc00; color:#1e1e2f; font-weight:600; cursor:pointer; }
+  button:hover { background:#e6b800; }
+  table { width:100%; border-collapse:collapse; margin-top:15px; font-size:0.85rem; }
+  th, td { padding:8px 6px; text-align:left; border-bottom:1px solid rgba(255,255,255,0.1); }
+  th { color:#ffcc00; }
+  tbody tr:nth-child(even){ background:#2c2c44; }
+  tbody tr:nth-child(odd){ background:#1f1f33; }
+  .total-profit { text-align:center; margin-top:15px; font-size:1rem; font-weight:bold; color:#ffcc00; }
+</style>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+import { getFirestore, collection, getDocs, query, where, orderBy, limit } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDuAv_aGmY4VzergDS7g_K3zR-jFYHvGZo",
+  authDomain: "trismart-online-app.firebaseapp.com",
+  projectId: "trismart-online-app",
+  storageBucket: "trismart-online-app.firebasestorage.app",
+  messagingSenderId: "867677912389",
+  appId: "1:867677912389:web:3c5ea505cb1e84a003d22c",
+  measurementId: "G-KEWDREKNDB"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let currentUserUID, inventory = [], restockHistory = [];
+
+onAuthStateChanged(auth, async (user) => {
+  if (!user) return window.location.href = "index.html";
+  currentUserUID = user.uid;
+  await loadInventory();
+  await loadRestockHistory();
+  setToday();
+  loadEarnings();
+});
+
+async function loadInventory() {
+  const snapshot = await getDocs(collection(db, "users", currentUserUID, "inventory"));
+  inventory = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+}
+
+async function loadRestockHistory() {
+  const historyRef = collection(db, "users", currentUserUID, "restockHistory");
+  const q = query(historyRef, orderBy("date", "desc"));
+  const snapshot = await getDocs(q);
+  
+  // Create a map of the most recent supplier price for each product code
+  const supplierPriceMap = new Map();
+  
+  snapshot.forEach(doc => {
+    const data = doc.data();
+    if (!supplierPriceMap.has(data.itemCode)) {
+      supplierPriceMap.set(data.itemCode, data.price);
+    }
+  });
+  
+  restockHistory = supplierPriceMap;
+}
+
+function setToday() {
+  const today = new Date().toISOString().split("T")[0];
+  document.getElementById("earnDate").value = today;
+}
+
+async function loadEarnings() {
+  const date = document.getElementById("earnDate").value;
+  if (!date) return;
+
+  const salesRef = collection(db, "users", currentUserUID, "sales");
+  const q = query(salesRef, where("date", "==", date));
+  const snapshot = await getDocs(q);
+  const sales = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+  renderEarnings(sales, date);
+}
+
+function renderEarnings(sales, date) {
+  const tbody = document.querySelector("#earningsTable tbody");
+  tbody.innerHTML = "";
+  let totalProfit = 0;
+  let totalSales = 0;
+
+  if (sales.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;">No sales for ${date}</td></tr>`;
+    document.querySelector(".total-profit").textContent = "Total Profit: ZMW 0.00";
+    return;
+  }
+
+  sales.forEach(sale => {
+    // Get the most recent supplier price from restock history
+    const supplierPrice = restockHistory.get(sale.code) || 0;
+    const sellingTotal = sale.price * sale.quantity;
+    const costTotal = supplierPrice * sale.quantity;
+    const profit = sellingTotal - costTotal;
+    totalProfit += profit;
+    totalSales += sellingTotal;
+
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${sale.code}</td>
+      <td>${sale.name}</td>
+      <td>${sale.price.toFixed(2)}</td>
+      <td>${supplierPrice.toFixed(2)}</td>
+      <td>${sale.quantity}</td>
+      <td>${sellingTotal.toFixed(2)}</td>
+      <td>${profit.toFixed(2)}</td>
+    `;
+    tbody.appendChild(row);
+  });
+
+  document.querySelector(".total-profit").textContent = 
+    `Total Sales: ZMW ${totalSales.toFixed(2)} | Total Profit for ${date}: ZMW ${totalProfit.toFixed(2)}`;
+}
+
+window.loadEarnings = loadEarnings;
+</script>
+</head>
+<body>
+  <h2>Daily Earnings</h2>
+  <div class="controls">
+    <input type="date" id="earnDate">
+    <button onclick="loadEarnings()">Load Earnings</button>
+  </div>
+
+  <table id="earningsTable">
+    <thead>
+      <tr>
+        <th>Code</th>
+        <th>Name</th>
+        <th>Selling Price</th>
+        <th>Supplier Price</th>
+        <th>Qty</th>
+        <th>Total Sales</th>
+        <th>Profit</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td colspan="7" style="text-align:center;">No sales yet</td></tr>
+    </tbody>
+  </table>
+
+  <div class="total-profit">Total Profit: ZMW 0.00</div>
+</body>
+</html>
