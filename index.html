@@ -78,9 +78,20 @@
             font-weight: 900;
         }
 
-        /* Search Bar */
+        /* Sticky Search Bar */
+        .sticky-search-container {
+            position: sticky;
+            top: 70px; /* Below the header */
+            z-index: 999;
+            background: var(--primary-color);
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s;
+        }
+
         .search-container {
-            margin: 20px auto;
+            margin: 0 auto;
             max-width: 600px;
             position: relative;
         }
@@ -940,6 +951,11 @@
 
         /* Responsive Design */
         @media (max-width: 768px) {
+            .sticky-search-container {
+                top: 60px;
+                padding: 8px 0;
+            }
+            
             .header-content {
                 gap: 10px;
             }
@@ -988,6 +1004,10 @@
         @media (max-width: 480px) {
             .container {
                 padding: 0 10px;
+            }
+            
+            .sticky-search-container {
+                top: 55px;
             }
             
             .whatsapp-float {
@@ -1091,23 +1111,27 @@
         </div>
     </header>
 
+    <!-- Sticky Search Bar -->
+    <div class="sticky-search-container">
+        <div class="container">
+            <div class="search-container">
+                <div class="search-icon">
+                    <i class="fas fa-search"></i>
+                </div>
+                <input type="text" class="search-bar" id="searchInput" placeholder="Search products...">
+                <button class="clear-search" id="clearSearch">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Main Content -->
     <main class="container">
         <!-- Page Title -->
         <div class="page-title">
             <h1>Premium Collections</h1>
             <p>Discover our exclusive range of high-quality products. Each item is carefully selected for excellence in design and craftsmanship.</p>
-        </div>
-
-        <!-- Search Bar -->
-        <div class="search-container">
-            <div class="search-icon">
-                <i class="fas fa-search"></i>
-            </div>
-            <input type="text" class="search-bar" id="searchInput" placeholder="Search products...">
-            <button class="clear-search" id="clearSearch">
-                <i class="fas fa-times"></i>
-            </button>
         </div>
 
         <!-- New Arrivals & Promotions -->
@@ -1503,7 +1527,7 @@
         }
     });
 
-    // Search functionality
+    // Search functionality - applies to ALL products
     searchInput.addEventListener('input', function(e) {
         searchQuery = e.target.value.toLowerCase().trim();
         
@@ -1513,8 +1537,9 @@
             clearSearch.style.display = 'none';
         }
         
-        // Filter products based on search query
+        // Filter BOTH main products and new arrivals
         displayProducts(currentProducts);
+        displayNewArrivals(currentProducts);
     });
 
     // Clear search
@@ -1523,6 +1548,7 @@
         searchQuery = '';
         clearSearch.style.display = 'none';
         displayProducts(currentProducts);
+        displayNewArrivals(currentProducts);
     });
 
     // Toggle filter visibility on mobile
@@ -1641,14 +1667,24 @@
         });
     }
 
-    // Display new arrivals and promotions
+    // Display new arrivals and promotions with search filter
     function displayNewArrivals(products) {
         newArrivalsGrid.innerHTML = '';
         
         let newArrivals = [];
         let promotions = [];
         
-        products.forEach((product) => {
+        // First filter by search query if exists
+        let filteredProducts = products;
+        if (searchQuery) {
+            filteredProducts = products.filter(product => 
+                product.name.toLowerCase().includes(searchQuery) ||
+                product.description?.toLowerCase().includes(searchQuery) ||
+                product.category?.toLowerCase().includes(searchQuery)
+            );
+        }
+        
+        filteredProducts.forEach((product) => {
             // Check if product is new (created in last 30 days) or has promotion
             const isNew = product.createdAt && 
                          (new Date() - new Date(product.createdAt)) < (30 * 24 * 60 * 60 * 1000);
@@ -1668,9 +1704,9 @@
         if (combinedProducts.length === 0) {
             newArrivalsGrid.innerHTML = `
                 <div class="no-products">
-                    <i class="fas fa-gift"></i>
-                    <h3>No new arrivals or promotions</h3>
-                    <p>Check back soon for exciting offers</p>
+                    <i class="fas fa-search"></i>
+                    <h3>${searchQuery ? `No new arrivals match "${searchQuery}"` : 'No new arrivals or promotions'}</h3>
+                    <p>${searchQuery ? 'Try a different search term' : 'Check back soon for exciting offers'}</p>
                 </div>
             `;
             return;
@@ -1893,6 +1929,7 @@
             
             setTimeout(() => {
                 displayProducts(currentProducts);
+                displayNewArrivals(currentProducts);
             }, 300);
         }
     });
