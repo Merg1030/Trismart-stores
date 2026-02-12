@@ -288,7 +288,7 @@
         }
         .product-card { position: relative; }
 
-        /* ——— NEW: TINY THUMBNAIL GALLERY MODAL (very small, very phone) ——— */
+        /* ——— NEW: HORIZONTAL SCROLLABLE THUMBNAIL GALLERY (exactly what you wanted bro!) ——— */
         .micro-thumb-overlay {
             position: fixed;
             bottom: 20px;
@@ -305,20 +305,35 @@
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
             border-radius: 28px;
-            padding: 12px 12px;
+            padding: 12px 8px;
             margin: 0 12px;
             max-width: 94%;
             width: auto;
             display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
             align-items: center;
-            gap: 10px;
+            gap: 6px;
             box-shadow: 0 8px 18px rgba(0,0,0,0.2);
             border: 0.5px solid rgba(255,255,255,0.2);
             pointer-events: auto;
+            overflow-x: auto;
+            overflow-y: hidden;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            white-space: nowrap;
         }
+        .micro-thumb-modal::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .thumb-scroll-wrapper {
+            display: flex;
+            gap: 8px;
+            padding: 2px;
+        }
+        
         .micro-thumb-item {
+            flex: 0 0 auto;
             width: 54px;
             height: 54px;
             border-radius: 10px;
@@ -327,6 +342,7 @@
             border: 2px solid transparent;
             transition: 0.1s;
             box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            cursor: pointer;
         }
         .micro-thumb-item.active {
             border-color: white;
@@ -339,6 +355,7 @@
             display: block;
         }
         .close-micro-thumb {
+            flex: 0 0 auto;
             background: rgba(255,255,255,0.15);
             border: none;
             color: white;
@@ -350,7 +367,7 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            margin-left: 2px;
+            margin-left: 4px;
         }
 
         /* main modal – still minimal */
@@ -411,6 +428,7 @@
             height: 30px;
             border-radius: 30px;
             font-size: 12px;
+            cursor: pointer;
         }
         .slider-dots {
             position: absolute;
@@ -426,6 +444,7 @@
             background: rgba(255,255,255,0.6);
             border: none;
             padding: 0;
+            cursor: pointer;
         }
         .slider-dot.active { background: white; width: 12px; }
         .modal-content { padding: 16px; }
@@ -442,6 +461,7 @@
             position: absolute; top: 12px; right: 12px;
             background: rgba(90,90,94,0.8); color: white; border: none;
             width: 34px; height: 34px; border-radius: 30px; font-size: 22px; z-index: 10001;
+            cursor: pointer;
         }
 
         /* footer tiny */
@@ -462,6 +482,20 @@
         .no-products { grid-column: 1/-1; text-align: center; padding: 30px 10px; color: #666; font-size: 13px; }
         .loader { border: 3px solid #eee; border-top: 3px solid #5a5a5e; width: 30px; height: 30px; animation: spin 0.8s linear infinite; margin: 10px auto; border-radius: 50%; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        /* scroll hint */
+        .scroll-hint {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: rgba(255,255,255,0.5);
+            font-size: 9px;
+            padding-left: 4px;
+            white-space: nowrap;
+        }
+        .scroll-hint i {
+            font-size: 10px;
+        }
     </style>
 </head>
 <body>
@@ -557,10 +591,13 @@
         </div>
     </div>
 
-    <!-- 🆕 EXTRA TINY THUMBNAIL MODAL – what you wanted, bro! -->
+    <!-- 🆕 HORIZONTAL SCROLLABLE THUMBNAIL MODAL – left/right scrolling enabled! -->
     <div class="micro-thumb-overlay" id="microThumbOverlay">
         <div class="micro-thumb-modal" id="microThumbModal">
-            <!-- js will inject micro thumbnails here -->
+            <div class="thumb-scroll-wrapper" id="thumbScrollWrapper">
+                <!-- js will inject micro thumbnails here -->
+            </div>
+            <span class="scroll-hint"><i class="fas fa-arrows-alt-h"></i> scroll</span>
             <button class="close-micro-thumb" id="closeMicroThumb"><i class="fas fa-times"></i></button>
         </div>
     </div>
@@ -620,9 +657,10 @@
         const prevBtn = document.getElementById('prevBtn');
         const nextBtn = document.getElementById('nextBtn');
         
-        // micro thumb modal
+        // micro thumb modal - UPDATED for horizontal scroll
         const microThumbOverlay = document.getElementById('microThumbOverlay');
         const microThumbModal = document.getElementById('microThumbModal');
+        const thumbScrollWrapper = document.getElementById('thumbScrollWrapper');
         const closeMicroThumb = document.getElementById('closeMicroThumb');
 
         // state
@@ -688,7 +726,7 @@
             }
         });
 
-        // product card click: open modal AND tiny thumb gallery (your extra request!)
+        // product card click: open modal AND horizontal scrollable thumbnail gallery!
         function openProductModal(product) {
             currentProduct = product;
             currentProductImages = product.images && product.images.length ? [...product.images] : [];
@@ -739,9 +777,8 @@
             productModal.classList.add('active');
             document.body.style.overflow = 'hidden';
 
-            // ---------- 🆕 THE EXTRA THING: MICRO THUMBNAIL MODAL ----------
-            // show all product images as tiny thumbnails at the bottom
-            microThumbModal.innerHTML = ''; 
+            // ---------- 🆕 HORIZONTAL SCROLLABLE THUMBNAILS! ----------
+            thumbScrollWrapper.innerHTML = ''; 
             currentProductImages.forEach((imgSrc, idx) => {
                 const thumbWrap = document.createElement('div');
                 thumbWrap.className = `micro-thumb-item ${idx === currentSliderIndex ? 'active' : ''}`;
@@ -756,17 +793,26 @@
                     // update active state
                     document.querySelectorAll('.micro-thumb-item').forEach(el => el.classList.remove('active'));
                     thumbWrap.classList.add('active');
+                    
+                    // auto-scroll to make active thumbnail visible
+                    const wrapper = microThumbModal.querySelector('.thumb-scroll-wrapper');
+                    const thumbWidth = 62; // approximate width + gap
+                    const scrollPosition = idx * thumbWidth;
+                    wrapper.scrollTo({
+                        left: scrollPosition,
+                        behavior: 'smooth'
+                    });
                 });
-                microThumbModal.appendChild(thumbWrap);
+                thumbScrollWrapper.appendChild(thumbWrap);
             });
-            // add close button again (preserve)
-            const closeBtn = document.createElement('button');
-            closeBtn.className = 'close-micro-thumb';
-            closeBtn.innerHTML = '<i class="fas fa-times"></i>';
-            closeBtn.addEventListener('click', () => { microThumbOverlay.style.display = 'none'; });
-            microThumbModal.appendChild(closeBtn);
             
             microThumbOverlay.style.display = 'flex';
+            
+            // Auto-scroll to show first thumbnail
+            setTimeout(() => {
+                const wrapper = microThumbModal.querySelector('.thumb-scroll-wrapper');
+                if (wrapper) wrapper.scrollLeft = 0;
+            }, 50);
         }
 
         function goToSlide(index) {
@@ -776,8 +822,8 @@
                 // sync active dot
                 document.querySelectorAll('.slider-dot').forEach((dot, i) => dot.classList.toggle('active', i === index));
                 // sync micro thumb active
-                if (microThumbModal) {
-                    const thumbs = microThumbModal.querySelectorAll('.micro-thumb-item');
+                if (thumbScrollWrapper) {
+                    const thumbs = thumbScrollWrapper.querySelectorAll('.micro-thumb-item');
                     thumbs.forEach((t, i) => t.classList.toggle('active', i === index));
                 }
             }
@@ -790,10 +836,27 @@
         prevBtn.addEventListener('click', () => {
             currentSliderIndex = (currentSliderIndex - 1 + currentProductImages.length) % currentProductImages.length;
             goToSlide(currentSliderIndex);
+            
+            // auto-scroll thumbnails
+            const wrapper = microThumbModal.querySelector('.thumb-scroll-wrapper');
+            const thumbWidth = 62;
+            wrapper.scrollTo({
+                left: currentSliderIndex * thumbWidth,
+                behavior: 'smooth'
+            });
         });
+        
         nextBtn.addEventListener('click', () => {
             currentSliderIndex = (currentSliderIndex + 1) % currentProductImages.length;
             goToSlide(currentSliderIndex);
+            
+            // auto-scroll thumbnails
+            const wrapper = microThumbModal.querySelector('.thumb-scroll-wrapper');
+            const thumbWidth = 62;
+            wrapper.scrollTo({
+                left: currentSliderIndex * thumbWidth,
+                behavior: 'smooth'
+            });
         });
 
         closeModal.addEventListener('click', () => {
@@ -801,7 +864,12 @@
             document.body.style.overflow = 'auto';
             microThumbOverlay.style.display = 'none';
         });
-        productModal.addEventListener('click', (e) => { if (e.target === productModal) { productModal.classList.remove('active'); microThumbOverlay.style.display = 'none'; }});
+        productModal.addEventListener('click', (e) => { 
+            if (e.target === productModal) { 
+                productModal.classList.remove('active'); 
+                microThumbOverlay.style.display = 'none';
+            }
+        });
 
         // display main products (super small layout)
         function displayProducts(products) {
