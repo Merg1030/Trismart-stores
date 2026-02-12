@@ -153,6 +153,7 @@
                 max-height: 0;
                 overflow: hidden;
                 opacity: 0;
+                transition: all 0.2s;
             }
             .tabs.active {
                 max-height: 200px;
@@ -198,18 +199,19 @@
         }
         .promo-btn i { font-size: 11px; }
 
-        /* ——— SUPER SMALL PRODUCT GRID ——— */
+        /* ——— SUPER SMALL PRODUCT GRID ——— FIXED: now 3 perfect columns! */
         .products-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 6px;
+            gap: 8px;
             margin: 8px 0 16px;
+            width: 100%;
         }
         @media (max-width: 380px) {
             .products-grid { grid-template-columns: repeat(2, 1fr); }
         }
 
-        /* product card – extremely compact */
+        /* product card – extremely compact - FIXED: full width! */
         .product-card {
             background-color: white;
             border-radius: 10px;
@@ -220,12 +222,15 @@
             display: flex;
             flex-direction: column;
             transition: 0.1s;
+            width: 100%;
+            position: relative;
         }
         .product-card:active {
             background: #f9f9fb;
+            transform: scale(0.98);
         }
 
-        /* tiny image */
+        /* tiny image - fixed aspect ratio */
         .product-img {
             width: 100%;
             aspect-ratio: 1 / 1;
@@ -259,12 +264,16 @@
             -webkit-box-orient: vertical;
             overflow: hidden;
             color: #1c1c1e;
+            min-height: 26px;
         }
         .product-price {
             font-size: 11px;
             font-weight: 700;
             color: #1c1c1e;
             margin-top: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         .old-price {
             text-decoration: line-through;
@@ -286,9 +295,8 @@
             z-index: 2;
             box-shadow: 0 1px 4px rgba(0,0,0,0.05);
         }
-        .product-card { position: relative; }
 
-        /* ——— NEW: HORIZONTAL SCROLLABLE THUMBNAIL GALLERY (exactly what you wanted bro!) ——— */
+        /* ——— HORIZONTAL SCROLLABLE THUMBNAIL GALLERY - FIXED: actually scrolls now! ——— */
         .micro-thumb-overlay {
             position: fixed;
             bottom: 20px;
@@ -311,14 +319,14 @@
             width: auto;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
             box-shadow: 0 8px 18px rgba(0,0,0,0.2);
             border: 0.5px solid rgba(255,255,255,0.2);
             pointer-events: auto;
             overflow-x: auto;
             overflow-y: hidden;
-            scroll-behavior: smooth;
             -webkit-overflow-scrolling: touch;
+            scroll-behavior: smooth;
             scrollbar-width: none;
             white-space: nowrap;
         }
@@ -330,6 +338,7 @@
             display: flex;
             gap: 8px;
             padding: 2px;
+            flex: 1;
         }
         
         .micro-thumb-item {
@@ -369,6 +378,20 @@
             cursor: pointer;
             margin-left: 4px;
         }
+        
+        /* scroll hint */
+        .scroll-hint {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: rgba(255,255,255,0.5);
+            font-size: 9px;
+            padding-left: 4px;
+            white-space: nowrap;
+        }
+        .scroll-hint i {
+            font-size: 10px;
+        }
 
         /* main modal – still minimal */
         .modal-overlay {
@@ -401,7 +424,7 @@
         .slider-images {
             display: flex;
             height: 100%;
-            transition: transform 0.2s;
+            transition: transform 0.2s ease;
         }
         .slider-image {
             min-width: 100%;
@@ -429,6 +452,9 @@
             border-radius: 30px;
             font-size: 12px;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .slider-dots {
             position: absolute;
@@ -445,23 +471,28 @@
             border: none;
             padding: 0;
             cursor: pointer;
+            transition: 0.2s;
         }
         .slider-dot.active { background: white; width: 12px; }
         .modal-content { padding: 16px; }
         .modal-category { font-size: 10px; color: #6c6c70; letter-spacing: 0.5px; }
         .modal-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
-        .modal-description { font-size: 12px; color: #3a3a3c; margin-bottom: 12px; }
+        .modal-description { font-size: 12px; color: #3a3a3c; margin-bottom: 12px; line-height: 1.4; }
         .modal-price { font-size: 18px; font-weight: 700; }
         .old-price { font-size: 13px; }
         .whatsapp-btn {
             background: #25D366; color: white; padding: 12px; border-radius: 12px;
             text-decoration: none; font-size: 14px; display: flex; gap: 6px; justify-content: center;
+            margin-top: 12px;
         }
         .close-modal {
             position: absolute; top: 12px; right: 12px;
             background: rgba(90,90,94,0.8); color: white; border: none;
             width: 34px; height: 34px; border-radius: 30px; font-size: 22px; z-index: 10001;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         /* footer tiny */
@@ -478,24 +509,27 @@
             width: 48px; height: 48px; border-radius: 48px; display: flex;
             align-items: center; justify-content: center; color: white; font-size: 22px;
             box-shadow: 0 3px 10px rgba(0,0,0,0.1); z-index: 999;
+            text-decoration: none;
         }
-        .no-products { grid-column: 1/-1; text-align: center; padding: 30px 10px; color: #666; font-size: 13px; }
-        .loader { border: 3px solid #eee; border-top: 3px solid #5a5a5e; width: 30px; height: 30px; animation: spin 0.8s linear infinite; margin: 10px auto; border-radius: 50%; }
+        .no-products { 
+            grid-column: 1/-1; 
+            text-align: center; 
+            padding: 40px 10px; 
+            color: #666; 
+            font-size: 13px;
+            background: white;
+            border-radius: 10px;
+        }
+        .loader { 
+            border: 3px solid #eee; 
+            border-top: 3px solid #5a5a5e; 
+            width: 30px; 
+            height: 30px; 
+            animation: spin 0.8s linear infinite; 
+            margin: 10px auto; 
+            border-radius: 50%; 
+        }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        /* scroll hint */
-        .scroll-hint {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            color: rgba(255,255,255,0.5);
-            font-size: 9px;
-            padding-left: 4px;
-            white-space: nowrap;
-        }
-        .scroll-hint i {
-            font-size: 10px;
-        }
     </style>
 </head>
 <body>
@@ -545,16 +579,19 @@
             </button>
         </div>
 
-        <!-- PRODUCT GRID (super small pics) -->
+        <!-- PRODUCT GRID - FIXED: now displays 3 perfect columns! -->
         <div id="products">
             <div class="products-grid" id="productsGrid">
-                <div class="loading"><div class="loader"></div><p style="font-size:11px;">loading...</p></div>
+                <div class="no-products">
+                    <div class="loader"></div>
+                    <p style="font-size:11px; margin-top:8px;">loading products...</p>
+                </div>
             </div>
         </div>
 
         <!-- new arrivals section (tiny grid, same compact style) -->
-        <div style="margin-top: 8px;">
-            <div style="display: flex; align-items: center; gap: 5px; margin-bottom: 6px; color: #3a3a3c;">
+        <div style="margin-top: 16px;">
+            <div style="display: flex; align-items: center; gap: 5px; margin-bottom: 8px; color: #3a3a3c;">
                 <i class="fas fa-bolt" style="font-size: 12px;"></i>
                 <span style="font-size: 12px; font-weight: 600;">new & offers</span>
             </div>
@@ -564,7 +601,7 @@
 
     <!-- product detail modal (minimal) -->
     <div class="modal-overlay" id="productModal">
-        <button class="close-modal" id="closeModal">&times;</button>
+        <button class="close-modal" id="closeModal">×</button>
         <div class="product-modal">
             <div class="image-slider" id="imageSlider">
                 <div class="slider-images" id="sliderImages"></div>
@@ -591,7 +628,7 @@
         </div>
     </div>
 
-    <!-- 🆕 HORIZONTAL SCROLLABLE THUMBNAIL MODAL – left/right scrolling enabled! -->
+    <!-- 🆕 HORIZONTAL SCROLLABLE THUMBNAIL MODAL – FIXED: now scrolls left/right perfectly! -->
     <div class="micro-thumb-overlay" id="microThumbOverlay">
         <div class="micro-thumb-modal" id="microThumbModal">
             <div class="thumb-scroll-wrapper" id="thumbScrollWrapper">
@@ -657,7 +694,7 @@
         const prevBtn = document.getElementById('prevBtn');
         const nextBtn = document.getElementById('nextBtn');
         
-        // micro thumb modal - UPDATED for horizontal scroll
+        // micro thumb modal
         const microThumbOverlay = document.getElementById('microThumbOverlay');
         const microThumbModal = document.getElementById('microThumbModal');
         const thumbScrollWrapper = document.getElementById('thumbScrollWrapper');
@@ -674,9 +711,11 @@
         let currentProduct = null;
 
         // close micro thumb
-        closeMicroThumb.addEventListener('click', () => {
+        closeMicroThumb.addEventListener('click', (e) => {
+            e.stopPropagation();
             microThumbOverlay.style.display = 'none';
         });
+        
         microThumbOverlay.addEventListener('click', (e) => {
             if (e.target === microThumbOverlay) microThumbOverlay.style.display = 'none';
         });
@@ -688,12 +727,14 @@
             displayProducts(currentProducts);
             displayNewArrivals(currentProducts);
         });
+        
         clearSearch.addEventListener('click', () => {
             searchInput.value = '';
             searchQuery = '';
             clearSearch.style.display = 'none';
             displayProducts(currentProducts);
             displayNewArrivals(currentProducts);
+            searchInput.focus();
         });
 
         // filter toggle mobile
@@ -737,12 +778,14 @@
             sliderImages.innerHTML = '';
             sliderDots.innerHTML = '';
             currentSliderIndex = 0;
+            
             currentProductImages.forEach((src, idx) => {
                 const img = document.createElement('img');
                 img.src = src;
                 img.className = 'slider-image';
                 img.onerror = () => img.src = 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200';
                 sliderImages.appendChild(img);
+                
                 const dot = document.createElement('button');
                 dot.className = `slider-dot ${idx === 0 ? 'active' : ''}`;
                 dot.addEventListener('click', () => goToSlide(idx));
@@ -750,26 +793,28 @@
             });
             updateSlider();
 
-            modalCategory.textContent = product.category?.toUpperCase() || 'ITEM';
+            modalCategory.textContent = product.category?.replace('-', ' ').toUpperCase() || 'ITEM';
             modalTitle.textContent = product.name || '';
-            modalDescription.textContent = product.description || ' ';
+            modalDescription.textContent = product.description || 'No description available';
+            
             if (product.promotion && product.oldPrice) {
                 modalOldPrice.style.display = 'inline';
-                modalOldPrice.textContent = `ZMW ${product.oldPrice.toLocaleString()}`;
-                modalPrice.textContent = `ZMW ${product.price.toLocaleString()}`;
+                modalOldPrice.textContent = `ZMW ${Number(product.oldPrice).toLocaleString()}`;
+                modalPrice.textContent = `ZMW ${Number(product.price).toLocaleString()}`;
             } else {
                 modalOldPrice.style.display = 'none';
-                modalPrice.textContent = `ZMW ${product.price?.toLocaleString() || '0'}`;
+                modalPrice.textContent = `ZMW ${Number(product.price || 0).toLocaleString()}`;
             }
+            
             if (product.promotion) {
                 modalPromotion.style.display = 'block';
                 promotionText.textContent = product.promotion;
             } else modalPromotion.style.display = 'none';
 
             const stock = product.stock ?? 0;
-            if (stock > 5) modalStock.textContent = `in stock (${stock})`;
-            else if (stock > 0) modalStock.textContent = `low (${stock})`;
-            else modalStock.textContent = 'out of stock';
+            if (stock > 5) modalStock.textContent = `✅ in stock (${stock})`;
+            else if (stock > 0) modalStock.textContent = `⚠️ low stock (${stock})`;
+            else modalStock.textContent = '❌ out of stock';
 
             const msg = `Hi! I'm interested in: ${product.name} – ZMW ${product.price}`;
             whatsappInquiry.href = `https://wa.me/260775390905?text=${encodeURIComponent(msg)}`;
@@ -777,41 +822,44 @@
             productModal.classList.add('active');
             document.body.style.overflow = 'hidden';
 
-            // ---------- 🆕 HORIZONTAL SCROLLABLE THUMBNAILS! ----------
+            // ---------- HORIZONTAL SCROLLABLE THUMBNAILS - FIXED: now actually scrolls! ----------
             thumbScrollWrapper.innerHTML = ''; 
+            
             currentProductImages.forEach((imgSrc, idx) => {
                 const thumbWrap = document.createElement('div');
                 thumbWrap.className = `micro-thumb-item ${idx === currentSliderIndex ? 'active' : ''}`;
+                
                 const thumbImg = document.createElement('img');
                 thumbImg.src = imgSrc;
                 thumbImg.className = 'micro-thumb-img';
                 thumbImg.onerror = () => thumbImg.src = 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=100';
+                
                 thumbWrap.appendChild(thumbImg);
                 thumbWrap.addEventListener('click', (e) => {
                     e.stopPropagation();
                     goToSlide(idx);
+                    
                     // update active state
                     document.querySelectorAll('.micro-thumb-item').forEach(el => el.classList.remove('active'));
                     thumbWrap.classList.add('active');
                     
                     // auto-scroll to make active thumbnail visible
-                    const wrapper = microThumbModal.querySelector('.thumb-scroll-wrapper');
-                    const thumbWidth = 62; // approximate width + gap
-                    const scrollPosition = idx * thumbWidth;
-                    wrapper.scrollTo({
-                        left: scrollPosition,
+                    const thumbWidth = 62; // width + gap
+                    thumbScrollWrapper.scrollTo({
+                        left: idx * thumbWidth,
                         behavior: 'smooth'
                     });
                 });
+                
                 thumbScrollWrapper.appendChild(thumbWrap);
             });
             
+            // Show the overlay
             microThumbOverlay.style.display = 'flex';
             
-            // Auto-scroll to show first thumbnail
+            // Reset scroll position to start
             setTimeout(() => {
-                const wrapper = microThumbModal.querySelector('.thumb-scroll-wrapper');
-                if (wrapper) wrapper.scrollLeft = 0;
+                thumbScrollWrapper.scrollLeft = 0;
             }, 50);
         }
 
@@ -819,12 +867,18 @@
             if (index >= 0 && index < currentProductImages.length) {
                 currentSliderIndex = index;
                 updateSlider();
+                
                 // sync active dot
-                document.querySelectorAll('.slider-dot').forEach((dot, i) => dot.classList.toggle('active', i === index));
+                document.querySelectorAll('.slider-dot').forEach((dot, i) => {
+                    dot.classList.toggle('active', i === index);
+                });
+                
                 // sync micro thumb active
                 if (thumbScrollWrapper) {
                     const thumbs = thumbScrollWrapper.querySelectorAll('.micro-thumb-item');
-                    thumbs.forEach((t, i) => t.classList.toggle('active', i === index));
+                    thumbs.forEach((t, i) => {
+                        t.classList.toggle('active', i === index);
+                    });
                 }
             }
         }
@@ -838,9 +892,8 @@
             goToSlide(currentSliderIndex);
             
             // auto-scroll thumbnails
-            const wrapper = microThumbModal.querySelector('.thumb-scroll-wrapper');
             const thumbWidth = 62;
-            wrapper.scrollTo({
+            thumbScrollWrapper.scrollTo({
                 left: currentSliderIndex * thumbWidth,
                 behavior: 'smooth'
             });
@@ -851,9 +904,8 @@
             goToSlide(currentSliderIndex);
             
             // auto-scroll thumbnails
-            const wrapper = microThumbModal.querySelector('.thumb-scroll-wrapper');
             const thumbWidth = 62;
-            wrapper.scrollTo({
+            thumbScrollWrapper.scrollTo({
                 left: currentSliderIndex * thumbWidth,
                 behavior: 'smooth'
             });
@@ -864,69 +916,91 @@
             document.body.style.overflow = 'auto';
             microThumbOverlay.style.display = 'none';
         });
+        
         productModal.addEventListener('click', (e) => { 
             if (e.target === productModal) { 
                 productModal.classList.remove('active'); 
                 microThumbOverlay.style.display = 'none';
+                document.body.style.overflow = 'auto';
             }
         });
 
-        // display main products (super small layout)
+        // display main products - FIXED: now 3 perfect columns, no weird spacing!
         function displayProducts(products) {
             productsGrid.innerHTML = '';
-            let visible = 0;
-            products.forEach(p => {
-                if (currentCategory !== 'all' && p.category !== currentCategory) return;
-                if (showPromotionsOnly && !p.promotion) return;
-                if (searchQuery && !p.name?.toLowerCase().includes(searchQuery) && !p.description?.toLowerCase().includes(searchQuery)) return;
-                visible++;
+            
+            const filtered = products.filter(p => {
+                if (currentCategory !== 'all' && p.category !== currentCategory) return false;
+                if (showPromotionsOnly && !p.promotion) return false;
+                if (searchQuery) {
+                    const nameMatch = p.name?.toLowerCase().includes(searchQuery);
+                    const descMatch = p.description?.toLowerCase().includes(searchQuery);
+                    const catMatch = p.category?.toLowerCase().includes(searchQuery);
+                    if (!nameMatch && !descMatch && !catMatch) return false;
+                }
+                return true;
+            });
+            
+            if (filtered.length === 0) {
+                productsGrid.innerHTML = '<div class="no-products"><i class="fas fa-box-open" style="font-size: 30px; margin-bottom: 10px;"></i><p>no products found</p></div>';
+                return;
+            }
+            
+            filtered.forEach(p => {
                 const card = document.createElement('div');
                 card.className = 'product-card';
+                
                 const imgSrc = (p.images && p.images[0]) || p.image || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200';
-                let badge = p.promotion ? `<div class="promotion-badge">${p.promotion.slice(0,8)}</div>` : '';
+                let badge = p.promotion ? `<div class="promotion-badge">${p.promotion.slice(0,10)}</div>` : '';
+                
                 card.innerHTML = `
                     ${badge}
                     <img src="${imgSrc}" class="product-img" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200'">
                     <div class="product-info">
-                        <div class="product-category">${p.category?.slice(0,12) || 'item'}</div>
-                        <div class="product-title">${p.name?.slice(0,25) || ''}</div>
+                        <div class="product-category">${p.category?.replace('-', ' ').slice(0,15) || 'item'}</div>
+                        <div class="product-title">${p.name?.slice(0,30) || ''}</div>
                         <div class="product-price">
                             ${p.promotion && p.oldPrice ? `<span class="old-price">ZMW ${p.oldPrice}</span>` : ''}
                             ZMW ${p.price ?? 0}
                         </div>
                     </div>
                 `;
+                
                 card.addEventListener('click', () => openProductModal(p));
                 productsGrid.appendChild(card);
             });
-            if (!visible) productsGrid.innerHTML = '<div class="no-products"><i class="fas fa-box-open"></i><p style="margin-top:6px;">no items</p></div>';
         }
 
         function displayNewArrivals(products) {
             newArrivalsGrid.innerHTML = '';
-            let filtered = products.filter(p => {
-                if (searchQuery && !p.name?.toLowerCase().includes(searchQuery)) return false;
-                return true;
-            });
-            let specials = filtered.filter(p => p.promotion || (p.createdAt && (new Date() - new Date(p.createdAt) < 30*24*60*60*1000)));
+            
+            let specials = products.filter(p => p.promotion || (p.createdAt && (new Date() - new Date(p.createdAt) < 30*24*60*60*1000)));
+            
+            if (specials.length === 0) {
+                newArrivalsGrid.innerHTML = '<div class="no-products" style="padding:20px;">✨ no new arrivals</div>';
+                return;
+            }
+            
             specials.slice(0, 6).forEach(p => {
                 const card = document.createElement('div');
                 card.className = 'product-card';
+                
                 const imgSrc = (p.images && p.images[0]) || p.image || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200';
-                let badge = p.promotion ? `<div class="promotion-badge">🔥</div>` : (p.createdAt ? '<div class="promotion-badge">new</div>' : '');
+                let badge = p.promotion ? '<div class="promotion-badge">🔥</div>' : '<div class="promotion-badge">new</div>';
+                
                 card.innerHTML = `
                     ${badge}
                     <img src="${imgSrc}" class="product-img" onerror="this.src='https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200'">
                     <div class="product-info">
-                        <div class="product-category">${p.category?.slice(0,10) || ''}</div>
-                        <div class="product-title">${p.name?.slice(0,20) || ''}</div>
+                        <div class="product-category">${p.category?.replace('-', ' ').slice(0,15) || ''}</div>
+                        <div class="product-title">${p.name?.slice(0,30) || ''}</div>
                         <div class="product-price">ZMW ${p.price ?? 0}</div>
                     </div>
                 `;
+                
                 card.addEventListener('click', () => openProductModal(p));
                 newArrivalsGrid.appendChild(card);
             });
-            if (!specials.length) newArrivalsGrid.innerHTML = '<div class="no-products" style="padding:20px;">✨ nothing yet</div>';
         }
 
         // load firestore data
@@ -937,11 +1011,25 @@
                 data.id = doc.id;
                 currentProducts.push(data);
             });
-            currentProducts.sort((a,b) => (b.createdAt || '') > (a.createdAt || '') ? 1 : -1);
+            
+            // sort by newest first
+            currentProducts.sort((a,b) => {
+                if (!a.createdAt) return 1;
+                if (!b.createdAt) return -1;
+                return new Date(b.createdAt) - new Date(a.createdAt);
+            });
+            
             displayProducts(currentProducts);
             displayNewArrivals(currentProducts);
         }, (err) => {
-            productsGrid.innerHTML = `<div class="no-products">⚠️ error loading</div>`;
+            console.error("Firestore error:", err);
+            productsGrid.innerHTML = `<div class="no-products">⚠️ error loading products</div>`;
+        });
+        
+        // handle window resize for responsive grid
+        window.addEventListener('resize', () => {
+            displayProducts(currentProducts);
+            displayNewArrivals(currentProducts);
         });
     </script>
 </body>
