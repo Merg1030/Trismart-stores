@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>trismart · tiny</title>
+    <title>trismart · sticky + dots</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* ultra compact – everything very small my guy */
@@ -70,7 +70,7 @@
         }
         .site-title span { color: #aaa; font-weight: 500; }
 
-        /* ——— TINY SEARCH BAR ——— */
+        /* ——— STICKY SEARCH + CATEGORY DOTS ——— */
         .sticky-search-container {
             background: var(--primary);
             padding: 6px 0 4px;
@@ -78,18 +78,28 @@
             position: sticky;
             top: 0;
             z-index: 100;
+            /* guarantee it stays above content */
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
         }
-        .search-container {
-            max-width: 280px;
+        /* flex row that holds both search and three‑dots */
+        .sticky-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            max-width: 360px;
             margin: 0 auto;
+            width: 100%;
+        }
+        .search-wrapper {
+            flex: 1;
             position: relative;
         }
         .search-bar {
             width: 100%;
-            padding: 6px 12px 6px 28px;
+            padding: 8px 28px 8px 32px;
             border: 1px solid #d1d1d6;
             border-radius: 40px;
-            font-size: 13px;
+            font-size: 14px;
             background: white;
             outline: none;
         }
@@ -98,88 +108,75 @@
         }
         .search-icon {
             position: absolute;
-            left: 9px;
+            left: 11px;
             top: 50%;
             transform: translateY(-50%);
             color: #8e8e93;
-            font-size: 12px;
+            font-size: 13px;
         }
         .clear-search {
             position: absolute;
-            right: 8px;
+            right: 10px;
             top: 50%;
             transform: translateY(-50%);
             background: transparent;
             border: none;
             color: #8e8e93;
-            font-size: 12px;
+            font-size: 13px;
             display: none;
             cursor: pointer;
         }
-
-        /* categories – micro */
-        .categories-section {
-            margin: 8px 0 6px;
+        /* category dots — three dots button (sticks next to search) */
+        .category-dots-btn {
             background: white;
-            padding: 10px 8px;
-            border-radius: 14px;
+            border: 1px solid #d1d1d6;
+            width: 42px;
+            height: 42px;
+            border-radius: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: #1c1c1e;
+            cursor: pointer;
             box-shadow: var(--tiny-shadow);
             flex-shrink: 0;
+            transition: 0.1s;
         }
-        .filter-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 6px;
-        }
-        .filter-title {
-            font-size: 11px;
-            font-weight: 600;
-            color: #3a3a3c;
-            letter-spacing: 0.3px;
-            text-transform: uppercase;
-        }
-        .filter-toggle {
-            display: none;
+        .category-dots-btn:active {
             background: #e5e5ea;
-            border: none;
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            font-size: 13px;
-            color: #000;
         }
-        @media (max-width: 768px) { .filter-toggle { display: flex; align-items: center; justify-content: center; } }
-
+        /* dropdown panel (hidden by default) */
+        .category-dropdown-panel {
+            background: white;
+            margin-top: 6px;
+            border-radius: 24px;
+            padding: 14px 12px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+            display: none;
+            width: 100%;
+            max-width: 300px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .category-dropdown-panel.show {
+            display: block;
+        }
         .tabs {
             display: flex;
             flex-wrap: wrap;
-            gap: 5px;
-        }
-        @media (max-width: 768px) {
-            .tabs {
-                flex-direction: column;
-                max-height: 0;
-                overflow: hidden;
-                opacity: 0;
-                transition: all 0.2s;
-            }
-            .tabs.active {
-                max-height: 200px;
-                opacity: 1;
-                padding: 6px 0 0;
-            }
+            gap: 8px;
         }
         .tab-btn {
-            padding: 4px 12px;
+            padding: 6px 16px;
             background: white;
             border: 1px solid #d1d1d6;
-            border-radius: 20px;
-            font-size: 11px;
+            border-radius: 30px;
+            font-size: 13px;
             font-weight: 500;
             color: #3a3a3c;
-            white-space: nowrap;
             cursor: pointer;
+            white-space: nowrap;
         }
         .tab-btn.active, .tab-btn:hover {
             background: #5a5a5e;
@@ -187,7 +184,7 @@
             border-color: #5a5a5e;
         }
 
-        /* promo filter – tiny */
+        /* promotion filter (tiny) */
         .promotion-filter {
             margin: 8px 0;
             text-align: center;
@@ -207,7 +204,6 @@
             box-shadow: 0 2px 6px rgba(0,0,0,0.02);
             cursor: pointer;
         }
-        .promo-btn i { font-size: 11px; }
 
         /* MAIN SCROLLABLE CONTENT AREA */
         .scrollable-content {
@@ -215,7 +211,7 @@
             padding-bottom: 20px;
         }
 
-        /* Section headers - clean without emojis */
+        /* Section headers */
         .section-header {
             display: flex;
             align-items: center;
@@ -243,12 +239,10 @@
             box-shadow: var(--tiny-shadow);
         }
 
-        /* Hot Sales Section - FIRST 4 PRODUCTS (horizontal scroll) */
+        /* Hot Sales (horizontal scroll) */
         .hot-sales-section {
             margin: 0 0 8px 0;
-            width: 100%;
         }
-        
         .horizontal-scroll {
             display: flex;
             overflow-x: auto;
@@ -259,22 +253,17 @@
             scroll-snap-type: x mandatory;
             scrollbar-width: none;
         }
-        .horizontal-scroll::-webkit-scrollbar {
-            display: none;
-        }
-        
+        .horizontal-scroll::-webkit-scrollbar { display: none; }
         .horizontal-scroll .product-card {
             flex: 0 0 auto;
             width: 160px;
             scroll-snap-align: start;
         }
 
-        /* Promotions Section - NEXT 4 PRODUCTS (vertical scroll) */
+        /* Promotions (vertical scroll) */
         .promotions-section {
             margin: 0 0 8px 0;
-            width: 100%;
         }
-        
         .vertical-scroll {
             display: flex;
             flex-direction: column;
@@ -288,10 +277,7 @@
             background: rgba(255,255,255,0.5);
             border-radius: 12px;
         }
-        .vertical-scroll::-webkit-scrollbar {
-            display: none;
-        }
-        
+        .vertical-scroll::-webkit-scrollbar { display: none; }
         .vertical-scroll .product-card {
             width: 100%;
             flex-direction: row;
@@ -299,41 +285,31 @@
             gap: 12px;
             padding: 8px;
         }
-        
         .vertical-scroll .product-img {
             width: 70px;
             height: 70px;
             flex-shrink: 0;
         }
-        
         .vertical-scroll .product-info {
             flex: 1;
             padding: 0;
         }
-        
-        .vertical-scroll .product-title {
-            font-size: 13px;
-            min-height: auto;
-            -webkit-line-clamp: 2;
-        }
 
-        /* Regular grid for remaining products */
-        .more-products-section {
+        /* regular grid */
+        .more-products-section, .new-arrivals-section {
             margin: 16px 0 20px;
         }
-        
         .products-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 8px;
             margin: 8px 0 16px;
-            width: 100%;
         }
         @media (max-width: 380px) {
             .products-grid { grid-template-columns: repeat(2, 1fr); }
         }
 
-        /* product card – extremely compact */
+        /* product card – fixed image blinking */
         .product-card {
             background-color: white;
             border-radius: 10px;
@@ -346,13 +322,13 @@
             transition: 0.1s;
             width: 100%;
             position: relative;
+            will-change: transform;
         }
         .product-card:active {
             background: #f9f9fb;
             transform: scale(0.98);
         }
-
-        /* FIX: Image loading animation (skeleton shimmer) - prevents blinking */
+        /* CRITICAL FIX: image anti‑blink */
         .product-img {
             width: 100%;
             aspect-ratio: 1 / 1;
@@ -360,25 +336,21 @@
             display: block;
             background: #fafafc;
             border-bottom: 1px solid #efefef;
-            will-change: auto;
-            transition: opacity 0.3s ease, filter 0.3s ease;
+            opacity: 1;
+            transition: opacity 0.2s ease;
+            will-change: opacity;
+            /* subtle placeholder while loading */
         }
-
-        /* Show skeleton loader while image is loading */
         .product-img:not(.loaded) {
-            opacity: 0.7;
             background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
             background-size: 200% 100%;
             animation: shimmer 1.5s infinite;
         }
-
-        /* Smooth transition when image loads */
         .product-img.loaded {
             opacity: 1;
             animation: none;
             background: none;
         }
-
         @keyframes shimmer {
             0% { background-position: 200% 0; }
             100% { background-position: -200% 0; }
@@ -440,7 +412,7 @@
             box-shadow: 0 1px 4px rgba(0,0,0,0.05);
         }
 
-        /* ——— HORIZONTAL SCROLLABLE THUMBNAIL GALLERY ——— */
+        /* micro thumb overlay (unchanged) */
         .micro-thumb-overlay {
             position: fixed;
             bottom: 20px;
@@ -455,12 +427,10 @@
         .micro-thumb-modal {
             background: rgba(20,20,22,0.85);
             backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
             border-radius: 28px;
             padding: 12px 8px;
             margin: 0 12px;
             max-width: 94%;
-            width: auto;
             display: flex;
             align-items: center;
             gap: 8px;
@@ -468,23 +438,15 @@
             border: 0.5px solid rgba(255,255,255,0.2);
             pointer-events: auto;
             overflow-x: auto;
-            overflow-y: hidden;
-            -webkit-overflow-scrolling: touch;
-            scroll-behavior: smooth;
             scrollbar-width: none;
-            white-space: nowrap;
         }
-        .micro-thumb-modal::-webkit-scrollbar {
-            display: none;
-        }
-        
+        .micro-thumb-modal::-webkit-scrollbar { display: none; }
         .thumb-scroll-wrapper {
             display: flex;
             gap: 8px;
             padding: 2px;
             flex: 1;
         }
-        
         .micro-thumb-item {
             flex: 0 0 auto;
             width: 54px;
@@ -493,20 +455,10 @@
             overflow: hidden;
             background: #1c1c1e;
             border: 2px solid transparent;
-            transition: 0.1s;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
             cursor: pointer;
         }
-        .micro-thumb-item.active {
-            border-color: white;
-            transform: scale(0.98);
-        }
-        .micro-thumb-img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-        }
+        .micro-thumb-item.active { border-color: white; }
+        .micro-thumb-img { width: 100%; height: 100%; object-fit: cover; }
         .close-micro-thumb {
             flex: 0 0 auto;
             background: rgba(255,255,255,0.15);
@@ -516,14 +468,11 @@
             height: 30px;
             border-radius: 20px;
             font-size: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             cursor: pointer;
             margin-left: 4px;
         }
 
-        /* main modal – still minimal */
+        /* modal unchanged */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -607,9 +556,8 @@
         .modal-content { padding: 16px; }
         .modal-category { font-size: 10px; color: #6c6c70; letter-spacing: 0.5px; }
         .modal-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
-        .modal-description { font-size: 12px; color: #3a3a3c; margin-bottom: 12px; line-height: 1.4; }
+        .modal-description { font-size: 12px; color: #3a3a3c; margin-bottom: 12px; }
         .modal-price { font-size: 18px; font-weight: 700; }
-        .old-price { font-size: 13px; }
         .whatsapp-btn {
             background: #25D366; color: white; padding: 12px; border-radius: 12px;
             text-decoration: none; font-size: 14px; display: flex; gap: 6px; justify-content: center;
@@ -625,7 +573,6 @@
             justify-content: center;
         }
 
-        /* footer tiny */
         footer {
             background: #000;
             color: #ccc;
@@ -633,7 +580,6 @@
             flex-shrink: 0;
             font-size: 11px;
         }
-        .footer-content { display: grid; grid-template-columns: 1fr; gap: 8px; }
         .whatsapp-float {
             position: fixed; bottom: 15px; right: 15px; background: #25D366;
             width: 48px; height: 48px; border-radius: 48px; display: flex;
@@ -650,21 +596,10 @@
             background: white;
             border-radius: 10px;
         }
-        .loader { 
-            border: 3px solid #eee; 
-            border-top: 3px solid #5a5a5e; 
-            width: 30px; 
-            height: 30px; 
-            animation: spin 0.8s linear infinite; 
-            margin: 10px auto; 
-            border-radius: 50%; 
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
     <div class="app-wrapper">
-        <!-- header -->
         <header>
             <div class="container">
                 <div class="header-content">
@@ -673,79 +608,62 @@
             </div>
         </header>
 
-        <!-- mini search bar -->
+        <!-- STICKY SEARCH + THREE DOTS (left side) -->
         <div class="sticky-search-container">
             <div class="container">
-                <div class="search-container">
-                    <i class="fas fa-search search-icon"></i>
-                    <input type="text" class="search-bar" id="searchInput" placeholder="find...">
-                    <button class="clear-search" id="clearSearch"><i class="fas fa-times"></i></button>
+                <div class="sticky-row">
+                    <div class="search-wrapper">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" class="search-bar" id="searchInput" placeholder="find...">
+                        <button class="clear-search" id="clearSearch"><i class="fas fa-times"></i></button>
+                    </div>
+                    <button class="category-dots-btn" id="categoryDotsBtn">⋯</button>
+                </div>
+                <!-- hidden dropdown panel (revealed by dots) -->
+                <div class="category-dropdown-panel" id="categoryDropdown">
+                    <div class="tabs" id="categoryTabs">
+                        <button class="tab-btn active" data-category="all">all</button>
+                        <button class="tab-btn" data-category="phone-accessories">phone</button>
+                        <button class="tab-btn" data-category="computers-accessories">computer</button>
+                        <button class="tab-btn" data-category="general-electronics">electronics</button>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- categories filter (tiny) -->
-        <div class="categories-section">
-            <div class="filter-header">
-                <span class="filter-title">categories</span>
-                <button class="filter-toggle" id="filterToggle">
-                    <i class="fas fa-chevron-down"></i>
-                </button>
-            </div>
-            <div class="tabs" id="categoryTabs">
-                <button class="tab-btn active" data-category="all">all</button>
-                <button class="tab-btn" data-category="phone-accessories">phone</button>
-                <button class="tab-btn" data-category="computers-accessories">computer</button>
-                <button class="tab-btn" data-category="general-electronics">electronics</button>
-            </div>
-        </div>
-
-        <!-- special offers toggle (very small) -->
+        <!-- special offers toggle -->
         <div class="promotion-filter">
             <button class="promo-btn" id="promotionFilter">
                 <i class="fas fa-tag"></i> offers
             </button>
         </div>
 
-        <!-- MAIN SCROLLABLE CONTENT AREA -->
+        <!-- MAIN SCROLLABLE CONTENT -->
         <div class="scrollable-content" id="scrollableContent">
             <div class="container">
-                <!-- HOT SALES SECTION - FIRST 4 PRODUCTS (horizontal scroll) -->
+                <!-- HOT SALES -->
                 <div class="hot-sales-section">
-                    <div class="section-header">
-                        <h3>hot sales</h3>
-                        <span><i class="fas fa-arrow-right"></i></span>
-                    </div>
+                    <div class="section-header"><h3>hot sales</h3><span><i class="fas fa-arrow-right"></i></span></div>
                     <div class="horizontal-scroll" id="horizontalScroll"></div>
                 </div>
-
-                <!-- PROMOTIONS SECTION - NEXT 4 PRODUCTS (vertical scroll) -->
+                <!-- PROMOTIONS -->
                 <div class="promotions-section">
-                    <div class="section-header">
-                        <h3>special promotions</h3>
-                    </div>
+                    <div class="section-header"><h3>special promotions</h3></div>
                     <div class="vertical-scroll" id="verticalScroll"></div>
                 </div>
-
-                <!-- MORE PRODUCTS SECTION - regular grid -->
+                <!-- MORE PRODUCTS -->
                 <div class="more-products-section">
-                    <div class="section-header">
-                        <h3>more products</h3>
-                    </div>
+                    <div class="section-header"><h3>more products</h3></div>
                     <div class="products-grid" id="productsGrid"></div>
                 </div>
-
-                <!-- new arrivals section -->
-                <div style="margin-top: 8px; margin-bottom: 20px;">
-                    <div class="section-header">
-                        <h3>new arrivals</h3>
-                    </div>
+                <!-- NEW ARRIVALS -->
+                <div class="new-arrivals-section">
+                    <div class="section-header"><h3>new arrivals</h3></div>
                     <div class="products-grid" id="newArrivalsGrid"></div>
                 </div>
             </div>
         </div>
 
-        <!-- footer (tiny) -->
         <footer>
             <div class="container">
                 <div class="footer-content">
@@ -755,7 +673,7 @@
         </footer>
     </div>
 
-    <!-- product detail modal (minimal) -->
+    <!-- product modal -->
     <div class="modal-overlay" id="productModal">
         <button class="close-modal" id="closeModal">×</button>
         <div class="product-modal">
@@ -777,28 +695,21 @@
                 </div>
                 <div id="modalPromotion" style="display:none; font-size:11px; margin-bottom:8px;"><i class="fas fa-tag"></i> <span id="promotionText"></span></div>
                 <div class="modal-stock" id="modalStock" style="font-size:12px; margin-bottom:12px;"></div>
-                <a href="#" class="whatsapp-btn" id="whatsappInquiry" target="_blank">
-                    <i class="fab fa-whatsapp"></i> inquire
-                </a>
+                <a href="#" class="whatsapp-btn" id="whatsappInquiry" target="_blank"><i class="fab fa-whatsapp"></i> inquire</a>
             </div>
         </div>
     </div>
 
-    <!-- HORIZONTAL SCROLLABLE THUMBNAIL MODAL -->
+    <!-- micro thumb slider -->
     <div class="micro-thumb-overlay" id="microThumbOverlay">
         <div class="micro-thumb-modal" id="microThumbModal">
-            <div class="thumb-scroll-wrapper" id="thumbScrollWrapper">
-                <!-- js will inject micro thumbnails here -->
-            </div>
+            <div class="thumb-scroll-wrapper" id="thumbScrollWrapper"></div>
             <span style="color:rgba(255,255,255,0.5); font-size:9px;"><i class="fas fa-arrows-alt-h"></i></span>
             <button class="close-micro-thumb" id="closeMicroThumb"><i class="fas fa-times"></i></button>
         </div>
     </div>
 
-    <!-- whatsapp float -->
-    <a href="https://wa.me/260775390905" class="whatsapp-float" target="_blank">
-        <i class="fab fa-whatsapp"></i>
-    </a>
+    <a href="https://wa.me/260775390905" class="whatsapp-float" target="_blank"><i class="fab fa-whatsapp"></i></a>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.0/firebase-app.js";
@@ -812,21 +723,21 @@
             messagingSenderId: "2833785676",
             appId: "1:2833785676:web:d934ffdbaf64c2f5f5a5e9"
         };
-
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const productsCollection = collection(db, "products");
 
-        // DOM
+        // DOM elements
         const horizontalScroll = document.getElementById('horizontalScroll');
         const verticalScroll = document.getElementById('verticalScroll');
         const productsGrid = document.getElementById('productsGrid');
         const newArrivalsGrid = document.getElementById('newArrivalsGrid');
-        const categoryTabs = document.getElementById('categoryTabs');
-        const filterToggle = document.getElementById('filterToggle');
         const searchInput = document.getElementById('searchInput');
         const clearSearch = document.getElementById('clearSearch');
         const promotionFilter = document.getElementById('promotionFilter');
+        const categoryDotsBtn = document.getElementById('categoryDotsBtn');
+        const categoryDropdown = document.getElementById('categoryDropdown');
+        const categoryTabs = document.getElementById('categoryTabs');
         const productModal = document.getElementById('productModal');
         const closeModal = document.getElementById('closeModal');
         const modalCategory = document.getElementById('modalCategory');
@@ -842,8 +753,6 @@
         const sliderDots = document.getElementById('sliderDots');
         const prevBtn = document.getElementById('prevBtn');
         const nextBtn = document.getElementById('nextBtn');
-        
-        // micro thumb modal
         const microThumbOverlay = document.getElementById('microThumbOverlay');
         const thumbScrollWrapper = document.getElementById('thumbScrollWrapper');
         const closeMicroThumb = document.getElementById('closeMicroThumb');
@@ -853,19 +762,18 @@
         let currentProducts = [];
         let showPromotionsOnly = false;
         let searchQuery = '';
-        let isFilterOpen = false;
         let currentProductImages = [];
         let currentSliderIndex = 0;
-        let currentProduct = null;
 
-        // close micro thumb
-        closeMicroThumb.addEventListener('click', (e) => {
-            e.stopPropagation();
-            microThumbOverlay.style.display = 'none';
+        // dots dropdown toggle
+        categoryDotsBtn.addEventListener('click', () => {
+            categoryDropdown.classList.toggle('show');
         });
-        
-        microThumbOverlay.addEventListener('click', (e) => {
-            if (e.target === microThumbOverlay) microThumbOverlay.style.display = 'none';
+        // close dropdown when clicking outside (optional simple)
+        document.addEventListener('click', (e) => {
+            if (!categoryDotsBtn.contains(e.target) && !categoryDropdown.contains(e.target)) {
+                categoryDropdown.classList.remove('show');
+            }
         });
 
         // search
@@ -874,20 +782,12 @@
             clearSearch.style.display = searchQuery ? 'block' : 'none';
             displayAllSections(currentProducts);
         });
-        
         clearSearch.addEventListener('click', () => {
             searchInput.value = '';
             searchQuery = '';
             clearSearch.style.display = 'none';
             displayAllSections(currentProducts);
             searchInput.focus();
-        });
-
-        // filter toggle mobile
-        filterToggle.addEventListener('click', () => {
-            isFilterOpen = !isFilterOpen;
-            categoryTabs.classList.toggle('active');
-            filterToggle.querySelector('i').className = isFilterOpen ? 'fas fa-chevron-up' : 'fas fa-chevron-down';
         });
 
         // promo filter
@@ -897,27 +797,20 @@
             displayAllSections(currentProducts);
         });
 
-        // categories
+        // category tabs inside dropdown
         categoryTabs.addEventListener('click', (e) => {
             if (e.target.classList.contains('tab-btn')) {
                 document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
                 e.target.classList.add('active');
                 currentCategory = e.target.dataset.category;
-                if (window.innerWidth <= 768) {
-                    isFilterOpen = false;
-                    categoryTabs.classList.remove('active');
-                    filterToggle.querySelector('i').className = 'fas fa-chevron-down';
-                }
+                categoryDropdown.classList.remove('show'); // hide after select
                 displayAllSections(currentProducts);
             }
         });
 
-        // Check if product should appear in given section
+        // helper: check section membership (backward compat)
         function shouldDisplayInSection(product, section) {
-            if (Array.isArray(product.sections)) {
-                return product.sections.includes(section);
-            }
-            // Backward compatibility fallback
+            if (Array.isArray(product.sections)) return product.sections.includes(section);
             if (section === "hotsales") return true;
             if (section === "specialpromotions") return !!product.promotion;
             if (section === "moreproducts") return true;
@@ -925,25 +818,21 @@
             return true;
         }
 
-        // product card click: open modal AND horizontal scrollable thumbnail gallery!
+        // open modal + micro thumbs
         function openProductModal(product) {
-            currentProduct = product;
             currentProductImages = product.images && product.images.length ? [...product.images] : [];
             if (product.image) currentProductImages.unshift(product.image);
             if (!currentProductImages.length) currentProductImages = ['https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200'];
 
-            // init slider
             sliderImages.innerHTML = '';
             sliderDots.innerHTML = '';
             currentSliderIndex = 0;
-            
             currentProductImages.forEach((src, idx) => {
                 const img = document.createElement('img');
                 img.src = src;
                 img.className = 'slider-image';
                 img.onerror = () => img.src = 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200';
                 sliderImages.appendChild(img);
-                
                 const dot = document.createElement('button');
                 dot.className = `slider-dot ${idx === 0 ? 'active' : ''}`;
                 dot.addEventListener('click', () => goToSlide(idx));
@@ -953,8 +842,7 @@
 
             modalCategory.textContent = product.category?.replace('-', ' ').toUpperCase() || 'ITEM';
             modalTitle.textContent = product.name || '';
-            modalDescription.textContent = product.description || 'No description available';
-            
+            modalDescription.textContent = product.description || 'No description';
             if (product.promotion && product.oldPrice) {
                 modalOldPrice.style.display = 'inline';
                 modalOldPrice.textContent = `ZMW ${Number(product.oldPrice).toLocaleString()}`;
@@ -963,102 +851,61 @@
                 modalOldPrice.style.display = 'none';
                 modalPrice.textContent = `ZMW ${Number(product.price || 0).toLocaleString()}`;
             }
-            
             if (product.promotion) {
                 modalPromotion.style.display = 'block';
                 promotionText.textContent = product.promotion;
             } else modalPromotion.style.display = 'none';
-
             const stock = product.stock ?? 0;
             if (stock > 5) modalStock.textContent = `✅ in stock (${stock})`;
             else if (stock > 0) modalStock.textContent = `⚠️ low stock (${stock})`;
             else modalStock.textContent = '❌ out of stock';
-
             const msg = `Hi! I'm interested in: ${product.name} – ZMW ${product.price}`;
             whatsappInquiry.href = `https://wa.me/260775390905?text=${encodeURIComponent(msg)}`;
 
             productModal.classList.add('active');
             document.body.style.overflow = 'hidden';
 
-            // HORIZONTAL SCROLLABLE THUMBNAILS
-            thumbScrollWrapper.innerHTML = ''; 
-            
+            // micro thumbs
+            thumbScrollWrapper.innerHTML = '';
             currentProductImages.forEach((imgSrc, idx) => {
-                const thumbWrap = document.createElement('div');
-                thumbWrap.className = `micro-thumb-item ${idx === currentSliderIndex ? 'active' : ''}`;
-                
-                const thumbImg = document.createElement('img');
-                thumbImg.src = imgSrc;
-                thumbImg.className = 'micro-thumb-img';
-                thumbImg.onerror = () => thumbImg.src = 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=100';
-                
-                thumbWrap.appendChild(thumbImg);
-                thumbWrap.addEventListener('click', (e) => {
-                    e.stopPropagation();
+                const wrap = document.createElement('div');
+                wrap.className = `micro-thumb-item ${idx === 0 ? 'active' : ''}`;
+                const thumb = document.createElement('img');
+                thumb.src = imgSrc;
+                thumb.className = 'micro-thumb-img';
+                thumb.onerror = () => thumb.src = 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=100';
+                wrap.appendChild(thumb);
+                wrap.addEventListener('click', () => {
                     goToSlide(idx);
-                    
                     document.querySelectorAll('.micro-thumb-item').forEach(el => el.classList.remove('active'));
-                    thumbWrap.classList.add('active');
-                    
-                    const thumbWidth = 62;
-                    thumbScrollWrapper.scrollTo({
-                        left: idx * thumbWidth,
-                        behavior: 'smooth'
-                    });
+                    wrap.classList.add('active');
+                    thumbScrollWrapper.scrollLeft = idx * 62;
                 });
-                
-                thumbScrollWrapper.appendChild(thumbWrap);
+                thumbScrollWrapper.appendChild(wrap);
             });
-            
             microThumbOverlay.style.display = 'flex';
-            
-            setTimeout(() => {
-                thumbScrollWrapper.scrollLeft = 0;
-            }, 50);
         }
 
         function goToSlide(index) {
             if (index >= 0 && index < currentProductImages.length) {
                 currentSliderIndex = index;
                 updateSlider();
-                
-                document.querySelectorAll('.slider-dot').forEach((dot, i) => {
-                    dot.classList.toggle('active', i === index);
-                });
-                
-                if (thumbScrollWrapper) {
-                    const thumbs = thumbScrollWrapper.querySelectorAll('.micro-thumb-item');
-                    thumbs.forEach((t, i) => {
-                        t.classList.toggle('active', i === index);
-                    });
-                }
+                document.querySelectorAll('.slider-dot').forEach((dot, i) => dot.classList.toggle('active', i === index));
+                const thumbs = thumbScrollWrapper?.querySelectorAll('.micro-thumb-item');
+                thumbs?.forEach((t, i) => t.classList.toggle('active', i === index));
             }
         }
-
-        function updateSlider() {
-            sliderImages.style.transform = `translateX(-${currentSliderIndex * 100}%)`;
-        }
+        function updateSlider() { sliderImages.style.transform = `translateX(-${currentSliderIndex * 100}%)`; }
 
         prevBtn.addEventListener('click', () => {
             currentSliderIndex = (currentSliderIndex - 1 + currentProductImages.length) % currentProductImages.length;
             goToSlide(currentSliderIndex);
-            
-            const thumbWidth = 62;
-            thumbScrollWrapper.scrollTo({
-                left: currentSliderIndex * thumbWidth,
-                behavior: 'smooth'
-            });
+            thumbScrollWrapper.scrollLeft = currentSliderIndex * 62;
         });
-        
         nextBtn.addEventListener('click', () => {
             currentSliderIndex = (currentSliderIndex + 1) % currentProductImages.length;
             goToSlide(currentSliderIndex);
-            
-            const thumbWidth = 62;
-            thumbScrollWrapper.scrollTo({
-                left: currentSliderIndex * thumbWidth,
-                behavior: 'smooth'
-            });
+            thumbScrollWrapper.scrollLeft = currentSliderIndex * 62;
         });
 
         closeModal.addEventListener('click', () => {
@@ -1066,7 +913,6 @@
             document.body.style.overflow = 'auto';
             microThumbOverlay.style.display = 'none';
         });
-        
         productModal.addEventListener('click', (e) => { 
             if (e.target === productModal) { 
                 productModal.classList.remove('active'); 
@@ -1074,137 +920,71 @@
                 document.body.style.overflow = 'auto';
             }
         });
+        closeMicroThumb.addEventListener('click', () => microThumbOverlay.style.display = 'none');
 
-        // Function to filter products based on current filters
+        // filtering logic
         function getFilteredProducts(products) {
             return products.filter(p => {
                 if (currentCategory !== 'all' && p.category !== currentCategory) return false;
                 if (showPromotionsOnly && !p.promotion) return false;
                 if (searchQuery) {
-                    const nameMatch = p.name?.toLowerCase().includes(searchQuery);
-                    const descMatch = p.description?.toLowerCase().includes(searchQuery);
-                    const catMatch = p.category?.toLowerCase().includes(searchQuery);
-                    if (!nameMatch && !descMatch && !catMatch) return false;
+                    const n = p.name?.toLowerCase().includes(searchQuery);
+                    const d = p.description?.toLowerCase().includes(searchQuery);
+                    const c = p.category?.toLowerCase().includes(searchQuery);
+                    if (!n && !d && !c) return false;
                 }
                 return true;
             });
         }
 
-        // Create product card HTML (reusable)
         function createProductCard(product, isHorizontal = false, isVertical = false) {
             const card = document.createElement('div');
             card.className = 'product-card';
-            
             const imgSrc = (product.images && product.images[0]) || product.image || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200';
             let badge = product.promotion ? `<div class="promotion-badge">${product.promotion.slice(0,10)}</div>` : '';
-            
             if (isVertical) {
-                // Vertical layout
-                card.innerHTML = `
-                    ${badge}
-                    <img src="${imgSrc}" class="product-img" loading="lazy">
-                    <div class="product-info">
-                        <div class="product-category">${product.category?.replace('-', ' ').slice(0,15) || 'item'}</div>
-                        <div class="product-title">${product.name?.slice(0,40) || ''}</div>
-                        <div class="product-price">
-                            ${product.promotion && product.oldPrice ? `<span class="old-price">ZMW ${product.oldPrice}</span>` : ''}
-                            ZMW ${product.price ?? 0}
-                        </div>
-                    </div>
-                `;
+                card.innerHTML = `${badge}<img src="${imgSrc}" class="product-img" loading="lazy"><div class="product-info"><div class="product-category">${product.category?.replace('-', ' ').slice(0,15) || 'item'}</div><div class="product-title">${product.name?.slice(0,40) || ''}</div><div class="product-price">${product.promotion && product.oldPrice ? `<span class="old-price">ZMW ${product.oldPrice}</span>` : ''} ZMW ${product.price ?? 0}</div></div>`;
             } else {
-                card.innerHTML = `
-                    ${badge}
-                    <img src="${imgSrc}" class="product-img" loading="lazy">
-                    <div class="product-info">
-                        <div class="product-category">${product.category?.replace('-', ' ').slice(0,15) || 'item'}</div>
-                        <div class="product-title">${product.name?.slice(0,30) || ''}</div>
-                        <div class="product-price">
-                            ${product.promotion && product.oldPrice ? `<span class="old-price">ZMW ${product.oldPrice}</span>` : ''}
-                            ZMW ${product.price ?? 0}
-                        </div>
-                    </div>
-                `;
+                card.innerHTML = `${badge}<img src="${imgSrc}" class="product-img" loading="lazy"><div class="product-info"><div class="product-category">${product.category?.replace('-', ' ').slice(0,15) || 'item'}</div><div class="product-title">${product.name?.slice(0,30) || ''}</div><div class="product-price">${product.promotion && product.oldPrice ? `<span class="old-price">ZMW ${product.oldPrice}</span>` : ''} ZMW ${product.price ?? 0}</div></div>`;
             }
-
-            // FIX: Add event listeners to mark image as loaded (prevents blinking)
             const img = card.querySelector('.product-img');
             if (img) {
-                img.addEventListener('load', () => {
-                    img.classList.add('loaded');
-                });
+                img.addEventListener('load', () => img.classList.add('loaded'));
                 img.addEventListener('error', () => {
                     img.src = 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200';
                     img.classList.add('loaded');
                 });
-                // If image is already cached/loaded
-                if (img.complete) {
-                    img.classList.add('loaded');
-                }
+                if (img.complete) img.classList.add('loaded');
             }
-            
             card.addEventListener('click', () => openProductModal(product));
             return card;
         }
 
-        // Display all sections with proper product distribution
         function displayAllSections(products) {
             const filtered = getFilteredProducts(products);
-            
-            // Clear all sections
-            horizontalScroll.innerHTML = '';
-            verticalScroll.innerHTML = '';
-            productsGrid.innerHTML = '';
-            
-            if (filtered.length === 0) {
-                horizontalScroll.innerHTML = '<div class="no-products" style="padding:20px; width:100%;">no products found</div>';
+            horizontalScroll.innerHTML = ''; verticalScroll.innerHTML = ''; productsGrid.innerHTML = '';
+            if (!filtered.length) {
+                horizontalScroll.innerHTML = '<div class="no-products">no products found</div>';
                 return;
             }
-            
-            // Hot Sales - filter by section
-            const hotSalesProducts = filtered.filter(p => shouldDisplayInSection(p, 'hotsales')).slice(0, 4);
-            if (hotSalesProducts.length > 0) {
-                hotSalesProducts.forEach(product => {
-                    horizontalScroll.appendChild(createProductCard(product, true, false));
-                });
-            }
-            
-            // Special Promotions - filter by section
-            const promoProducts = filtered.filter(p => shouldDisplayInSection(p, 'specialpromotions')).slice(0, 4);
-            if (promoProducts.length > 0) {
-                promoProducts.forEach(product => {
-                    verticalScroll.appendChild(createProductCard(product, false, true));
-                });
-            } else {
-                verticalScroll.innerHTML = '<div class="no-products" style="padding:20px;">no promotions</div>';
-            }
-            
-            // More Products - filter by section
-            const moreProducts = filtered.filter(p => shouldDisplayInSection(p, 'moreproducts'));
-            if (moreProducts.length > 0) {
-                moreProducts.forEach(product => {
-                    productsGrid.appendChild(createProductCard(product, false, false));
-                });
-            }
+            // hot sales
+            filtered.filter(p => shouldDisplayInSection(p, 'hotsales')).slice(0,4).forEach(p => horizontalScroll.appendChild(createProductCard(p, true)));
+            // promotions
+            const promo = filtered.filter(p => shouldDisplayInSection(p, 'specialpromotions')).slice(0,4);
+            if (promo.length) promo.forEach(p => verticalScroll.appendChild(createProductCard(p, false, true)));
+            else verticalScroll.innerHTML = '<div class="no-products" style="padding:20px;">no promotions</div>';
+            // more products
+            filtered.filter(p => shouldDisplayInSection(p, 'moreproducts')).forEach(p => productsGrid.appendChild(createProductCard(p)));
         }
 
         function displayNewArrivals(products) {
             newArrivalsGrid.innerHTML = '';
-            
-            let specials = products.filter(p => shouldDisplayInSection(p, 'newarrivals'));
-            
-            if (specials.length === 0) {
-                newArrivalsGrid.innerHTML = '<div class="no-products" style="padding:20px;">no new arrivals</div>';
-                return;
-            }
-            
-            specials.slice(0, 6).forEach(p => {
-                const card = createProductCard(p, false, false);
-                newArrivalsGrid.appendChild(card);
-            });
+            const arrivals = products.filter(p => shouldDisplayInSection(p, 'newarrivals')).slice(0,6);
+            if (!arrivals.length) { newArrivalsGrid.innerHTML = '<div class="no-products">no new arrivals</div>'; return; }
+            arrivals.forEach(p => newArrivalsGrid.appendChild(createProductCard(p)));
         }
 
-        // load firestore data
+        // Firestore listener
         onSnapshot(productsCollection, (snap) => {
             currentProducts = [];
             snap.forEach(doc => {
@@ -1212,25 +992,11 @@
                 data.id = doc.id;
                 currentProducts.push(data);
             });
-            
-            // sort by newest first
-            currentProducts.sort((a,b) => {
-                if (!a.createdAt) return 1;
-                if (!b.createdAt) return -1;
-                return new Date(b.createdAt) - new Date(a.createdAt);
-            });
-            
+            currentProducts.sort((a,b) => (b.createdAt?.toDate?.() || 0) - (a.createdAt?.toDate?.() || 0));
             displayAllSections(currentProducts);
             displayNewArrivals(currentProducts);
-        }, (err) => {
-            console.error("Firestore error:", err);
-            horizontalScroll.innerHTML = `<div class="no-products">⚠️ error loading products</div>`;
-        });
-        
-        // handle window resize for responsive grid
-        window.addEventListener('resize', () => {
-            displayAllSections(currentProducts);
-            displayNewArrivals(currentProducts);
+        }, () => {
+            horizontalScroll.innerHTML = '<div class="no-products">⚠️ error loading</div>';
         });
     </script>
 </body>
