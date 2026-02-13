@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>trismart · scroll both ways</title>
+    <title>trismart · tiny</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* clean white background like the example */
+        /* ultra compact – everything very small my guy */
         * {
             margin: 0;
             padding: 0;
@@ -14,92 +14,126 @@
             font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
         }
 
-        body {
-            background: #ffffff;
-            padding: 1rem;
-            height: 100vh;
-            width: 100vw;
-            overflow: hidden;
+        :root {
+            --primary: #f2f2f6;
+            --card-bg: #ffffff;
+            --text: #1c1c1e;
+            --soft-gray: #8e8e93;
+            --accent: #5a5a5e;
+            --border-light: #e5e5ea;
+            --whatsapp: #25D366;
+            --tiny-shadow: 0 1px 4px rgba(0,0,0,0.02);
         }
 
-        /* main container - scrolls both ways just like the example */
-        .showroom {
-            max-width: 100%;
-            height: 100%;
-            margin: 0 auto;
-            overflow-y: auto;
+        html, body {
+            background-color: var(--primary);
+            color: var(--text);
+            line-height: 1.2;
+            height: auto;
+            width: 100%;
             overflow-x: hidden;
-            padding-right: 0.5rem;
-            -webkit-overflow-scrolling: touch;
         }
 
-        /* custom scrollbar like the example */
-        .showroom::-webkit-scrollbar {
-            width: 8px;
-        }
-        .showroom::-webkit-scrollbar-track {
-            background: #eef3f8;
-            border-radius: 20px;
-        }
-        .showroom::-webkit-scrollbar-thumb {
-            background: #b0c4de;
-            border-radius: 20px;
-        }
-
-        /* header - trismart name nice */
-        .tri-header {
-            margin-bottom: 1.5rem;
+        .app-wrapper {
+            min-height: 100vh;
+            width: 100%;
             display: flex;
-            align-items: baseline;
-            gap: 0.5rem;
-            flex-wrap: wrap;
-            padding: 0 0.25rem;
-        }
-        .tri-header h1 {
-            font-size: 2.2rem;
-            font-weight: 600;
-            letter-spacing: -0.02em;
-            background: linear-gradient(145deg, #1e2b3c, #2c3e50);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            line-height: 1.1;
-        }
-        .tri-header span {
-            font-size: 1rem;
-            font-weight: 300;
-            color: #4a5f73;
-            margin-left: 0.5rem;
-            font-style: italic;
-        }
-        .tri-header .pill {
-            background: #f0f3f7;
-            color: #1e2b3c;
-            padding: 0.2rem 1rem;
-            border-radius: 40px;
-            font-size: 0.8rem;
-            font-weight: 500;
-            margin-left: auto;
-            border: 1px solid #d0dcec;
+            flex-direction: column;
+            position: relative;
         }
 
-        /* categories filter */
-        .categories-section {
-            margin: 1rem 0;
+        .container {
+            width: 100%;
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 0 8px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* header – minimal */
+        header {
+            background: #000;
+            padding: 8px 0;
+            flex-shrink: 0;
+        }
+        .header-content {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .site-title {
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        .site-title span { color: #aaa; font-weight: 500; }
+
+        /* ——— TINY SEARCH BAR ——— */
+        .sticky-search-container {
+            background: var(--primary);
+            padding: 6px 0 4px;
+            flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .search-container {
+            max-width: 280px;
+            margin: 0 auto;
+            position: relative;
+        }
+        .search-bar {
+            width: 100%;
+            padding: 6px 12px 6px 28px;
+            border: 1px solid #d1d1d6;
+            border-radius: 40px;
+            font-size: 13px;
             background: white;
-            padding: 0.8rem;
+            outline: none;
+        }
+        .search-bar:focus {
+            border-color: #7c7c82;
+        }
+        .search-icon {
+            position: absolute;
+            left: 9px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #8e8e93;
+            font-size: 12px;
+        }
+        .clear-search {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: transparent;
+            border: none;
+            color: #8e8e93;
+            font-size: 12px;
+            display: none;
+            cursor: pointer;
+        }
+
+        /* categories – micro */
+        .categories-section {
+            margin: 8px 0 6px;
+            background: white;
+            padding: 10px 8px;
             border-radius: 14px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
-            border: 1px solid #f0f5fc;
+            box-shadow: var(--tiny-shadow);
+            flex-shrink: 0;
         }
         .filter-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 0.5rem;
+            margin-bottom: 6px;
         }
         .filter-title {
-            font-size: 0.75rem;
+            font-size: 11px;
             font-weight: 600;
             color: #3a3a3c;
             letter-spacing: 0.3px;
@@ -115,9 +149,7 @@
             font-size: 13px;
             color: #000;
         }
-        @media (max-width: 768px) { 
-            .filter-toggle { display: flex; align-items: center; justify-content: center; } 
-        }
+        @media (max-width: 768px) { .filter-toggle { display: flex; align-items: center; justify-content: center; } }
 
         .tabs {
             display: flex;
@@ -155,49 +187,11 @@
             border-color: #5a5a5e;
         }
 
-        /* search bar */
-        .search-container {
-            max-width: 280px;
-            margin: 0 auto 1rem;
-            position: relative;
-        }
-        .search-bar {
-            width: 100%;
-            padding: 8px 12px 8px 32px;
-            border: 1px solid #d1d1d6;
-            border-radius: 40px;
-            font-size: 14px;
-            background: white;
-            outline: none;
-        }
-        .search-bar:focus {
-            border-color: #7c7c82;
-        }
-        .search-icon {
-            position: absolute;
-            left: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #8e8e93;
-            font-size: 14px;
-        }
-        .clear-search {
-            position: absolute;
-            right: 8px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: transparent;
-            border: none;
-            color: #8e8e93;
-            font-size: 12px;
-            display: none;
-            cursor: pointer;
-        }
-
-        /* promo filter */
+        /* promo filter – tiny */
         .promotion-filter {
-            margin: 1rem 0;
+            margin: 8px 0;
             text-align: center;
+            flex-shrink: 0;
         }
         .promo-btn {
             background: #636366;
@@ -210,168 +204,304 @@
             display: inline-flex;
             align-items: center;
             gap: 5px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
             cursor: pointer;
         }
+        .promo-btn i { font-size: 11px; }
 
-        /* scroll hint like the example */
-        .scroll-hint {
-            display: flex;
-            gap: 1.5rem;
-            margin: 0.5rem 0 1rem 0;
-            color: #4d667c;
-            font-weight: 400;
-            font-size: 0.85rem;
-            align-items: center;
-        }
-        .scroll-hint .arrow-set {
-            display: flex;
-            gap: 0.2rem;
-            background: #f1f6fc;
-            padding: 0.3rem 1rem;
-            border-radius: 40px;
-        }
-        .scroll-hint span {
-            display: flex;
-            align-items: center;
-            gap: 0.3rem;
+        /* MAIN SCROLLABLE CONTENT AREA */
+        .scrollable-content {
+            flex: 1;
+            padding-bottom: 20px;
         }
 
-        /* MAIN GRID - scrolls horizontally AND vertically like the example! */
-        .goods-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-            gap: 1rem;
-            padding: 0.5rem 0.25rem 2rem 0.25rem;
+        /* Section headers - clean without emojis */
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin: 16px 0 8px 4px;
+        }
+        .section-header h3 {
+            font-size: 13px;
+            font-weight: 600;
+            color: #1c1c1e;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .section-header i {
+            font-size: 12px;
+            color: #8e8e93;
+        }
+        .section-header span {
+            font-size: 9px;
+            color: #8e8e93;
+            margin-left: auto;
+            background: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            box-shadow: var(--tiny-shadow);
+        }
+
+        /* Hot Sales Section - FIRST 4 PRODUCTS (horizontal scroll) */
+        .hot-sales-section {
+            margin: 0 0 8px 0;
             width: 100%;
         }
+        
+        .horizontal-scroll {
+            display: flex;
+            overflow-x: auto;
+            overflow-y: hidden;
+            gap: 12px;
+            padding: 4px 4px 12px 4px;
+            -webkit-overflow-scrolling: touch;
+            scroll-snap-type: x mandatory;
+            scrollbar-width: none;
+        }
+        .horizontal-scroll::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .horizontal-scroll .product-card {
+            flex: 0 0 auto;
+            width: 160px;
+            scroll-snap-align: start;
+        }
 
-        /* product card - nice like the example */
-        .product-card {
-            background: #ffffff;
-            border-radius: 20px;
-            padding: 0.8rem 0.6rem 1rem 0.6rem;
-            box-shadow: 0 8px 20px -8px rgba(0, 20, 30, 0.08), 0 2px 6px rgba(0,0,0,0.02);
-            transition: transform 0.2s ease, box-shadow 0.25s ease;
+        /* Promotions Section - NEXT 4 PRODUCTS (vertical scroll) */
+        .promotions-section {
+            margin: 0 0 8px 0;
+            width: 100%;
+        }
+        
+        .vertical-scroll {
             display: flex;
             flex-direction: column;
-            border: 1px solid #f0f5fc;
+            gap: 10px;
+            max-height: 360px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 4px 8px 12px 4px;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            background: rgba(255,255,255,0.5);
+            border-radius: 12px;
+        }
+        .vertical-scroll::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .vertical-scroll .product-card {
+            width: 100%;
+            flex-direction: row;
+            align-items: center;
+            gap: 12px;
+            padding: 8px;
+        }
+        
+        .vertical-scroll .product-img {
+            width: 70px;
+            height: 70px;
+            flex-shrink: 0;
+        }
+        
+        .vertical-scroll .product-info {
+            flex: 1;
+            padding: 0;
+        }
+        
+        .vertical-scroll .product-title {
+            font-size: 13px;
+            min-height: auto;
+            -webkit-line-clamp: 2;
+        }
+
+        /* Regular grid for remaining products */
+        .more-products-section {
+            margin: 16px 0 20px;
+        }
+        
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin: 8px 0 16px;
+            width: 100%;
+        }
+        @media (max-width: 380px) {
+            .products-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        /* product card – extremely compact */
+        .product-card {
+            background-color: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.02);
+            border: 1px solid #f0f0f0;
             cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            transition: 0.1s;
+            width: 100%;
             position: relative;
         }
-
-        .product-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 16px 28px -12px rgba(30, 43, 60, 0.15);
-            border-color: #dbe7f3;
+        .product-card:active {
+            background: #f9f9fb;
+            transform: scale(0.98);
         }
 
-        /* image wrapper */
-        .pic-frame {
+        /* tiny image - fixed aspect ratio */
+        .product-img {
             width: 100%;
             aspect-ratio: 1 / 1;
-            border-radius: 16px;
-            background: #f8fafd;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 0.8rem;
-            overflow: hidden;
-            box-shadow: inset 0 2px 6px rgba(0,0,0,0.02), 0 6px 12px -8px #cddcee;
+            object-fit: cover;
+            display: block;
+            background: #fafafc;
+            border-bottom: 1px solid #efefef;
         }
 
-        .pic-frame img {
-            width: 85%;
-            height: 85%;
-            object-fit: contain;
-            transition: transform 0.3s ease;
+        .product-info {
+            padding: 6px 5px 7px;
         }
-
-        .product-card:hover .pic-frame img {
-            transform: scale(1.05);
-        }
-
-        /* product tag */
-        .product-tag {
-            background: #eaf1fa;
-            align-self: flex-start;
-            padding: 0.15rem 0.8rem;
-            border-radius: 30px;
-            font-size: 0.65rem;
-            font-weight: 600;
-            color: #2d4b6e;
-            margin: 0.2rem 0 0.3rem 0;
-            letter-spacing: 0.3px;
+        .product-category {
+            color: #8e8e93;
+            font-size: 8px;
             text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin-bottom: 2px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
-
-        /* product description */
-        .product-description {
-            font-size: 0.9rem;
-            font-weight: 500;
-            color: #1f2c3a;
-            line-height: 1.3;
-            margin-bottom: 0.2rem;
+        .product-title {
+            font-size: 11px;
+            font-weight: 600;
+            line-height: 1.2;
+            margin-bottom: 3px;
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
-            min-height: 2.3rem;
+            color: #1c1c1e;
+            min-height: 26px;
         }
-
-        /* product price */
         .product-price {
-            font-size: 1.2rem;
+            font-size: 11px;
             font-weight: 700;
-            color: #1e3b4f;
-            margin-top: 0.2rem;
-            display: flex;
-            align-items: center;
-            gap: 0.2rem;
-            flex-wrap: wrap;
-        }
-        .product-price small {
-            font-size: 0.75rem;
-            font-weight: 400;
-            color: #62748b;
+            color: #1c1c1e;
+            margin-top: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         .old-price {
-            font-size: 0.8rem;
-            font-weight: 400;
-            color: #9eafc2;
             text-decoration: line-through;
-            margin-left: 0.3rem;
+            color: #a0a0a5;
+            font-size: 9px;
+            margin-right: 4px;
+            font-weight: 400;
         }
-
-        /* promotion badge */
         .promotion-badge {
             position: absolute;
-            top: 8px;
-            left: 8px;
+            top: 4px;
+            left: 4px;
             background: #5a5a5e;
             color: white;
             padding: 2px 8px;
             border-radius: 20px;
-            font-size: 0.65rem;
+            font-size: 8px;
             font-weight: 600;
             z-index: 2;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+            box-shadow: 0 1px 4px rgba(0,0,0,0.05);
         }
 
-        /* bottom note like the example */
-        .bottom-note {
-            margin-top: 1.5rem;
-            display: flex;
+        /* ——— HORIZONTAL SCROLLABLE THUMBNAIL GALLERY ——— */
+        .micro-thumb-overlay {
+            position: fixed;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            display: none;
             justify-content: center;
-            color: #59748f;
-            font-weight: 300;
-            font-size: 0.85rem;
-            border-top: 1px dashed #c7d9e9;
-            padding-top: 1.2rem;
-            padding-bottom: 1rem;
-            text-align: center;
+            align-items: flex-end;
+            z-index: 10002;
+            pointer-events: none;
+        }
+        .micro-thumb-modal {
+            background: rgba(20,20,22,0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-radius: 28px;
+            padding: 12px 8px;
+            margin: 0 12px;
+            max-width: 94%;
+            width: auto;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 8px 18px rgba(0,0,0,0.2);
+            border: 0.5px solid rgba(255,255,255,0.2);
+            pointer-events: auto;
+            overflow-x: auto;
+            overflow-y: hidden;
+            -webkit-overflow-scrolling: touch;
+            scroll-behavior: smooth;
+            scrollbar-width: none;
+            white-space: nowrap;
+        }
+        .micro-thumb-modal::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .thumb-scroll-wrapper {
+            display: flex;
+            gap: 8px;
+            padding: 2px;
+            flex: 1;
+        }
+        
+        .micro-thumb-item {
+            flex: 0 0 auto;
+            width: 54px;
+            height: 54px;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #1c1c1e;
+            border: 2px solid transparent;
+            transition: 0.1s;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            cursor: pointer;
+        }
+        .micro-thumb-item.active {
+            border-color: white;
+            transform: scale(0.98);
+        }
+        .micro-thumb-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .close-micro-thumb {
+            flex: 0 0 auto;
+            background: rgba(255,255,255,0.15);
+            border: none;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 20px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            margin-left: 4px;
         }
 
-        /* modal styles */
+        /* main modal – still minimal */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -410,6 +540,7 @@
             object-fit: contain;
             padding: 10px;
             background: white;
+            cursor: pointer;
         }
         .slider-nav {
             position: absolute;
@@ -456,6 +587,7 @@
         .modal-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
         .modal-description { font-size: 12px; color: #3a3a3c; margin-bottom: 12px; line-height: 1.4; }
         .modal-price { font-size: 18px; font-weight: 700; }
+        .old-price { font-size: 13px; }
         .whatsapp-btn {
             background: #25D366; color: white; padding: 12px; border-radius: 12px;
             text-decoration: none; font-size: 14px; display: flex; gap: 6px; justify-content: center;
@@ -471,6 +603,15 @@
             justify-content: center;
         }
 
+        /* footer tiny */
+        footer {
+            background: #000;
+            color: #ccc;
+            padding: 8px 0;
+            flex-shrink: 0;
+            font-size: 11px;
+        }
+        .footer-content { display: grid; grid-template-columns: 1fr; gap: 8px; }
         .whatsapp-float {
             position: fixed; bottom: 15px; right: 15px; background: #25D366;
             width: 48px; height: 48px; border-radius: 48px; display: flex;
@@ -497,474 +638,549 @@
             border-radius: 50%; 
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        /* micro thumb modal */
-        .micro-thumb-overlay {
-            position: fixed;
-            bottom: 20px;
-            left: 0;
-            right: 0;
-            display: none;
-            justify-content: center;
-            align-items: flex-end;
-            z-index: 10002;
-            pointer-events: none;
-        }
-        .micro-thumb-modal {
-            background: rgba(20,20,22,0.85);
-            backdrop-filter: blur(16px);
-            border-radius: 28px;
-            padding: 12px 8px;
-            margin: 0 12px;
-            max-width: 94%;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            pointer-events: auto;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: none;
-        }
-        .micro-thumb-modal::-webkit-scrollbar { display: none; }
-        .thumb-scroll-wrapper {
-            display: flex;
-            gap: 8px;
-            padding: 2px;
-            flex: 1;
-        }
-        .micro-thumb-item {
-            flex: 0 0 auto;
-            width: 54px;
-            height: 54px;
-            border-radius: 10px;
-            overflow: hidden;
-            background: #1c1c1e;
-            border: 2px solid transparent;
-            cursor: pointer;
-        }
-        .micro-thumb-item.active { border-color: white; }
-        .micro-thumb-img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        .close-micro-thumb {
-            flex: 0 0 auto;
-            background: rgba(255,255,255,0.15);
-            border: none;
-            color: white;
-            width: 30px;
-            height: 30px;
-            border-radius: 20px;
-            font-size: 14px;
-            cursor: pointer;
-        }
     </style>
 </head>
 <body>
-<div class="showroom">
-    <div class="tri-header">
-        <h1>tri<span style="font-weight:300;">smart</span></h1>
-        <span>· scroll both ways ·</span>
-        <div class="pill" id="productCount">⚡ loading...</div>
-    </div>
+    <div class="app-wrapper">
+        <!-- header -->
+        <header>
+            <div class="container">
+                <div class="header-content">
+                    <div class="site-title">tri<span>smart</span></div>
+                </div>
+            </div>
+        </header>
 
-    <!-- search bar -->
-    <div class="search-container">
-        <i class="fas fa-search search-icon"></i>
-        <input type="text" class="search-bar" id="searchInput" placeholder="find products...">
-        <button class="clear-search" id="clearSearch"><i class="fas fa-times"></i></button>
-    </div>
+        <!-- mini search bar -->
+        <div class="sticky-search-container">
+            <div class="container">
+                <div class="search-container">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" class="search-bar" id="searchInput" placeholder="find...">
+                    <button class="clear-search" id="clearSearch"><i class="fas fa-times"></i></button>
+                </div>
+            </div>
+        </div>
 
-    <!-- categories filter -->
-    <div class="categories-section">
-        <div class="filter-header">
-            <span class="filter-title">categories</span>
-            <button class="filter-toggle" id="filterToggle">
-                <i class="fas fa-chevron-down"></i>
+        <!-- categories filter (tiny) -->
+        <div class="categories-section">
+            <div class="filter-header">
+                <span class="filter-title">categories</span>
+                <button class="filter-toggle" id="filterToggle">
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+            </div>
+            <div class="tabs" id="categoryTabs">
+                <button class="tab-btn active" data-category="all">all</button>
+                <button class="tab-btn" data-category="phone-accessories">phone</button>
+                <button class="tab-btn" data-category="computers-accessories">computer</button>
+                <button class="tab-btn" data-category="general-electronics">electronics</button>
+            </div>
+        </div>
+
+        <!-- special offers toggle (very small) -->
+        <div class="promotion-filter">
+            <button class="promo-btn" id="promotionFilter">
+                <i class="fas fa-tag"></i> offers
             </button>
         </div>
-        <div class="tabs" id="categoryTabs">
-            <button class="tab-btn active" data-category="all">all</button>
-            <button class="tab-btn" data-category="phone-accessories">phone</button>
-            <button class="tab-btn" data-category="computers-accessories">computer</button>
-            <button class="tab-btn" data-category="general-electronics">electronics</button>
-        </div>
-    </div>
 
-    <!-- promo filter -->
-    <div class="promotion-filter">
-        <button class="promo-btn" id="promotionFilter">
-            <i class="fas fa-tag"></i> offers only
-        </button>
-    </div>
+        <!-- MAIN SCROLLABLE CONTENT AREA -->
+        <div class="scrollable-content" id="scrollableContent">
+            <div class="container">
+                <!-- HOT SALES SECTION - FIRST 4 PRODUCTS (horizontal scroll) -->
+                <div class="hot-sales-section">
+                    <div class="section-header">
+                        <h3>hot sales</h3>
+                        <span><i class="fas fa-arrow-right"></i></span>
+                    </div>
+                    <div class="horizontal-scroll" id="horizontalScroll"></div>
+                </div>
 
-    <!-- scroll hint like the example -->
-    <div class="scroll-hint">
-        <div class="arrow-set">← → &nbsp; scroll left / right</div>
-        <span>↓ &nbsp; vertical scroll for more</span>
-    </div>
+                <!-- PROMOTIONS SECTION - NEXT 4 PRODUCTS (vertical scroll) -->
+                <div class="promotions-section">
+                    <div class="section-header">
+                        <h3>special promotions</h3>
+                    </div>
+                    <div class="vertical-scroll" id="verticalScroll"></div>
+                </div>
 
-    <!-- MAIN GRID - scrolls both ways automatically! -->
-    <div class="goods-grid" id="productsGrid"></div>
+                <!-- MORE PRODUCTS SECTION - regular grid -->
+                <div class="more-products-section">
+                    <div class="section-header">
+                        <h3>more products</h3>
+                    </div>
+                    <div class="products-grid" id="productsGrid"></div>
+                </div>
 
-    <!-- bottom note -->
-    <div class="bottom-note" id="bottomNote">
-        ⬇️  keep scrolling · more smart goods below  ⬇️
-    </div>
-</div> <!-- end showroom -->
-
-<!-- modals (same as before) -->
-<div class="modal-overlay" id="productModal">
-    <button class="close-modal" id="closeModal">×</button>
-    <div class="product-modal">
-        <div class="image-slider" id="imageSlider">
-            <div class="slider-images" id="sliderImages"></div>
-            <div class="slider-nav">
-                <button class="slider-btn" id="prevBtn"><i class="fas fa-chevron-left"></i></button>
-                <button class="slider-btn" id="nextBtn"><i class="fas fa-chevron-right"></i></button>
+                <!-- new arrivals section -->
+                <div style="margin-top: 8px; margin-bottom: 20px;">
+                    <div class="section-header">
+                        <h3>new arrivals</h3>
+                    </div>
+                    <div class="products-grid" id="newArrivalsGrid"></div>
+                </div>
             </div>
-            <div class="slider-dots" id="sliderDots"></div>
         </div>
-        <div class="modal-content">
-            <div class="modal-category" id="modalCategory"></div>
-            <h2 class="modal-title" id="modalTitle"></h2>
-            <p class="modal-description" id="modalDescription"></p>
-            <div class="modal-price">
-                <span id="modalOldPrice" class="old-price" style="display:none;"></span>
-                <span id="modalPrice"></span>
+
+        <!-- footer (tiny) -->
+        <footer>
+            <div class="container">
+                <div class="footer-content">
+                    <div style="font-size: 11px; color: #aaa;">© trismart · zambia</div>
+                </div>
             </div>
-            <div id="modalPromotion" style="display:none; font-size:11px; margin-bottom:8px;"><i class="fas fa-tag"></i> <span id="promotionText"></span></div>
-            <div class="modal-stock" id="modalStock" style="font-size:12px; margin-bottom:12px;"></div>
-            <a href="#" class="whatsapp-btn" id="whatsappInquiry" target="_blank">
-                <i class="fab fa-whatsapp"></i> inquire
-            </a>
+        </footer>
+    </div>
+
+    <!-- product detail modal (minimal) -->
+    <div class="modal-overlay" id="productModal">
+        <button class="close-modal" id="closeModal">×</button>
+        <div class="product-modal">
+            <div class="image-slider" id="imageSlider">
+                <div class="slider-images" id="sliderImages"></div>
+                <div class="slider-nav">
+                    <button class="slider-btn" id="prevBtn"><i class="fas fa-chevron-left"></i></button>
+                    <button class="slider-btn" id="nextBtn"><i class="fas fa-chevron-right"></i></button>
+                </div>
+                <div class="slider-dots" id="sliderDots"></div>
+            </div>
+            <div class="modal-content">
+                <div class="modal-category" id="modalCategory"></div>
+                <h2 class="modal-title" id="modalTitle"></h2>
+                <p class="modal-description" id="modalDescription"></p>
+                <div class="modal-price">
+                    <span id="modalOldPrice" class="old-price" style="display:none;"></span>
+                    <span id="modalPrice"></span>
+                </div>
+                <div id="modalPromotion" style="display:none; font-size:11px; margin-bottom:8px;"><i class="fas fa-tag"></i> <span id="promotionText"></span></div>
+                <div class="modal-stock" id="modalStock" style="font-size:12px; margin-bottom:12px;"></div>
+                <a href="#" class="whatsapp-btn" id="whatsappInquiry" target="_blank">
+                    <i class="fab fa-whatsapp"></i> inquire
+                </a>
+            </div>
         </div>
     </div>
-</div>
 
-<!-- micro thumb modal -->
-<div class="micro-thumb-overlay" id="microThumbOverlay">
-    <div class="micro-thumb-modal" id="microThumbModal">
-        <div class="thumb-scroll-wrapper" id="thumbScrollWrapper"></div>
-        <button class="close-micro-thumb" id="closeMicroThumb"><i class="fas fa-times"></i></button>
+    <!-- HORIZONTAL SCROLLABLE THUMBNAIL MODAL -->
+    <div class="micro-thumb-overlay" id="microThumbOverlay">
+        <div class="micro-thumb-modal" id="microThumbModal">
+            <div class="thumb-scroll-wrapper" id="thumbScrollWrapper">
+                <!-- js will inject micro thumbnails here -->
+            </div>
+            <span style="color:rgba(255,255,255,0.5); font-size:9px;"><i class="fas fa-arrows-alt-h"></i></span>
+            <button class="close-micro-thumb" id="closeMicroThumb"><i class="fas fa-times"></i></button>
+        </div>
     </div>
-</div>
 
-<!-- whatsapp float -->
-<a href="https://wa.me/260775390905" class="whatsapp-float" target="_blank">
-    <i class="fab fa-whatsapp"></i>
-</a>
+    <!-- whatsapp float -->
+    <a href="https://wa.me/260775390905" class="whatsapp-float" target="_blank">
+        <i class="fab fa-whatsapp"></i>
+    </a>
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.0/firebase-app.js";
-    import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.9.0/firebase-firestore.js";
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.0/firebase-app.js";
+        import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.9.0/firebase-firestore.js";
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyA8fSfsDB0J81iM0FWwbl233nHafBorKV4",
-        authDomain: "chris-89177.firebaseapp.com",
-        projectId: "chris-89177",
-        storageBucket: "chris-89177.firebasestorage.app",
-        messagingSenderId: "2833785676",
-        appId: "1:2833785676:web:d934ffdbaf64c2f5f5a5e9"
-    };
+        const firebaseConfig = {
+            apiKey: "AIzaSyA8fSfsDB0J81iM0FWwbl233nHafBorKV4",
+            authDomain: "chris-89177.firebaseapp.com",
+            projectId: "chris-89177",
+            storageBucket: "chris-89177.firebasestorage.app",
+            messagingSenderId: "2833785676",
+            appId: "1:2833785676:web:d934ffdbaf64c2f5f5a5e9"
+        };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const productsCollection = collection(db, "products");
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const productsCollection = collection(db, "products");
 
-    // DOM
-    const productsGrid = document.getElementById('productsGrid');
-    const productCount = document.getElementById('productCount');
-    const categoryTabs = document.getElementById('categoryTabs');
-    const filterToggle = document.getElementById('filterToggle');
-    const searchInput = document.getElementById('searchInput');
-    const clearSearch = document.getElementById('clearSearch');
-    const promotionFilter = document.getElementById('promotionFilter');
-    const bottomNote = document.getElementById('bottomNote');
-    
-    // Modal elements
-    const productModal = document.getElementById('productModal');
-    const closeModal = document.getElementById('closeModal');
-    const modalCategory = document.getElementById('modalCategory');
-    const modalTitle = document.getElementById('modalTitle');
-    const modalDescription = document.getElementById('modalDescription');
-    const modalPrice = document.getElementById('modalPrice');
-    const modalOldPrice = document.getElementById('modalOldPrice');
-    const modalStock = document.getElementById('modalStock');
-    const whatsappInquiry = document.getElementById('whatsappInquiry');
-    const modalPromotion = document.getElementById('modalPromotion');
-    const promotionText = document.getElementById('promotionText');
-    const sliderImages = document.getElementById('sliderImages');
-    const sliderDots = document.getElementById('sliderDots');
-    const prevBtn = document.getElementById('prevBtn');
-    const nextBtn = document.getElementById('nextBtn');
-    
-    // Micro thumb modal
-    const microThumbOverlay = document.getElementById('microThumbOverlay');
-    const thumbScrollWrapper = document.getElementById('thumbScrollWrapper');
-    const closeMicroThumb = document.getElementById('closeMicroThumb');
+        // DOM
+        const horizontalScroll = document.getElementById('horizontalScroll');
+        const verticalScroll = document.getElementById('verticalScroll');
+        const productsGrid = document.getElementById('productsGrid');
+        const newArrivalsGrid = document.getElementById('newArrivalsGrid');
+        const categoryTabs = document.getElementById('categoryTabs');
+        const filterToggle = document.getElementById('filterToggle');
+        const searchInput = document.getElementById('searchInput');
+        const clearSearch = document.getElementById('clearSearch');
+        const promotionFilter = document.getElementById('promotionFilter');
+        const productModal = document.getElementById('productModal');
+        const closeModal = document.getElementById('closeModal');
+        const modalCategory = document.getElementById('modalCategory');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalDescription = document.getElementById('modalDescription');
+        const modalPrice = document.getElementById('modalPrice');
+        const modalOldPrice = document.getElementById('modalOldPrice');
+        const modalStock = document.getElementById('modalStock');
+        const whatsappInquiry = document.getElementById('whatsappInquiry');
+        const modalPromotion = document.getElementById('modalPromotion');
+        const promotionText = document.getElementById('promotionText');
+        const sliderImages = document.getElementById('sliderImages');
+        const sliderDots = document.getElementById('sliderDots');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        
+        // micro thumb modal
+        const microThumbOverlay = document.getElementById('microThumbOverlay');
+        const thumbScrollWrapper = document.getElementById('thumbScrollWrapper');
+        const closeMicroThumb = document.getElementById('closeMicroThumb');
 
-    // State
-    let currentCategory = 'all';
-    let currentProducts = [];
-    let showPromotionsOnly = false;
-    let searchQuery = '';
-    let isFilterOpen = false;
-    let currentProductImages = [];
-    let currentSliderIndex = 0;
-    let currentProduct = null;
+        // state
+        let currentCategory = 'all';
+        let currentProducts = [];
+        let showPromotionsOnly = false;
+        let searchQuery = '';
+        let isFilterOpen = false;
+        let currentProductImages = [];
+        let currentSliderIndex = 0;
+        let currentProduct = null;
 
-    // Close micro thumb
-    closeMicroThumb.addEventListener('click', () => {
-        microThumbOverlay.style.display = 'none';
-    });
-
-    // Search
-    searchInput.addEventListener('input', (e) => {
-        searchQuery = e.target.value.toLowerCase().trim();
-        clearSearch.style.display = searchQuery ? 'block' : 'none';
-        filterAndDisplayProducts();
-    });
-
-    clearSearch.addEventListener('click', () => {
-        searchInput.value = '';
-        searchQuery = '';
-        clearSearch.style.display = 'none';
-        filterAndDisplayProducts();
-        searchInput.focus();
-    });
-
-    // Filter toggle
-    filterToggle.addEventListener('click', () => {
-        isFilterOpen = !isFilterOpen;
-        categoryTabs.classList.toggle('active');
-        filterToggle.querySelector('i').className = isFilterOpen ? 'fas fa-chevron-up' : 'fas fa-chevron-down';
-    });
-
-    // Promo filter
-    promotionFilter.addEventListener('click', () => {
-        showPromotionsOnly = !showPromotionsOnly;
-        promotionFilter.innerHTML = showPromotionsOnly ? 
-            '<i class="fas fa-times"></i> show all' : 
-            '<i class="fas fa-tag"></i> offers only';
-        filterAndDisplayProducts();
-    });
-
-    // Categories
-    categoryTabs.addEventListener('click', (e) => {
-        if (e.target.classList.contains('tab-btn')) {
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            e.target.classList.add('active');
-            currentCategory = e.target.dataset.category;
-            if (window.innerWidth <= 768) {
-                isFilterOpen = false;
-                categoryTabs.classList.remove('active');
-                filterToggle.querySelector('i').className = 'fas fa-chevron-down';
-            }
-            filterAndDisplayProducts();
-        }
-    });
-
-    // Modal functions
-    function openProductModal(product) {
-        currentProduct = product;
-        currentProductImages = product.images && product.images.length ? [...product.images] : [];
-        if (product.image) currentProductImages.unshift(product.image);
-        if (!currentProductImages.length) currentProductImages = ['https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200'];
-
-        sliderImages.innerHTML = '';
-        sliderDots.innerHTML = '';
-        currentSliderIndex = 0;
-
-        currentProductImages.forEach((src, idx) => {
-            const img = document.createElement('img');
-            img.src = src;
-            img.className = 'slider-image';
-            img.onerror = () => img.src = 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200';
-            sliderImages.appendChild(img);
-
-            const dot = document.createElement('button');
-            dot.className = `slider-dot ${idx === 0 ? 'active' : ''}`;
-            dot.addEventListener('click', () => goToSlide(idx));
-            sliderDots.appendChild(dot);
-        });
-        updateSlider();
-
-        modalCategory.textContent = product.category?.replace('-', ' ').toUpperCase() || 'ITEM';
-        modalTitle.textContent = product.name || '';
-        modalDescription.textContent = product.description || 'No description available';
-
-        if (product.promotion && product.oldPrice) {
-            modalOldPrice.style.display = 'inline';
-            modalOldPrice.textContent = `ZMW ${Number(product.oldPrice).toLocaleString()}`;
-            modalPrice.textContent = `ZMW ${Number(product.price).toLocaleString()}`;
-        } else {
-            modalOldPrice.style.display = 'none';
-            modalPrice.textContent = `ZMW ${Number(product.price || 0).toLocaleString()}`;
-        }
-
-        if (product.promotion) {
-            modalPromotion.style.display = 'block';
-            promotionText.textContent = product.promotion;
-        } else modalPromotion.style.display = 'none';
-
-        const stock = product.stock ?? 0;
-        if (stock > 5) modalStock.textContent = `✅ in stock (${stock})`;
-        else if (stock > 0) modalStock.textContent = `⚠️ low stock (${stock})`;
-        else modalStock.textContent = '❌ out of stock';
-
-        const msg = `Hi! I'm interested in: ${product.name} – ZMW ${product.price}`;
-        whatsappInquiry.href = `https://wa.me/260775390905?text=${encodeURIComponent(msg)}`;
-
-        productModal.classList.add('active');
-
-        // Setup thumbnails
-        thumbScrollWrapper.innerHTML = '';
-        currentProductImages.forEach((imgSrc, idx) => {
-            const thumbWrap = document.createElement('div');
-            thumbWrap.className = `micro-thumb-item ${idx === currentSliderIndex ? 'active' : ''}`;
-            const thumbImg = document.createElement('img');
-            thumbImg.src = imgSrc;
-            thumbImg.className = 'micro-thumb-img';
-            thumbImg.onerror = () => thumbImg.src = 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=100';
-            thumbWrap.appendChild(thumbImg);
-            thumbWrap.addEventListener('click', () => goToSlide(idx));
-            thumbScrollWrapper.appendChild(thumbWrap);
-        });
-
-        microThumbOverlay.style.display = 'flex';
-    }
-
-    function goToSlide(index) {
-        if (index >= 0 && index < currentProductImages.length) {
-            currentSliderIndex = index;
-            updateSlider();
-            document.querySelectorAll('.slider-dot').forEach((dot, i) => {
-                dot.classList.toggle('active', i === index);
-            });
-            const thumbs = thumbScrollWrapper.querySelectorAll('.micro-thumb-item');
-            thumbs.forEach((t, i) => t.classList.toggle('active', i === index));
-        }
-    }
-
-    function updateSlider() {
-        sliderImages.style.transform = `translateX(-${currentSliderIndex * 100}%)`;
-    }
-
-    prevBtn.addEventListener('click', () => {
-        currentSliderIndex = (currentSliderIndex - 1 + currentProductImages.length) % currentProductImages.length;
-        goToSlide(currentSliderIndex);
-    });
-
-    nextBtn.addEventListener('click', () => {
-        currentSliderIndex = (currentSliderIndex + 1) % currentProductImages.length;
-        goToSlide(currentSliderIndex);
-    });
-
-    closeModal.addEventListener('click', () => {
-        productModal.classList.remove('active');
-        microThumbOverlay.style.display = 'none';
-    });
-
-    productModal.addEventListener('click', (e) => {
-        if (e.target === productModal) {
-            productModal.classList.remove('active');
+        // close micro thumb
+        closeMicroThumb.addEventListener('click', (e) => {
+            e.stopPropagation();
             microThumbOverlay.style.display = 'none';
-        }
-    });
+        });
+        
+        microThumbOverlay.addEventListener('click', (e) => {
+            if (e.target === microThumbOverlay) microThumbOverlay.style.display = 'none';
+        });
 
-    // Filter products
-    function getFilteredProducts() {
-        return currentProducts.filter(p => {
-            if (currentCategory !== 'all' && p.category !== currentCategory) return false;
-            if (showPromotionsOnly && !p.promotion) return false;
-            if (searchQuery) {
-                const nameMatch = p.name?.toLowerCase().includes(searchQuery);
-                const descMatch = p.description?.toLowerCase().includes(searchQuery);
-                const catMatch = p.category?.toLowerCase().includes(searchQuery);
-                if (!nameMatch && !descMatch && !catMatch) return false;
+        // search
+        searchInput.addEventListener('input', (e) => {
+            searchQuery = e.target.value.toLowerCase().trim();
+            clearSearch.style.display = searchQuery ? 'block' : 'none';
+            displayAllSections(currentProducts);
+        });
+        
+        clearSearch.addEventListener('click', () => {
+            searchInput.value = '';
+            searchQuery = '';
+            clearSearch.style.display = 'none';
+            displayAllSections(currentProducts);
+            searchInput.focus();
+        });
+
+        // filter toggle mobile
+        filterToggle.addEventListener('click', () => {
+            isFilterOpen = !isFilterOpen;
+            categoryTabs.classList.toggle('active');
+            filterToggle.querySelector('i').className = isFilterOpen ? 'fas fa-chevron-up' : 'fas fa-chevron-down';
+        });
+
+        // promo filter
+        promotionFilter.addEventListener('click', () => {
+            showPromotionsOnly = !showPromotionsOnly;
+            promotionFilter.innerHTML = showPromotionsOnly ? '<i class="fas fa-times"></i> all' : '<i class="fas fa-tag"></i> offers';
+            displayAllSections(currentProducts);
+        });
+
+        // categories
+        categoryTabs.addEventListener('click', (e) => {
+            if (e.target.classList.contains('tab-btn')) {
+                document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+                e.target.classList.add('active');
+                currentCategory = e.target.dataset.category;
+                if (window.innerWidth <= 768) {
+                    isFilterOpen = false;
+                    categoryTabs.classList.remove('active');
+                    filterToggle.querySelector('i').className = 'fas fa-chevron-down';
+                }
+                displayAllSections(currentProducts);
             }
-            return true;
         });
-    }
 
-    // Create product card
-    function createProductCard(product) {
-        const card = document.createElement('div');
-        card.className = 'product-card';
-        
-        const imgSrc = (product.images && product.images[0]) || product.image || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200';
-        const badge = product.promotion ? `<div class="promotion-badge">${product.promotion.slice(0,10)}</div>` : '';
-        const category = product.category?.replace('-', ' ').slice(0,15) || 'item';
-        const oldPriceHtml = product.promotion && product.oldPrice ? 
-            `<span class="old-price">ZMW ${product.oldPrice}</span>` : '';
-        
-        card.innerHTML = `
-            ${badge}
-            <div class="pic-frame">
-                <img src="${imgSrc}" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200'">
-            </div>
-            <div class="product-tag">${category}</div>
-            <div class="product-description">${product.name?.slice(0,40) || ''}</div>
-            <div class="product-price">
-                ${oldPriceHtml}
-                ZMW ${product.price ?? 0}<small>.00</small>
-            </div>
-        `;
-        
-        card.addEventListener('click', () => openProductModal(product));
-        return card;
-    }
+        // product card click: open modal AND horizontal scrollable thumbnail gallery!
+        function openProductModal(product) {
+            currentProduct = product;
+            currentProductImages = product.images && product.images.length ? [...product.images] : [];
+            if (product.image) currentProductImages.unshift(product.image);
+            if (!currentProductImages.length) currentProductImages = ['https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200'];
 
-    // Display products - simple grid that scrolls both ways!
-    function filterAndDisplayProducts() {
-        const filtered = getFilteredProducts();
-        
-        // Update product count
-        productCount.innerHTML = `⚡ ${filtered.length} items`;
-        
-        // Update bottom note
-        if (filtered.length > 12) {
-            bottomNote.innerHTML = '⬇️  keep scrolling · more smart goods below  ⬇️';
-        } else {
-            bottomNote.innerHTML = '⬇️  end of collection  ⬇️';
+            // init slider
+            sliderImages.innerHTML = '';
+            sliderDots.innerHTML = '';
+            currentSliderIndex = 0;
+            
+            currentProductImages.forEach((src, idx) => {
+                const img = document.createElement('img');
+                img.src = src;
+                img.className = 'slider-image';
+                img.onerror = () => img.src = 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200';
+                sliderImages.appendChild(img);
+                
+                const dot = document.createElement('button');
+                dot.className = `slider-dot ${idx === 0 ? 'active' : ''}`;
+                dot.addEventListener('click', () => goToSlide(idx));
+                sliderDots.appendChild(dot);
+            });
+            updateSlider();
+
+            modalCategory.textContent = product.category?.replace('-', ' ').toUpperCase() || 'ITEM';
+            modalTitle.textContent = product.name || '';
+            modalDescription.textContent = product.description || 'No description available';
+            
+            if (product.promotion && product.oldPrice) {
+                modalOldPrice.style.display = 'inline';
+                modalOldPrice.textContent = `ZMW ${Number(product.oldPrice).toLocaleString()}`;
+                modalPrice.textContent = `ZMW ${Number(product.price).toLocaleString()}`;
+            } else {
+                modalOldPrice.style.display = 'none';
+                modalPrice.textContent = `ZMW ${Number(product.price || 0).toLocaleString()}`;
+            }
+            
+            if (product.promotion) {
+                modalPromotion.style.display = 'block';
+                promotionText.textContent = product.promotion;
+            } else modalPromotion.style.display = 'none';
+
+            const stock = product.stock ?? 0;
+            if (stock > 5) modalStock.textContent = `✅ in stock (${stock})`;
+            else if (stock > 0) modalStock.textContent = `⚠️ low stock (${stock})`;
+            else modalStock.textContent = '❌ out of stock';
+
+            const msg = `Hi! I'm interested in: ${product.name} – ZMW ${product.price}`;
+            whatsappInquiry.href = `https://wa.me/260775390905?text=${encodeURIComponent(msg)}`;
+
+            productModal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+
+            // HORIZONTAL SCROLLABLE THUMBNAILS
+            thumbScrollWrapper.innerHTML = ''; 
+            
+            currentProductImages.forEach((imgSrc, idx) => {
+                const thumbWrap = document.createElement('div');
+                thumbWrap.className = `micro-thumb-item ${idx === currentSliderIndex ? 'active' : ''}`;
+                
+                const thumbImg = document.createElement('img');
+                thumbImg.src = imgSrc;
+                thumbImg.className = 'micro-thumb-img';
+                thumbImg.onerror = () => thumbImg.src = 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=100';
+                
+                thumbWrap.appendChild(thumbImg);
+                thumbWrap.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    goToSlide(idx);
+                    
+                    document.querySelectorAll('.micro-thumb-item').forEach(el => el.classList.remove('active'));
+                    thumbWrap.classList.add('active');
+                    
+                    const thumbWidth = 62;
+                    thumbScrollWrapper.scrollTo({
+                        left: idx * thumbWidth,
+                        behavior: 'smooth'
+                    });
+                });
+                
+                thumbScrollWrapper.appendChild(thumbWrap);
+            });
+            
+            microThumbOverlay.style.display = 'flex';
+            
+            setTimeout(() => {
+                thumbScrollWrapper.scrollLeft = 0;
+            }, 50);
         }
-        
-        // Clear and repopulate grid
-        productsGrid.innerHTML = '';
-        
-        if (filtered.length === 0) {
-            productsGrid.innerHTML = '<div class="no-products">no products found</div>';
-            return;
-        }
-        
-        filtered.forEach(product => {
-            productsGrid.appendChild(createProductCard(product));
-        });
-    }
 
-    // Load data from Firestore
-    onSnapshot(productsCollection, (snap) => {
-        currentProducts = [];
-        snap.forEach(doc => {
-            let data = doc.data();
-            data.id = doc.id;
-            currentProducts.push(data);
+        function goToSlide(index) {
+            if (index >= 0 && index < currentProductImages.length) {
+                currentSliderIndex = index;
+                updateSlider();
+                
+                document.querySelectorAll('.slider-dot').forEach((dot, i) => {
+                    dot.classList.toggle('active', i === index);
+                });
+                
+                if (thumbScrollWrapper) {
+                    const thumbs = thumbScrollWrapper.querySelectorAll('.micro-thumb-item');
+                    thumbs.forEach((t, i) => {
+                        t.classList.toggle('active', i === index);
+                    });
+                }
+            }
+        }
+
+        function updateSlider() {
+            sliderImages.style.transform = `translateX(-${currentSliderIndex * 100}%)`;
+        }
+
+        prevBtn.addEventListener('click', () => {
+            currentSliderIndex = (currentSliderIndex - 1 + currentProductImages.length) % currentProductImages.length;
+            goToSlide(currentSliderIndex);
+            
+            const thumbWidth = 62;
+            thumbScrollWrapper.scrollTo({
+                left: currentSliderIndex * thumbWidth,
+                behavior: 'smooth'
+            });
         });
         
-        // Sort by newest first
-        currentProducts.sort((a,b) => {
-            if (!a.createdAt) return 1;
-            if (!b.createdAt) return -1;
-            return new Date(b.createdAt) - new Date(a.createdAt);
+        nextBtn.addEventListener('click', () => {
+            currentSliderIndex = (currentSliderIndex + 1) % currentProductImages.length;
+            goToSlide(currentSliderIndex);
+            
+            const thumbWidth = 62;
+            thumbScrollWrapper.scrollTo({
+                left: currentSliderIndex * thumbWidth,
+                behavior: 'smooth'
+            });
+        });
+
+        closeModal.addEventListener('click', () => {
+            productModal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+            microThumbOverlay.style.display = 'none';
         });
         
-        filterAndDisplayProducts();
-    }, (err) => {
-        console.error("Firestore error:", err);
-        productsGrid.innerHTML = `<div class="no-products">⚠️ error loading products</div>`;
-    });
-</script>
+        productModal.addEventListener('click', (e) => { 
+            if (e.target === productModal) { 
+                productModal.classList.remove('active'); 
+                microThumbOverlay.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+        });
+
+        // Function to filter products based on current filters
+        function getFilteredProducts(products) {
+            return products.filter(p => {
+                if (currentCategory !== 'all' && p.category !== currentCategory) return false;
+                if (showPromotionsOnly && !p.promotion) return false;
+                if (searchQuery) {
+                    const nameMatch = p.name?.toLowerCase().includes(searchQuery);
+                    const descMatch = p.description?.toLowerCase().includes(searchQuery);
+                    const catMatch = p.category?.toLowerCase().includes(searchQuery);
+                    if (!nameMatch && !descMatch && !catMatch) return false;
+                }
+                return true;
+            });
+        }
+
+        // Create product card HTML (reusable)
+        function createProductCard(product, isHorizontal = false, isVertical = false) {
+            const card = document.createElement('div');
+            card.className = 'product-card';
+            
+            const imgSrc = (product.images && product.images[0]) || product.image || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200';
+            let badge = product.promotion ? `<div class="promotion-badge">${product.promotion.slice(0,10)}</div>` : '';
+            
+            if (isVertical) {
+                // Vertical layout
+                card.innerHTML = `
+                    ${badge}
+                    <img src="${imgSrc}" class="product-img" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200'">
+                    <div class="product-info">
+                        <div class="product-category">${product.category?.replace('-', ' ').slice(0,15) || 'item'}</div>
+                        <div class="product-title">${product.name?.slice(0,40) || ''}</div>
+                        <div class="product-price">
+                            ${product.promotion && product.oldPrice ? `<span class="old-price">ZMW ${product.oldPrice}</span>` : ''}
+                            ZMW ${product.price ?? 0}
+                        </div>
+                    </div>
+                `;
+            } else {
+                card.innerHTML = `
+                    ${badge}
+                    <img src="${imgSrc}" class="product-img" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200'">
+                    <div class="product-info">
+                        <div class="product-category">${product.category?.replace('-', ' ').slice(0,15) || 'item'}</div>
+                        <div class="product-title">${product.name?.slice(0,30) || ''}</div>
+                        <div class="product-price">
+                            ${product.promotion && product.oldPrice ? `<span class="old-price">ZMW ${product.oldPrice}</span>` : ''}
+                            ZMW ${product.price ?? 0}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            card.addEventListener('click', () => openProductModal(product));
+            return card;
+        }
+
+        // Display all sections with proper product distribution
+        function displayAllSections(products) {
+            const filtered = getFilteredProducts(products);
+            
+            // Clear all sections
+            horizontalScroll.innerHTML = '';
+            verticalScroll.innerHTML = '';
+            productsGrid.innerHTML = '';
+            
+            if (filtered.length === 0) {
+                horizontalScroll.innerHTML = '<div class="no-products" style="padding:20px; width:100%;">no products found</div>';
+                return;
+            }
+            
+            // FIRST 4 PRODUCTS - Horizontal scroll (Hot Sales)
+            const firstFour = filtered.slice(0, 4);
+            if (firstFour.length > 0) {
+                firstFour.forEach(product => {
+                    horizontalScroll.appendChild(createProductCard(product, true, false));
+                });
+            }
+            
+            // NEXT 4 PRODUCTS - Vertical scroll (Special Promotions)
+            const nextFour = filtered.slice(4, 8);
+            if (nextFour.length > 0) {
+                nextFour.forEach(product => {
+                    verticalScroll.appendChild(createProductCard(product, false, true));
+                });
+            } else {
+                verticalScroll.innerHTML = '<div class="no-products" style="padding:20px;">no promotions</div>';
+            }
+            
+            // REMAINING PRODUCTS - Regular grid (More Products)
+            const remaining = filtered.slice(8);
+            if (remaining.length > 0) {
+                remaining.forEach(product => {
+                    productsGrid.appendChild(createProductCard(product, false, false));
+                });
+            }
+        }
+
+        function displayNewArrivals(products) {
+            newArrivalsGrid.innerHTML = '';
+            
+            let specials = products.filter(p => p.promotion || (p.createdAt && (new Date() - new Date(p.createdAt) < 30*24*60*60*1000)));
+            
+            if (specials.length === 0) {
+                newArrivalsGrid.innerHTML = '<div class="no-products" style="padding:20px;">no new arrivals</div>';
+                return;
+            }
+            
+            specials.slice(0, 6).forEach(p => {
+                const card = createProductCard(p, false, false);
+                newArrivalsGrid.appendChild(card);
+            });
+        }
+
+        // load firestore data
+        onSnapshot(productsCollection, (snap) => {
+            currentProducts = [];
+            snap.forEach(doc => {
+                let data = doc.data();
+                data.id = doc.id;
+                currentProducts.push(data);
+            });
+            
+            // sort by newest first
+            currentProducts.sort((a,b) => {
+                if (!a.createdAt) return 1;
+                if (!b.createdAt) return -1;
+                return new Date(b.createdAt) - new Date(a.createdAt);
+            });
+            
+            displayAllSections(currentProducts);
+            displayNewArrivals(currentProducts);
+        }, (err) => {
+            console.error("Firestore error:", err);
+            horizontalScroll.innerHTML = `<div class="no-products">⚠️ error loading products</div>`;
+        });
+        
+        // handle window resize for responsive grid
+        window.addEventListener('resize', () => {
+            displayAllSections(currentProducts);
+            displayNewArrivals(currentProducts);
+        });
+    </script>
 </body>
 </html>
