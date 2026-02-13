@@ -29,15 +29,11 @@
             background-color: var(--primary);
             color: var(--text);
             line-height: 1.2;
-            overflow-x: hidden;
-            overflow-y: auto;
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-            height: 100%;
-            width: 100%;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
             position: fixed;
         }
-        body::-webkit-scrollbar { display: none; }
 
         .app-wrapper {
             height: 100vh;
@@ -218,29 +214,51 @@
         }
         .promo-btn i { font-size: 11px; }
 
-        /* Scrollable content area - THIS IS WHERE THE MAGIC HAPPENS */
+        /* MAIN SCROLLABLE CONTENT AREA - THIS IS THE KEY FIX */
         .scrollable-content {
             flex: 1;
             overflow-y: auto;
             overflow-x: hidden;
-            padding-bottom: 10px;
             -webkit-overflow-scrolling: touch;
+            padding-bottom: 10px;
         }
 
-        /* Horizontal scroll section - FIRST 4 PRODUCTS */
-        .horizontal-scroll-section {
-            margin: 8px 0 16px;
-            width: 100%;
+        /* Section headers - nice and tiny */
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin: 12px 0 8px 4px;
         }
-        
-        .section-label {
-            font-size: 11px;
+        .section-header i {
+            font-size: 14px;
+            color: #5a5a5e;
+            background: white;
+            padding: 4px;
+            border-radius: 8px;
+            box-shadow: var(--tiny-shadow);
+        }
+        .section-header h3 {
+            font-size: 13px;
             font-weight: 600;
-            color: #3a3a3c;
-            letter-spacing: 0.3px;
+            color: #1c1c1e;
             text-transform: uppercase;
-            margin-bottom: 8px;
-            padding-left: 4px;
+            letter-spacing: 0.3px;
+        }
+        .section-header span {
+            font-size: 9px;
+            color: #8e8e93;
+            margin-left: auto;
+            background: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            box-shadow: var(--tiny-shadow);
+        }
+
+        /* Hot Sales Section - FIRST 4 PRODUCTS (horizontal scroll) */
+        .hot-sales-section {
+            margin: 0 0 8px 0;
+            width: 100%;
         }
         
         .horizontal-scroll {
@@ -251,39 +269,39 @@
             padding: 4px 4px 12px 4px;
             -webkit-overflow-scrolling: touch;
             scroll-snap-type: x mandatory;
-            scrollbar-width: none; /* Firefox */
+            scrollbar-width: none;
         }
         .horizontal-scroll::-webkit-scrollbar {
-            display: none; /* Chrome/Safari */
+            display: none;
         }
         
         .horizontal-scroll .product-card {
             flex: 0 0 auto;
-            width: 160px; /* Fixed width for horizontal scroll */
+            width: 160px;
             scroll-snap-align: start;
         }
 
-        /* Vertical scroll section - NEXT 4 PRODUCTS */
-        .vertical-scroll-section {
-            margin: 16px 0 20px;
+        /* Promotions Section - NEXT 4 PRODUCTS (vertical scroll) */
+        .promotions-section {
+            margin: 0 0 8px 0;
             width: 100%;
         }
         
         .vertical-scroll {
             display: flex;
             flex-direction: column;
-            gap: 12px;
-            max-height: 500px;
+            gap: 10px;
+            max-height: 340px;
             overflow-y: auto;
             overflow-x: hidden;
             padding: 4px 8px 12px 4px;
             -webkit-overflow-scrolling: touch;
-            scrollbar-width: none; /* Firefox */
-            border-top: 1px solid #e5e5ea;
-            border-bottom: 1px solid #e5e5ea;
+            scrollbar-width: none;
+            background: rgba(255,255,255,0.5);
+            border-radius: 12px;
         }
         .vertical-scroll::-webkit-scrollbar {
-            display: none; /* Chrome/Safari */
+            display: none;
         }
         
         .vertical-scroll .product-card {
@@ -295,8 +313,8 @@
         }
         
         .vertical-scroll .product-img {
-            width: 80px;
-            height: 80px;
+            width: 70px;
+            height: 70px;
             flex-shrink: 0;
         }
         
@@ -312,11 +330,15 @@
         }
 
         /* Regular grid for remaining products */
+        .more-products-section {
+            margin: 16px 0 20px;
+        }
+        
         .products-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 8px;
-            margin: 16px 0 20px;
+            margin: 8px 0 16px;
             width: 100%;
         }
         @media (max-width: 380px) {
@@ -489,20 +511,6 @@
             justify-content: center;
             cursor: pointer;
             margin-left: 4px;
-        }
-        
-        /* scroll hint */
-        .scroll-hint {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            color: rgba(255,255,255,0.5);
-            font-size: 9px;
-            padding-left: 4px;
-            white-space: nowrap;
-        }
-        .scroll-hint i {
-            font-size: 10px;
         }
 
         /* main modal – still minimal */
@@ -689,36 +697,45 @@
             </button>
         </div>
 
-        <!-- SCROLLABLE CONTENT AREA - ALL PRODUCTS GO HERE -->
+        <!-- MAIN SCROLLABLE CONTENT AREA - NOW YOU CAN SCROLL! -->
         <div class="scrollable-content" id="scrollableContent">
             <div class="container">
-                <!-- HORIZONTAL SCROLL SECTION - FIRST 4 PRODUCTS -->
-                <div class="horizontal-scroll-section" id="horizontalSection">
-                    <div class="section-label">
-                        <i class="fas fa-arrows-alt-h" style="margin-right: 4px;"></i> scroll left/right
+                <!-- HOT SALES SECTION - FIRST 4 PRODUCTS (horizontal scroll) -->
+                <div class="hot-sales-section">
+                    <div class="section-header">
+                        <i class="fas fa-fire" style="color: #ff6b6b;"></i>
+                        <h3>hot sales</h3>
+                        <span>swipe →</span>
                     </div>
                     <div class="horizontal-scroll" id="horizontalScroll"></div>
                 </div>
 
-                <!-- VERTICAL SCROLL SECTION - NEXT 4 PRODUCTS -->
-                <div class="vertical-scroll-section" id="verticalSection">
-                    <div class="section-label">
-                        <i class="fas fa-arrows-alt-v" style="margin-right: 4px;"></i> scroll up/down
+                <!-- PROMOTIONS SECTION - NEXT 4 PRODUCTS (vertical scroll) -->
+                <div class="promotions-section">
+                    <div class="section-header">
+                        <i class="fas fa-tags" style="color: #4ecdc4;"></i>
+                        <h3>special promotions</h3>
+                        <span>scroll ↓</span>
                     </div>
                     <div class="vertical-scroll" id="verticalScroll"></div>
                 </div>
 
-                <!-- REMAINING PRODUCTS - regular grid -->
-                <div id="remainingProducts">
-                    <div class="section-label" style="margin-top: 8px;">more products</div>
+                <!-- MORE PRODUCTS SECTION - regular grid -->
+                <div class="more-products-section">
+                    <div class="section-header">
+                        <i class="fas fa-box" style="color: #5a5a5e;"></i>
+                        <h3>more products</h3>
+                        <span>all items</span>
+                    </div>
                     <div class="products-grid" id="productsGrid"></div>
                 </div>
 
-                <!-- new arrivals section (tiny grid, same compact style) -->
-                <div style="margin-top: 16px; margin-bottom: 20px;">
-                    <div style="display: flex; align-items: center; gap: 5px; margin-bottom: 8px; color: #3a3a3c;">
-                        <i class="fas fa-bolt" style="font-size: 12px;"></i>
-                        <span style="font-size: 12px; font-weight: 600;">new & offers</span>
+                <!-- new arrivals section -->
+                <div style="margin-top: 8px; margin-bottom: 20px;">
+                    <div class="section-header">
+                        <i class="fas fa-bolt" style="color: #ffd166;"></i>
+                        <h3>new arrivals</h3>
+                        <span>fresh</span>
                     </div>
                     <div class="products-grid" id="newArrivalsGrid"></div>
                 </div>
@@ -770,7 +787,7 @@
             <div class="thumb-scroll-wrapper" id="thumbScrollWrapper">
                 <!-- js will inject micro thumbnails here -->
             </div>
-            <span class="scroll-hint"><i class="fas fa-arrows-alt-h"></i> scroll</span>
+            <span style="color:rgba(255,255,255,0.5); font-size:9px;"><i class="fas fa-arrows-alt-h"></i></span>
             <button class="close-micro-thumb" id="closeMicroThumb"><i class="fas fa-times"></i></button>
         </div>
     </div>
@@ -1066,7 +1083,7 @@
             let badge = product.promotion ? `<div class="promotion-badge">${product.promotion.slice(0,10)}</div>` : '';
             
             if (isVertical) {
-                // Vertical layout is handled by CSS
+                // Vertical layout
                 card.innerHTML = `
                     ${badge}
                     <img src="${imgSrc}" class="product-img" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200'">
@@ -1109,28 +1126,28 @@
             
             if (filtered.length === 0) {
                 horizontalScroll.innerHTML = '<div class="no-products" style="padding:20px; width:100%;">no products found</div>';
-                verticalScroll.innerHTML = '';
-                productsGrid.innerHTML = '';
                 return;
             }
             
-            // FIRST 4 PRODUCTS - Horizontal scroll
+            // FIRST 4 PRODUCTS - Horizontal scroll (Hot Sales)
             const firstFour = filtered.slice(0, 4);
-            firstFour.forEach(product => {
-                horizontalScroll.appendChild(createProductCard(product, true, false));
-            });
+            if (firstFour.length > 0) {
+                firstFour.forEach(product => {
+                    horizontalScroll.appendChild(createProductCard(product, true, false));
+                });
+            }
             
-            // NEXT 4 PRODUCTS - Vertical scroll
+            // NEXT 4 PRODUCTS - Vertical scroll (Special Promotions)
             const nextFour = filtered.slice(4, 8);
             if (nextFour.length > 0) {
                 nextFour.forEach(product => {
                     verticalScroll.appendChild(createProductCard(product, false, true));
                 });
             } else {
-                verticalScroll.innerHTML = '<div class="no-products" style="padding:20px;">no more products</div>';
+                verticalScroll.innerHTML = '<div class="no-products" style="padding:20px;">no promotions</div>';
             }
             
-            // REMAINING PRODUCTS - Regular grid
+            // REMAINING PRODUCTS - Regular grid (More Products)
             const remaining = filtered.slice(8);
             if (remaining.length > 0) {
                 remaining.forEach(product => {
