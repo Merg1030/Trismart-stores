@@ -352,7 +352,7 @@
             transform: scale(0.98);
         }
 
-        /* tiny image - fixed aspect ratio */
+        /* FIX: Image loading animation (skeleton shimmer) - prevents blinking */
         .product-img {
             width: 100%;
             aspect-ratio: 1 / 1;
@@ -360,6 +360,28 @@
             display: block;
             background: #fafafc;
             border-bottom: 1px solid #efefef;
+            will-change: auto;
+            transition: opacity 0.3s ease, filter 0.3s ease;
+        }
+
+        /* Show skeleton loader while image is loading */
+        .product-img:not(.loaded) {
+            opacity: 0.7;
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+
+        /* Smooth transition when image loads */
+        .product-img.loaded {
+            opacity: 1;
+            animation: none;
+            background: none;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
         }
 
         .product-info {
@@ -890,6 +912,19 @@
             }
         });
 
+        // Check if product should appear in given section
+        function shouldDisplayInSection(product, section) {
+            if (Array.isArray(product.sections)) {
+                return product.sections.includes(section);
+            }
+            // Backward compatibility fallback
+            if (section === "hotsales") return true;
+            if (section === "specialpromotions") return !!product.promotion;
+            if (section === "moreproducts") return true;
+            if (section === "newarrivals") return !!(product.createdAt && (new Date() - new Date(product.createdAt) < 30*24*60*60*1000));
+            return true;
+        }
+
         // product card click: open modal AND horizontal scrollable thumbnail gallery!
         function openProductModal(product) {
             currentProduct = product;
@@ -1067,7 +1102,7 @@
                 // Vertical layout
                 card.innerHTML = `
                     ${badge}
-                    <img src="${imgSrc}" class="product-img" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200'">
+                    <img src="${imgSrc}" class="product-img" loading="lazy">
                     <div class="product-info">
                         <div class="product-category">${product.category?.replace('-', ' ').slice(0,15) || 'item'}</div>
                         <div class="product-title">${product.name?.slice(0,40) || ''}</div>
@@ -1080,7 +1115,7 @@
             } else {
                 card.innerHTML = `
                     ${badge}
-                    <img src="${imgSrc}" class="product-img" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200'">
+                    <img src="${imgSrc}" class="product-img" loading="lazy">
                     <div class="product-info">
                         <div class="product-category">${product.category?.replace('-', ' ').slice(0,15) || 'item'}</div>
                         <div class="product-title">${product.name?.slice(0,30) || ''}</div>
@@ -1090,6 +1125,22 @@
                         </div>
                     </div>
                 `;
+            }
+
+            // FIX: Add event listeners to mark image as loaded (prevents blinking)
+            const img = card.querySelector('.product-img');
+            if (img) {
+                img.addEventListener('load', () => {
+                    img.classList.add('loaded');
+                });
+                img.addEventListener('error', () => {
+                    img.src = 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200';
+                    img.classList.add('loaded');
+                });
+                // If image is already cached/loaded
+                if (img.complete) {
+                    img.classList.add('loaded');
+                }
             }
             
             card.addEventListener('click', () => openProductModal(product));
@@ -1110,28 +1161,28 @@
                 return;
             }
             
-            // FIRST 4 PRODUCTS - Horizontal scroll (Hot Sales)
-            const firstFour = filtered.slice(0, 4);
-            if (firstFour.length > 0) {
-                firstFour.forEach(product => {
+            // Hot Sales - filter by section
+            const hotSalesProducts = filtered.filter(p => shouldDisplayInSection(p, 'hotsales')).slice(0, 4);
+            if (hotSalesProducts.length > 0) {
+                hotSalesProducts.forEach(product => {
                     horizontalScroll.appendChild(createProductCard(product, true, false));
                 });
             }
             
-            // NEXT 4 PRODUCTS - Vertical scroll (Special Promotions)
-            const nextFour = filtered.slice(4, 8);
-            if (nextFour.length > 0) {
-                nextFour.forEach(product => {
+            // Special Promotions - filter by section
+            const promoProducts = filtered.filter(p => shouldDisplayInSection(p, 'specialpromotions')).slice(0, 4);
+            if (promoProducts.length > 0) {
+                promoProducts.forEach(product => {
                     verticalScroll.appendChild(createProductCard(product, false, true));
                 });
             } else {
                 verticalScroll.innerHTML = '<div class="no-products" style="padding:20px;">no promotions</div>';
             }
             
-            // REMAINING PRODUCTS - Regular grid (More Products)
-            const remaining = filtered.slice(8);
-            if (remaining.length > 0) {
-                remaining.forEach(product => {
+            // More Products - filter by section
+            const moreProducts = filtered.filter(p => shouldDisplayInSection(p, 'moreproducts'));
+            if (moreProducts.length > 0) {
+                moreProducts.forEach(product => {
                     productsGrid.appendChild(createProductCard(product, false, false));
                 });
             }
@@ -1140,7 +1191,7 @@
         function displayNewArrivals(products) {
             newArrivalsGrid.innerHTML = '';
             
-            let specials = products.filter(p => p.promotion || (p.createdAt && (new Date() - new Date(p.createdAt) < 30*24*60*60*1000)));
+            let specials = products.filter(p => shouldDisplayInSection(p, 'newarrivals'));
             
             if (specials.length === 0) {
                 newArrivalsGrid.innerHTML = '<div class="no-products" style="padding:20px;">no new arrivals</div>';
