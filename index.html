@@ -31,17 +31,22 @@
             line-height: 1.2;
             height: 100%;
             width: 100%;
+            margin: 0;
+            padding: 0;
             overflow: hidden;
-            position: fixed;
         }
 
         .app-wrapper {
-            height: 100%;
-            width: 100%;
+            height: 100vh;
+            width: 100vw;
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            position: relative;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
         }
 
         .container {
@@ -216,15 +221,15 @@
             overflow-y: auto;
             overflow-x: hidden;
             -webkit-overflow-scrolling: touch;
-            padding-bottom: 20px;
+            padding-bottom: 30px;
         }
 
-        /* Section headers - clean without emojis */
+        /* Section headers - clean */
         .section-header {
             display: flex;
             align-items: center;
             gap: 6px;
-            margin: 16px 0 8px 4px;
+            margin: 20px 0 8px 4px;
         }
         .section-header h3 {
             font-size: 13px;
@@ -237,23 +242,14 @@
             font-size: 12px;
             color: #8e8e93;
         }
-        .section-header span {
-            font-size: 9px;
-            color: #8e8e93;
-            margin-left: auto;
-            background: white;
-            padding: 2px 8px;
-            border-radius: 12px;
-            box-shadow: var(--tiny-shadow);
-        }
 
-        /* Hot Sales Section - FIRST 4 PRODUCTS (horizontal scroll) */
-        .hot-sales-section {
-            margin: 0 0 8px 0;
+        /* Horizontal scroll sections - 2 products per row */
+        .horizontal-scroll-section {
+            margin: 0 0 16px 0;
             width: 100%;
         }
         
-        .horizontal-scroll {
+        .horizontal-scroll-row {
             display: flex;
             overflow-x: auto;
             overflow-y: hidden;
@@ -262,79 +258,31 @@
             -webkit-overflow-scrolling: touch;
             scroll-snap-type: x mandatory;
             scrollbar-width: none;
+            margin-bottom: 12px;
         }
-        .horizontal-scroll::-webkit-scrollbar {
+        .horizontal-scroll-row::-webkit-scrollbar {
             display: none;
         }
         
-        .horizontal-scroll .product-card {
+        .horizontal-scroll-row .product-card {
             flex: 0 0 auto;
-            width: 160px;
+            width: calc(50% - 6px); /* 2 products per row with gap */
+            max-width: 180px;
             scroll-snap-align: start;
         }
 
-        /* Promotions Section - NEXT 4 PRODUCTS (vertical scroll) */
-        .promotions-section {
-            margin: 0 0 8px 0;
+        /* Normal grid - 2 products per row */
+        .normal-grid-section {
+            margin: 0 0 16px 0;
             width: 100%;
         }
         
-        .vertical-scroll {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            max-height: 360px;
-            overflow-y: auto;
-            overflow-x: hidden;
-            padding: 4px 8px 12px 4px;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: none;
-            background: rgba(255,255,255,0.5);
-            border-radius: 12px;
-        }
-        .vertical-scroll::-webkit-scrollbar {
-            display: none;
-        }
-        
-        .vertical-scroll .product-card {
-            width: 100%;
-            flex-direction: row;
-            align-items: center;
-            gap: 12px;
-            padding: 8px;
-        }
-        
-        .vertical-scroll .product-img {
-            width: 70px;
-            height: 70px;
-            flex-shrink: 0;
-        }
-        
-        .vertical-scroll .product-info {
-            flex: 1;
-            padding: 0;
-        }
-        
-        .vertical-scroll .product-title {
-            font-size: 13px;
-            min-height: auto;
-            -webkit-line-clamp: 2;
-        }
-
-        /* Regular grid for remaining products */
-        .more-products-section {
-            margin: 16px 0 20px;
-        }
-        
-        .products-grid {
+        .two-column-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
             margin: 8px 0 16px;
             width: 100%;
-        }
-        @media (max-width: 380px) {
-            .products-grid { grid-template-columns: repeat(2, 1fr); }
         }
 
         /* product card – extremely compact */
@@ -367,33 +315,33 @@
         }
 
         .product-info {
-            padding: 6px 5px 7px;
+            padding: 8px 6px 8px;
         }
         .product-category {
             color: #8e8e93;
-            font-size: 8px;
+            font-size: 9px;
             text-transform: uppercase;
             letter-spacing: 0.3px;
-            margin-bottom: 2px;
+            margin-bottom: 3px;
             font-weight: 600;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
         .product-title {
-            font-size: 11px;
+            font-size: 12px;
             font-weight: 600;
-            line-height: 1.2;
-            margin-bottom: 3px;
+            line-height: 1.3;
+            margin-bottom: 4px;
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
             color: #1c1c1e;
-            min-height: 26px;
+            min-height: 30px;
         }
         .product-price {
-            font-size: 11px;
+            font-size: 12px;
             font-weight: 700;
             color: #1c1c1e;
             margin-top: 2px;
@@ -404,7 +352,7 @@
         .old-price {
             text-decoration: line-through;
             color: #a0a0a5;
-            font-size: 9px;
+            font-size: 10px;
             margin-right: 4px;
             font-weight: 400;
         }
@@ -689,41 +637,11 @@
             </button>
         </div>
 
-        <!-- MAIN SCROLLABLE CONTENT AREA - NOW SCROLLS ON ALL DEVICES -->
+        <!-- MAIN SCROLLABLE CONTENT AREA - NOW YOU CAN SCROLL DOWN FOREVER -->
         <div class="scrollable-content" id="scrollableContent">
-            <div class="container">
-                <!-- HOT SALES SECTION - FIRST 4 PRODUCTS (horizontal scroll) -->
-                <div class="hot-sales-section">
-                    <div class="section-header">
-                        <h3>hot sales</h3>
-                        <span><i class="fas fa-arrow-right"></i></span>
-                    </div>
-                    <div class="horizontal-scroll" id="horizontalScroll"></div>
-                </div>
-
-                <!-- PROMOTIONS SECTION - NEXT 4 PRODUCTS (vertical scroll) -->
-                <div class="promotions-section">
-                    <div class="section-header">
-                        <h3>special promotions</h3>
-                    </div>
-                    <div class="vertical-scroll" id="verticalScroll"></div>
-                </div>
-
-                <!-- MORE PRODUCTS SECTION - regular grid -->
-                <div class="more-products-section">
-                    <div class="section-header">
-                        <h3>more products</h3>
-                    </div>
-                    <div class="products-grid" id="productsGrid"></div>
-                </div>
-
-                <!-- new arrivals section -->
-                <div style="margin-top: 8px; margin-bottom: 20px;">
-                    <div class="section-header">
-                        <h3>new arrivals</h3>
-                    </div>
-                    <div class="products-grid" id="newArrivalsGrid"></div>
-                </div>
+            <div class="container" id="productsContainer">
+                <!-- ALL PRODUCTS WILL BE DYNAMICALLY INSERTED HERE -->
+                <!-- Pattern: 2 rows horizontal (4 products), 6 rows normal (12 products), repeat -->
             </div>
         </div>
 
@@ -800,10 +718,7 @@
         const productsCollection = collection(db, "products");
 
         // DOM
-        const horizontalScroll = document.getElementById('horizontalScroll');
-        const verticalScroll = document.getElementById('verticalScroll');
-        const productsGrid = document.getElementById('productsGrid');
-        const newArrivalsGrid = document.getElementById('newArrivalsGrid');
+        const productsContainer = document.getElementById('productsContainer');
         const categoryTabs = document.getElementById('categoryTabs');
         const filterToggle = document.getElementById('filterToggle');
         const searchInput = document.getElementById('searchInput');
@@ -854,14 +769,14 @@
         searchInput.addEventListener('input', (e) => {
             searchQuery = e.target.value.toLowerCase().trim();
             clearSearch.style.display = searchQuery ? 'block' : 'none';
-            displayAllSections(currentProducts);
+            displayProducts(currentProducts);
         });
         
         clearSearch.addEventListener('click', () => {
             searchInput.value = '';
             searchQuery = '';
             clearSearch.style.display = 'none';
-            displayAllSections(currentProducts);
+            displayProducts(currentProducts);
             searchInput.focus();
         });
 
@@ -876,7 +791,7 @@
         promotionFilter.addEventListener('click', () => {
             showPromotionsOnly = !showPromotionsOnly;
             promotionFilter.innerHTML = showPromotionsOnly ? '<i class="fas fa-times"></i> all' : '<i class="fas fa-tag"></i> offers';
-            displayAllSections(currentProducts);
+            displayProducts(currentProducts);
         });
 
         // categories
@@ -890,11 +805,11 @@
                     categoryTabs.classList.remove('active');
                     filterToggle.querySelector('i').className = 'fas fa-chevron-down';
                 }
-                displayAllSections(currentProducts);
+                displayProducts(currentProducts);
             }
         });
 
-        // product card click: open modal AND horizontal scrollable thumbnail gallery!
+        // product card click: open modal
         function openProductModal(product) {
             currentProduct = product;
             currentProductImages = product.images && product.images.length ? [...product.images] : [];
@@ -1059,102 +974,116 @@
             });
         }
 
-        // Create product card HTML (reusable)
-        function createProductCard(product, isHorizontal = false, isVertical = false) {
+        // Create product card HTML
+        function createProductCard(product) {
             const card = document.createElement('div');
             card.className = 'product-card';
             
             const imgSrc = (product.images && product.images[0]) || product.image || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200';
             let badge = product.promotion ? `<div class="promotion-badge">${product.promotion.slice(0,10)}</div>` : '';
             
-            if (isVertical) {
-                // Vertical layout
-                card.innerHTML = `
-                    ${badge}
-                    <img src="${imgSrc}" class="product-img" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200'">
-                    <div class="product-info">
-                        <div class="product-category">${product.category?.replace('-', ' ').slice(0,15) || 'item'}</div>
-                        <div class="product-title">${product.name?.slice(0,40) || ''}</div>
-                        <div class="product-price">
-                            ${product.promotion && product.oldPrice ? `<span class="old-price">ZMW ${product.oldPrice}</span>` : ''}
-                            ZMW ${product.price ?? 0}
-                        </div>
+            card.innerHTML = `
+                ${badge}
+                <img src="${imgSrc}" class="product-img" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200'">
+                <div class="product-info">
+                    <div class="product-category">${product.category?.replace('-', ' ').slice(0,15) || 'item'}</div>
+                    <div class="product-title">${product.name?.slice(0,40) || ''}</div>
+                    <div class="product-price">
+                        ${product.promotion && product.oldPrice ? `<span class="old-price">ZMW ${product.oldPrice}</span>` : ''}
+                        ZMW ${product.price ?? 0}
                     </div>
-                `;
-            } else {
-                card.innerHTML = `
-                    ${badge}
-                    <img src="${imgSrc}" class="product-img" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200'">
-                    <div class="product-info">
-                        <div class="product-category">${product.category?.replace('-', ' ').slice(0,15) || 'item'}</div>
-                        <div class="product-title">${product.name?.slice(0,30) || ''}</div>
-                        <div class="product-price">
-                            ${product.promotion && product.oldPrice ? `<span class="old-price">ZMW ${product.oldPrice}</span>` : ''}
-                            ZMW ${product.price ?? 0}
-                        </div>
-                    </div>
-                `;
-            }
+                </div>
+            `;
             
             card.addEventListener('click', () => openProductModal(product));
             return card;
         }
 
-        // Display all sections with proper product distribution
-        function displayAllSections(products) {
+        // Display products with pattern: 2 rows horizontal, 6 rows normal, repeat
+        function displayProducts(products) {
             const filtered = getFilteredProducts(products);
             
-            // Clear all sections
-            horizontalScroll.innerHTML = '';
-            verticalScroll.innerHTML = '';
-            productsGrid.innerHTML = '';
+            // Clear container
+            productsContainer.innerHTML = '';
             
             if (filtered.length === 0) {
-                horizontalScroll.innerHTML = '<div class="no-products" style="padding:20px; width:100%;">no products found</div>';
+                productsContainer.innerHTML = '<div class="no-products">no products found</div>';
                 return;
             }
             
-            // FIRST 4 PRODUCTS - Horizontal scroll (Hot Sales)
-            const firstFour = filtered.slice(0, 4);
-            if (firstFour.length > 0) {
-                firstFour.forEach(product => {
-                    horizontalScroll.appendChild(createProductCard(product, true, false));
-                });
+            let productIndex = 0;
+            let sectionCounter = 0;
+            
+            while (productIndex < filtered.length) {
+                // Every 8 sections (2 horizontal + 6 normal) or start, add horizontal sections
+                if (sectionCounter % 8 === 0 || sectionCounter === 0) {
+                    // Add 2 horizontal scroll sections (4 products total)
+                    for (let h = 0; h < 2; h++) {
+                        if (productIndex >= filtered.length) break;
+                        
+                        const horizontalSection = document.createElement('div');
+                        horizontalSection.className = 'horizontal-scroll-section';
+                        
+                        // Add header for first horizontal section
+                        if (h === 0) {
+                            const header = document.createElement('div');
+                            header.className = 'section-header';
+                            header.innerHTML = `<h3>hot deals</h3><i class="fas fa-arrow-right"></i>`;
+                            horizontalSection.appendChild(header);
+                        }
+                        
+                        const scrollRow = document.createElement('div');
+                        scrollRow.className = 'horizontal-scroll-row';
+                        
+                        // Add 2 products to this row
+                        for (let i = 0; i < 2; i++) {
+                            if (productIndex < filtered.length) {
+                                scrollRow.appendChild(createProductCard(filtered[productIndex]));
+                                productIndex++;
+                            }
+                        }
+                        
+                        horizontalSection.appendChild(scrollRow);
+                        productsContainer.appendChild(horizontalSection);
+                    }
+                } 
+                // Add 6 normal grid sections (12 products total - 2 per row)
+                else {
+                    for (let n = 0; n < 6; n++) {
+                        if (productIndex >= filtered.length) break;
+                        
+                        const normalSection = document.createElement('div');
+                        normalSection.className = 'normal-grid-section';
+                        
+                        // Add header for first normal section
+                        if (n === 0 && sectionCounter % 8 === 2) {
+                            const header = document.createElement('div');
+                            header.className = 'section-header';
+                            header.innerHTML = `<h3>more items</h3>`;
+                            normalSection.appendChild(header);
+                        }
+                        
+                        const grid = document.createElement('div');
+                        grid.className = 'two-column-grid';
+                        
+                        // Add 2 products to this grid
+                        for (let i = 0; i < 2; i++) {
+                            if (productIndex < filtered.length) {
+                                grid.appendChild(createProductCard(filtered[productIndex]));
+                                productIndex++;
+                            }
+                        }
+                        
+                        normalSection.appendChild(grid);
+                        productsContainer.appendChild(normalSection);
+                    }
+                }
+                
+                sectionCounter++;
+                
+                // Safety check to prevent infinite loop
+                if (sectionCounter > 100) break;
             }
-            
-            // NEXT 4 PRODUCTS - Vertical scroll (Special Promotions)
-            const nextFour = filtered.slice(4, 8);
-            if (nextFour.length > 0) {
-                nextFour.forEach(product => {
-                    verticalScroll.appendChild(createProductCard(product, false, true));
-                });
-            } else {
-                verticalScroll.innerHTML = '<div class="no-products" style="padding:20px;">no promotions</div>';
-            }
-            
-            // REMAINING PRODUCTS - Regular grid (More Products)
-            const remaining = filtered.slice(8);
-            if (remaining.length > 0) {
-                remaining.forEach(product => {
-                    productsGrid.appendChild(createProductCard(product, false, false));
-                });
-            }
-        }
-
-        function displayNewArrivals(products) {
-            newArrivalsGrid.innerHTML = '';
-            
-            let specials = products.filter(p => p.promotion || (p.createdAt && (new Date() - new Date(p.createdAt) < 30*24*60*60*1000)));
-            
-            if (specials.length === 0) {
-                newArrivalsGrid.innerHTML = '<div class="no-products" style="padding:20px;">no new arrivals</div>';
-                return;
-            }
-            
-            specials.slice(0, 6).forEach(p => {
-                const card = createProductCard(p, false, false);
-                newArrivalsGrid.appendChild(card);
-            });
         }
 
         // load firestore data
@@ -1173,17 +1102,15 @@
                 return new Date(b.createdAt) - new Date(a.createdAt);
             });
             
-            displayAllSections(currentProducts);
-            displayNewArrivals(currentProducts);
+            displayProducts(currentProducts);
         }, (err) => {
             console.error("Firestore error:", err);
-            horizontalScroll.innerHTML = `<div class="no-products">⚠️ error loading products</div>`;
+            productsContainer.innerHTML = `<div class="no-products">⚠️ error loading products</div>`;
         });
         
-        // handle window resize for responsive grid
+        // handle window resize
         window.addEventListener('resize', () => {
-            displayAllSections(currentProducts);
-            displayNewArrivals(currentProducts);
+            displayProducts(currentProducts);
         });
     </script>
 </body>
