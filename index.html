@@ -25,27 +25,23 @@
             --tiny-shadow: 0 1px 4px rgba(0,0,0,0.02);
         }
 
-        body {
+        html, body {
             background-color: var(--primary);
             color: var(--text);
             line-height: 1.2;
+            height: 100%;
+            width: 100%;
             overflow: hidden;
-            height: 100vh;
-            width: 100vw;
             position: fixed;
         }
 
         .app-wrapper {
-            height: 100vh;
-            width: 100vw;
+            height: 100%;
+            width: 100%;
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            position: relative;
         }
 
         .container {
@@ -214,29 +210,21 @@
         }
         .promo-btn i { font-size: 11px; }
 
-        /* MAIN SCROLLABLE CONTENT AREA - THIS IS THE KEY FIX */
+        /* MAIN SCROLLABLE CONTENT AREA - FIXED FOR ALL DEVICES */
         .scrollable-content {
             flex: 1;
             overflow-y: auto;
             overflow-x: hidden;
             -webkit-overflow-scrolling: touch;
-            padding-bottom: 10px;
+            padding-bottom: 20px;
         }
 
-        /* Section headers - nice and tiny */
+        /* Section headers - clean without emojis */
         .section-header {
             display: flex;
             align-items: center;
             gap: 6px;
-            margin: 12px 0 8px 4px;
-        }
-        .section-header i {
-            font-size: 14px;
-            color: #5a5a5e;
-            background: white;
-            padding: 4px;
-            border-radius: 8px;
-            box-shadow: var(--tiny-shadow);
+            margin: 16px 0 8px 4px;
         }
         .section-header h3 {
             font-size: 13px;
@@ -244,6 +232,10 @@
             color: #1c1c1e;
             text-transform: uppercase;
             letter-spacing: 0.3px;
+        }
+        .section-header i {
+            font-size: 12px;
+            color: #8e8e93;
         }
         .section-header span {
             font-size: 9px;
@@ -291,7 +283,7 @@
             display: flex;
             flex-direction: column;
             gap: 10px;
-            max-height: 340px;
+            max-height: 360px;
             overflow-y: auto;
             overflow-x: hidden;
             padding: 4px 8px 12px 4px;
@@ -697,15 +689,14 @@
             </button>
         </div>
 
-        <!-- MAIN SCROLLABLE CONTENT AREA - NOW YOU CAN SCROLL! -->
+        <!-- MAIN SCROLLABLE CONTENT AREA - NOW SCROLLS ON ALL DEVICES -->
         <div class="scrollable-content" id="scrollableContent">
             <div class="container">
                 <!-- HOT SALES SECTION - FIRST 4 PRODUCTS (horizontal scroll) -->
                 <div class="hot-sales-section">
                     <div class="section-header">
-                        <i class="fas fa-fire" style="color: #ff6b6b;"></i>
                         <h3>hot sales</h3>
-                        <span>swipe →</span>
+                        <span><i class="fas fa-arrow-right"></i></span>
                     </div>
                     <div class="horizontal-scroll" id="horizontalScroll"></div>
                 </div>
@@ -713,9 +704,7 @@
                 <!-- PROMOTIONS SECTION - NEXT 4 PRODUCTS (vertical scroll) -->
                 <div class="promotions-section">
                     <div class="section-header">
-                        <i class="fas fa-tags" style="color: #4ecdc4;"></i>
                         <h3>special promotions</h3>
-                        <span>scroll ↓</span>
                     </div>
                     <div class="vertical-scroll" id="verticalScroll"></div>
                 </div>
@@ -723,9 +712,7 @@
                 <!-- MORE PRODUCTS SECTION - regular grid -->
                 <div class="more-products-section">
                     <div class="section-header">
-                        <i class="fas fa-box" style="color: #5a5a5e;"></i>
                         <h3>more products</h3>
-                        <span>all items</span>
                     </div>
                     <div class="products-grid" id="productsGrid"></div>
                 </div>
@@ -733,9 +720,7 @@
                 <!-- new arrivals section -->
                 <div style="margin-top: 8px; margin-bottom: 20px;">
                     <div class="section-header">
-                        <i class="fas fa-bolt" style="color: #ffd166;"></i>
                         <h3>new arrivals</h3>
-                        <span>fresh</span>
                     </div>
                     <div class="products-grid" id="newArrivalsGrid"></div>
                 </div>
@@ -1162,7 +1147,7 @@
             let specials = products.filter(p => p.promotion || (p.createdAt && (new Date() - new Date(p.createdAt) < 30*24*60*60*1000)));
             
             if (specials.length === 0) {
-                newArrivalsGrid.innerHTML = '<div class="no-products" style="padding:20px;">✨ no new arrivals</div>';
+                newArrivalsGrid.innerHTML = '<div class="no-products" style="padding:20px;">no new arrivals</div>';
                 return;
             }
             
