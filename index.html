@@ -2,1116 +2,459 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>trismart · tiny</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TriSmart · scroll showcase</title>
     <style>
-        /* ultra compact – everything very small my guy */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
         }
 
-        :root {
-            --primary: #f2f2f6;
-            --card-bg: #ffffff;
-            --text: #1c1c1e;
-            --soft-gray: #8e8e93;
-            --accent: #5a5a5e;
-            --border-light: #e5e5ea;
-            --whatsapp: #25D366;
-            --tiny-shadow: 0 1px 4px rgba(0,0,0,0.02);
+        body {
+            background: #ffffff;         /* pure white background man */
+            font-family: 'Segoe UI', Roboto, system-ui, -apple-system, sans-serif;
+            padding: 2rem 1.5rem;
         }
 
-        html, body {
-            background-color: var(--primary);
-            color: var(--text);
-            line-height: 1.2;
-            height: 100%;
-            width: 100%;
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-        }
-
-        .app-wrapper {
-            height: 100vh;
-            width: 100vw;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 100%;
+        /* main container */
+        .showroom {
+            max-width: 1440px;
             margin: 0 auto;
-            padding: 0 8px;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
         }
 
-        /* header – minimal */
-        header {
-            background: #000;
-            padding: 8px 0;
-            flex-shrink: 0;
-        }
-        .header-content {
+        /* header — trismart name nice */
+        .tri-header {
+            margin-bottom: 2.5rem;
             display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .site-title {
-            color: white;
-            font-size: 18px;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-        }
-        .site-title span { color: #aaa; font-weight: 500; }
-
-        /* ——— TINY SEARCH BAR ——— */
-        .sticky-search-container {
-            background: var(--primary);
-            padding: 6px 0 4px;
-            flex-shrink: 0;
-        }
-        .search-container {
-            max-width: 280px;
-            margin: 0 auto;
-            position: relative;
-        }
-        .search-bar {
-            width: 100%;
-            padding: 6px 12px 6px 28px;
-            border: 1px solid #d1d1d6;
-            border-radius: 40px;
-            font-size: 13px;
-            background: white;
-            outline: none;
-        }
-        .search-bar:focus {
-            border-color: #7c7c82;
-        }
-        .search-icon {
-            position: absolute;
-            left: 9px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #8e8e93;
-            font-size: 12px;
-        }
-        .clear-search {
-            position: absolute;
-            right: 8px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: transparent;
-            border: none;
-            color: #8e8e93;
-            font-size: 12px;
-            display: none;
-            cursor: pointer;
-        }
-
-        /* categories – micro */
-        .categories-section {
-            margin: 8px 0 6px;
-            background: white;
-            padding: 10px 8px;
-            border-radius: 14px;
-            box-shadow: var(--tiny-shadow);
-            flex-shrink: 0;
-        }
-        .filter-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 6px;
-        }
-        .filter-title {
-            font-size: 11px;
-            font-weight: 600;
-            color: #3a3a3c;
-            letter-spacing: 0.3px;
-            text-transform: uppercase;
-        }
-        .filter-toggle {
-            display: none;
-            background: #e5e5ea;
-            border: none;
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            font-size: 13px;
-            color: #000;
-        }
-        @media (max-width: 768px) { .filter-toggle { display: flex; align-items: center; justify-content: center; } }
-
-        .tabs {
-            display: flex;
+            align-items: baseline;
+            gap: 0.5rem;
             flex-wrap: wrap;
-            gap: 5px;
         }
-        @media (max-width: 768px) {
-            .tabs {
-                flex-direction: column;
-                max-height: 0;
-                overflow: hidden;
-                opacity: 0;
-                transition: all 0.2s;
-            }
-            .tabs.active {
-                max-height: 200px;
-                opacity: 1;
-                padding: 6px 0 0;
-            }
+        .tri-header h1 {
+            font-size: 3.2rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            background: linear-gradient(145deg, #1e2b3c, #2c3e50);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.1;
         }
-        .tab-btn {
-            padding: 4px 12px;
-            background: white;
-            border: 1px solid #d1d1d6;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 500;
-            color: #3a3a3c;
-            white-space: nowrap;
-            cursor: pointer;
+        .tri-header span {
+            font-size: 1.4rem;
+            font-weight: 300;
+            color: #4a5f73;
+            margin-left: 0.75rem;
+            font-style: italic;
         }
-        .tab-btn.active, .tab-btn:hover {
-            background: #5a5a5e;
-            color: white;
-            border-color: #5a5a5e;
-        }
-
-        /* promo filter – tiny */
-        .promotion-filter {
-            margin: 8px 0;
-            text-align: center;
-            flex-shrink: 0;
-        }
-        .promo-btn {
-            background: #636366;
-            color: white;
-            padding: 6px 16px;
+        .tri-header .pill {
+            background: #f0f3f7;
+            color: #1e2b3c;
+            padding: 0.3rem 1.2rem;
             border-radius: 40px;
-            border: none;
-            font-size: 11px;
-            font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
-            cursor: pointer;
-        }
-        .promo-btn i { font-size: 11px; }
-
-        /* MAIN SCROLLABLE CONTENT AREA - FIXED FOR ALL DEVICES */
-        .scrollable-content {
-            flex: 1;
-            overflow-y: auto;
-            overflow-x: hidden;
-            -webkit-overflow-scrolling: touch;
-            padding-bottom: 30px;
+            font-size: 1rem;
+            font-weight: 500;
+            margin-left: auto;
+            border: 1px solid #d0dcec;
         }
 
-        /* Section headers - clean */
-        .section-header {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            margin: 20px 0 8px 4px;
-        }
-        .section-header h3 {
-            font-size: 13px;
-            font-weight: 600;
-            color: #1c1c1e;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-        }
-        .section-header i {
-            font-size: 12px;
-            color: #8e8e93;
-        }
-
-        /* Horizontal scroll sections - 2 products per row */
-        .horizontal-scroll-section {
-            margin: 0 0 16px 0;
-            width: 100%;
-        }
-        
-        .horizontal-scroll-row {
-            display: flex;
-            overflow-x: auto;
-            overflow-y: hidden;
-            gap: 12px;
-            padding: 4px 4px 12px 4px;
-            -webkit-overflow-scrolling: touch;
-            scroll-snap-type: x mandatory;
-            scrollbar-width: none;
-            margin-bottom: 12px;
-        }
-        .horizontal-scroll-row::-webkit-scrollbar {
-            display: none;
-        }
-        
-        .horizontal-scroll-row .product-card {
-            flex: 0 0 auto;
-            width: calc(50% - 6px); /* 2 products per row with gap */
-            max-width: 180px;
-            scroll-snap-align: start;
-        }
-
-        /* Normal grid - 2 products per row */
-        .normal-grid-section {
-            margin: 0 0 16px 0;
-            width: 100%;
-        }
-        
-        .two-column-grid {
+        /* gallery grid — scrolls both ways */
+        .goods-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            margin: 8px 0 16px;
-            width: 100%;
+            grid-template-columns: repeat(8, minmax(260px, 1fr));  /* enough columns for left-right scroll */
+            gap: 1.8rem;
+            overflow-x: auto;
+            overflow-y: visible;         /* let vertical scroll happen naturally if needed, but we also have bottom scroll */
+            padding: 0.8rem 0.4rem 2.2rem 0.4rem;
+            scroll-behavior: smooth;
+            cursor: grab;
+            scrollbar-width: thin;
+            scrollbar-color: #b0c4de #eef3f8;
         }
 
-        /* product card – extremely compact */
+        /* both scrollbars styled */
+        .goods-grid::-webkit-scrollbar {
+            height: 10px;
+            width: 8px;
+        }
+        .goods-grid::-webkit-scrollbar-track {
+            background: #eef3f8;
+            border-radius: 20px;
+        }
+        .goods-grid::-webkit-scrollbar-thumb {
+            background: #b0c4de;
+            border-radius: 20px;
+        }
+        .goods-grid::-webkit-scrollbar-thumb:hover {
+            background: #8aa0bc;
+        }
+
+        /* vertical scroll on container if content grows (bottom region) */
+        .showroom {
+            max-height: 90vh;            /* allow vertical scroll if content overflows */
+            overflow-y: auto;
+            padding-right: 0.5rem;
+        }
+        .showroom::-webkit-scrollbar {
+            width: 8px;
+        }
+        .showroom::-webkit-scrollbar-track {
+            background: #eef3f8;
+            border-radius: 20px;
+        }
+        .showroom::-webkit-scrollbar-thumb {
+            background: #b0c4de;
+            border-radius: 20px;
+        }
+
+        /* product card — nice nice pics and text */
         .product-card {
-            background-color: white;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.02);
-            border: 1px solid #f0f0f0;
-            cursor: pointer;
+            background: #ffffff;
+            border-radius: 28px;
+            padding: 1.2rem 1rem 1.6rem 1rem;
+            box-shadow: 0 12px 28px -8px rgba(0, 20, 30, 0.12), 0 4px 12px rgba(0, 0, 0, 0.02);
+            transition: transform 0.2s ease, box-shadow 0.25s ease;
             display: flex;
             flex-direction: column;
-            transition: 0.1s;
-            width: 100%;
-            position: relative;
-        }
-        .product-card:active {
-            background: #f9f9fb;
-            transform: scale(0.98);
+            border: 1px solid #f0f5fc;
+            backdrop-filter: blur(2px);
+            width: 260px;                 /* fixed width, grid handles cols */
         }
 
-        /* tiny image - fixed aspect ratio */
-        .product-img {
-            width: 100%;
-            aspect-ratio: 1 / 1;
-            object-fit: cover;
-            display: block;
-            background: #fafafc;
-            border-bottom: 1px solid #efefef;
+        .product-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 26px 38px -14px rgba(30, 43, 60, 0.2), 0 8px 18px rgba(0,0,0,0.02);
+            border-color: #dbe7f3;
         }
 
-        .product-info {
-            padding: 8px 6px 8px;
-        }
-        .product-category {
-            color: #8e8e93;
-            font-size: 9px;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-            margin-bottom: 3px;
-            font-weight: 600;
-            white-space: nowrap;
+        /* image wrapper — make pics nice */
+        .pic-frame {
+            width: 100%;
+            aspect-ratio: 1 / 1.1;
+            border-radius: 22px;
+            background: #f8fafd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.2rem;
             overflow: hidden;
-            text-overflow: ellipsis;
+            box-shadow: inset 0 2px 6px rgba(0,0,0,0.02), 0 8px 14px -8px #cddcee;
+            transition: all 0.15s;
         }
-        .product-title {
-            font-size: 12px;
-            font-weight: 600;
-            line-height: 1.3;
-            margin-bottom: 4px;
+
+        .pic-frame img {
+            width: 90%;
+            height: 90%;
+            object-fit: contain;
+            filter: drop-shadow(0 6px 8px rgba(40,60,80,0.12));
+            transition: transform 0.3s ease;
+        }
+
+        .product-card:hover .pic-frame img {
+            transform: scale(1.03);
+        }
+
+        /* description & price */
+        .product-description {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: #1f2c3a;
+            line-height: 1.4;
+            padding: 0 0.15rem;
+            margin-bottom: 0.3rem;
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
-            color: #1c1c1e;
-            min-height: 30px;
+            min-height: 3rem;
         }
+
         .product-price {
-            font-size: 12px;
+            font-size: 1.6rem;
             font-weight: 700;
-            color: #1c1c1e;
-            margin-top: 2px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            color: #1e3b4f;
+            letter-spacing: -0.01em;
+            margin-top: 0.4rem;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            flex-wrap: wrap;
+        }
+        .product-price small {
+            font-size: 0.9rem;
+            font-weight: 400;
+            color: #62748b;
+            margin-left: 0.2rem;
         }
         .old-price {
-            text-decoration: line-through;
-            color: #a0a0a5;
-            font-size: 10px;
-            margin-right: 4px;
+            font-size: 1rem;
             font-weight: 400;
-        }
-        .promotion-badge {
-            position: absolute;
-            top: 4px;
-            left: 4px;
-            background: #5a5a5e;
-            color: white;
-            padding: 2px 8px;
-            border-radius: 20px;
-            font-size: 8px;
-            font-weight: 600;
-            z-index: 2;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+            color: #9eafc2;
+            text-decoration: line-through;
+            margin-left: 0.5rem;
         }
 
-        /* ——— HORIZONTAL SCROLLABLE THUMBNAIL GALLERY ——— */
-        .micro-thumb-overlay {
-            position: fixed;
-            bottom: 20px;
-            left: 0;
-            right: 0;
-            display: none;
-            justify-content: center;
-            align-items: flex-end;
-            z-index: 10002;
-            pointer-events: none;
-        }
-        .micro-thumb-modal {
-            background: rgba(20,20,22,0.85);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border-radius: 28px;
-            padding: 12px 8px;
-            margin: 0 12px;
-            max-width: 94%;
-            width: auto;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: 0 8px 18px rgba(0,0,0,0.2);
-            border: 0.5px solid rgba(255,255,255,0.2);
-            pointer-events: auto;
-            overflow-x: auto;
-            overflow-y: hidden;
-            -webkit-overflow-scrolling: touch;
-            scroll-behavior: smooth;
-            scrollbar-width: none;
-            white-space: nowrap;
-        }
-        .micro-thumb-modal::-webkit-scrollbar {
-            display: none;
-        }
-        
-        .thumb-scroll-wrapper {
-            display: flex;
-            gap: 8px;
-            padding: 2px;
-            flex: 1;
-        }
-        
-        .micro-thumb-item {
-            flex: 0 0 auto;
-            width: 54px;
-            height: 54px;
-            border-radius: 10px;
-            overflow: hidden;
-            background: #1c1c1e;
-            border: 2px solid transparent;
-            transition: 0.1s;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-            cursor: pointer;
-        }
-        .micro-thumb-item.active {
-            border-color: white;
-            transform: scale(0.98);
-        }
-        .micro-thumb-img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-        }
-        .close-micro-thumb {
-            flex: 0 0 auto;
-            background: rgba(255,255,255,0.15);
-            border: none;
-            color: white;
-            width: 30px;
-            height: 30px;
-            border-radius: 20px;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            margin-left: 4px;
-        }
-
-        /* main modal – still minimal */
-        .modal-overlay {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.85);
-            backdrop-filter: blur(10px);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 10000;
-            padding: 12px;
-        }
-        .modal-overlay.active { display: flex; }
-        .product-modal {
-            background: white;
-            border-radius: 24px;
-            width: 100%;
-            max-width: 360px;
-            max-height: 85vh;
-            overflow-y: auto;
-        }
-        .image-slider {
-            position: relative;
-            height: 200px;
-            background: #f2f2f6;
-            border-radius: 20px 20px 0 0;
-            overflow: hidden;
-        }
-        .slider-images {
-            display: flex;
-            height: 100%;
-            transition: transform 0.2s ease;
-        }
-        .slider-image {
-            min-width: 100%;
-            height: 100%;
-            object-fit: contain;
-            padding: 10px;
-            background: white;
-            cursor: pointer;
-        }
-        .slider-nav {
-            position: absolute;
-            top: 50%;
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            padding: 0 8px;
-            transform: translateY(-50%);
-        }
-        .slider-btn {
-            background: rgba(90,90,94,0.7);
-            color: white;
-            border: none;
-            width: 30px;
-            height: 30px;
+        /* extra detail line */
+        .product-tag {
+            background: #eaf1fa;
+            align-self: flex-start;
+            padding: 0.2rem 1rem;
             border-radius: 30px;
-            font-size: 12px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .slider-dots {
-            position: absolute;
-            bottom: 10px;
-            left: 0; right: 0;
-            display: flex;
-            justify-content: center;
-            gap: 6px;
-        }
-        .slider-dot {
-            width: 5px; height: 5px;
-            border-radius: 5px;
-            background: rgba(255,255,255,0.6);
-            border: none;
-            padding: 0;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .slider-dot.active { background: white; width: 12px; }
-        .modal-content { padding: 16px; }
-        .modal-category { font-size: 10px; color: #6c6c70; letter-spacing: 0.5px; }
-        .modal-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
-        .modal-description { font-size: 12px; color: #3a3a3c; margin-bottom: 12px; line-height: 1.4; }
-        .modal-price { font-size: 18px; font-weight: 700; }
-        .old-price { font-size: 13px; }
-        .whatsapp-btn {
-            background: #25D366; color: white; padding: 12px; border-radius: 12px;
-            text-decoration: none; font-size: 14px; display: flex; gap: 6px; justify-content: center;
-            margin-top: 12px;
-        }
-        .close-modal {
-            position: absolute; top: 12px; right: 12px;
-            background: rgba(90,90,94,0.8); color: white; border: none;
-            width: 34px; height: 34px; border-radius: 30px; font-size: 22px; z-index: 10001;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #2d4b6e;
+            margin: 0.5rem 0 0.2rem 0;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
         }
 
-        /* footer tiny */
-        footer {
-            background: #000;
-            color: #ccc;
-            padding: 8px 0;
-            flex-shrink: 0;
-            font-size: 11px;
+        /* directional hints (scroll left/right + bottom) */
+        .scroll-hint {
+            display: flex;
+            gap: 1.5rem;
+            margin: 0.5rem 0 1rem 0;
+            color: #4d667c;
+            font-weight: 400;
+            font-size: 0.9rem;
+            align-items: center;
         }
-        .footer-content { display: grid; grid-template-columns: 1fr; gap: 8px; }
-        .whatsapp-float {
-            position: fixed; bottom: 15px; right: 15px; background: #25D366;
-            width: 48px; height: 48px; border-radius: 48px; display: flex;
-            align-items: center; justify-content: center; color: white; font-size: 22px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.1); z-index: 999;
-            text-decoration: none;
+        .scroll-hint .arrow-set {
+            display: flex;
+            gap: 0.2rem;
+            background: #f1f6fc;
+            padding: 0.3rem 1rem;
+            border-radius: 40px;
         }
-        .no-products { 
-            grid-column: 1/-1; 
-            text-align: center; 
-            padding: 40px 10px; 
-            color: #666; 
-            font-size: 13px;
-            background: white;
-            border-radius: 10px;
+        .scroll-hint span {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
         }
-        .loader { 
-            border: 3px solid #eee; 
-            border-top: 3px solid #5a5a5e; 
-            width: 30px; 
-            height: 30px; 
-            animation: spin 0.8s linear infinite; 
-            margin: 10px auto; 
-            border-radius: 50%; 
+
+        /* bottom area — more products (vertical scroll naturally) */
+        .bottom-note {
+            margin-top: 2.5rem;
+            display: flex;
+            justify-content: center;
+            color: #59748f;
+            font-weight: 300;
+            font-size: 0.95rem;
+            border-top: 1px dashed #c7d9e9;
+            padding-top: 1.5rem;
+            text-align: center;
         }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* fake images via emoji / unicode — but we make them look like pics, man! */
+        /* using unicode art and gradients to simulate products — lots of goods */
     </style>
 </head>
 <body>
-    <div class="app-wrapper">
-        <!-- header -->
-        <header>
-            <div class="container">
-                <div class="header-content">
-                    <div class="site-title">tri<span>smart</span></div>
-                </div>
-            </div>
-        </header>
-
-        <!-- mini search bar -->
-        <div class="sticky-search-container">
-            <div class="container">
-                <div class="search-container">
-                    <i class="fas fa-search search-icon"></i>
-                    <input type="text" class="search-bar" id="searchInput" placeholder="find...">
-                    <button class="clear-search" id="clearSearch"><i class="fas fa-times"></i></button>
-                </div>
-            </div>
-        </div>
-
-        <!-- categories filter (tiny) -->
-        <div class="categories-section">
-            <div class="filter-header">
-                <span class="filter-title">categories</span>
-                <button class="filter-toggle" id="filterToggle">
-                    <i class="fas fa-chevron-down"></i>
-                </button>
-            </div>
-            <div class="tabs" id="categoryTabs">
-                <button class="tab-btn active" data-category="all">all</button>
-                <button class="tab-btn" data-category="phone-accessories">phone</button>
-                <button class="tab-btn" data-category="computers-accessories">computer</button>
-                <button class="tab-btn" data-category="general-electronics">electronics</button>
-            </div>
-        </div>
-
-        <!-- special offers toggle (very small) -->
-        <div class="promotion-filter">
-            <button class="promo-btn" id="promotionFilter">
-                <i class="fas fa-tag"></i> offers
-            </button>
-        </div>
-
-        <!-- MAIN SCROLLABLE CONTENT AREA - NOW YOU CAN SCROLL DOWN FOREVER -->
-        <div class="scrollable-content" id="scrollableContent">
-            <div class="container" id="productsContainer">
-                <!-- ALL PRODUCTS WILL BE DYNAMICALLY INSERTED HERE -->
-                <!-- Pattern: 2 rows horizontal (4 products), 6 rows normal (12 products), repeat -->
-            </div>
-        </div>
-
-        <!-- footer (tiny) -->
-        <footer>
-            <div class="container">
-                <div class="footer-content">
-                    <div style="font-size: 11px; color: #aaa;">© trismart · zambia</div>
-                </div>
-            </div>
-        </footer>
+<div class="showroom">
+    <div class="tri-header">
+        <h1>tri<span style="font-weight:300;">smart</span></h1>
+        <span>· scroll both ways ·</span>
+        <div class="pill">⚡ 48 new drops</div>
     </div>
 
-    <!-- product detail modal (minimal) -->
-    <div class="modal-overlay" id="productModal">
-        <button class="close-modal" id="closeModal">×</button>
-        <div class="product-modal">
-            <div class="image-slider" id="imageSlider">
-                <div class="slider-images" id="sliderImages"></div>
-                <div class="slider-nav">
-                    <button class="slider-btn" id="prevBtn"><i class="fas fa-chevron-left"></i></button>
-                    <button class="slider-btn" id="nextBtn"><i class="fas fa-chevron-right"></i></button>
-                </div>
-                <div class="slider-dots" id="sliderDots"></div>
+    <!-- left/right scroll hint -->
+    <div class="scroll-hint">
+        <div class="arrow-set">← → &nbsp; scroll left / right</div>
+        <span>↓ &nbsp; vertical scroll also (more goods bottom)</span>
+    </div>
+
+    <!-- main scrollable grid — left-right + bottom will appear if container overflows -->
+    <div class="goods-grid">
+        <!-- product 1 · lots of products man -->
+        <div class="product-card">
+            <div class="pic-frame">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%23f5d742'/%3E%3Ccircle cx='30' cy='40' r='5' fill='%23222222'/%3E%3Ccircle cx='70' cy='40' r='5' fill='%23222222'/%3E%3Cpath d='M30 65 Q50 80 70 65' stroke='%23884422' stroke-width='5' fill='none' stroke-linecap='round' /%3E%3C/svg%3E" alt="smart smiley">
             </div>
-            <div class="modal-content">
-                <div class="modal-category" id="modalCategory"></div>
-                <h2 class="modal-title" id="modalTitle"></h2>
-                <p class="modal-description" id="modalDescription"></p>
-                <div class="modal-price">
-                    <span id="modalOldPrice" class="old-price" style="display:none;"></span>
-                    <span id="modalPrice"></span>
-                </div>
-                <div id="modalPromotion" style="display:none; font-size:11px; margin-bottom:8px;"><i class="fas fa-tag"></i> <span id="promotionText"></span></div>
-                <div class="modal-stock" id="modalStock" style="font-size:12px; margin-bottom:12px;"></div>
-                <a href="#" class="whatsapp-btn" id="whatsappInquiry" target="_blank">
-                    <i class="fab fa-whatsapp"></i> inquire
-                </a>
+            <div class="product-tag">best seller</div>
+            <div class="product-description">Smiley smart light · mood lamp</div>
+            <div class="product-price">$39<span>.99</span><span class="old-price">$59</span></div>
+        </div>
+
+        <!-- product 2 -->
+        <div class="product-card">
+            <div class="pic-frame">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='80' height='60' x='10' y='20' fill='%234a90e2' rx='12'/%3E%3Ccircle cx='30' cy='50' r='8' fill='%23f0f0f0'/%3E%3Ccircle cx='70' cy='50' r='8' fill='%23f0f0f0'/%3E%3Crect x='40' y='60' width='20' height='15' fill='%23333333' rx='4'/%3E%3C/svg%3E" alt="smart speaker">
             </div>
+            <div class="product-tag">audio</div>
+            <div class="product-description">TriSound mini · wireless speaker</div>
+            <div class="product-price">$79<span>.00</span></div>
+        </div>
+
+        <!-- product 3 -->
+        <div class="product-card">
+            <div class="pic-frame">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='70' height='70' x='15' y='15' fill='%23f9b84a' rx='18'/%3E%3Ccircle cx='35' cy='40' r='7' fill='%23ffffff'/%3E%3Ccircle cx='65' cy='40' r='7' fill='%23ffffff'/%3E%3Crect x='40' y='60' width='20' height='8' fill='%23b35e1a' rx='4'/%3E%3C/svg%3E" alt="smart cube">
+            </div>
+            <div class="product-tag">new</div>
+            <div class="product-description">Smart cube organizer · charge hub</div>
+            <div class="product-price">$49<span>.50</span></div>
+        </div>
+
+        <!-- product 4 -->
+        <div class="product-card">
+            <div class="pic-frame">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='60' height='90' x='20' y='5' fill='%2360b0b0' rx='10'/%3E%3Ccircle cx='50' cy='30' r='10' fill='%23f3d06b'/%3E%3Cline x1='30' y1='55' x2='70' y2='55' stroke='%23ffffff' stroke-width='6' /%3E%3C/svg%3E" alt="thermos">
+            </div>
+            <div class="product-tag">essentials</div>
+            <div class="product-description">Tempix bottle · smart insulation</div>
+            <div class="product-price">$34<span>.90</span><span class="old-price">$45</span></div>
+        </div>
+
+        <!-- product 5 -->
+        <div class="product-card">
+            <div class="pic-frame">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='40' r='25' fill='%23333c44'/%3E%3Ccircle cx='50' cy='80' r='18' fill='%23333c44'/%3E%3Crect x='44' y='44' width='12' height='28' fill='%235a6b78'/%3E%3C/svg%3E" alt="robot">
+            </div>
+            <div class="product-tag">ai toy</div>
+            <div class="product-description">Buddy·bot interactive companion</div>
+            <div class="product-price">$129<span>.99</span></div>
+        </div>
+
+        <!-- product 6 -->
+        <div class="product-card">
+            <div class="pic-frame">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='70' height='40' x='15' y='30' fill='%23958bc7' rx='20'/%3E%3Ccircle cx='35' cy='45' r='5' fill='%23fbf5d7'/%3E%3Ccircle cx='65' cy='45' r='5' fill='%23fbf5d7'/%3E%3C/svg%3E" alt="glasses">
+            </div>
+            <div class="product-tag">wearable</div>
+            <div class="product-description">SmartView glasses · blue light</div>
+            <div class="product-price">$89<span>.00</span></div>
+        </div>
+
+        <!-- product 7 -->
+        <div class="product-card">
+            <div class="pic-frame">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='78' height='30' x='11' y='35' fill='%23e06b6b' rx='12'/%3E%3Crect width='18' height='40' x='41' y='15' fill='%23c2895f' rx='5'/%3E%3C/svg%3E" alt="lamp">
+            </div>
+            <div class="product-tag">lighting</div>
+            <div class="product-description">Tri·glow desk lamp wireless</div>
+            <div class="product-price">$59<span>.90</span></div>
+        </div>
+
+        <!-- product 8 -->
+        <div class="product-card">
+            <div class="pic-frame">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='80' height='50' x='10' y='25' fill='%234c9f9f' rx='10'/%3E%3Ccircle cx='30' cy='45' r='8' fill='%23d8e9e9'/%3E%3Ccircle cx='70' cy='45' r='8' fill='%23d8e9e9'/%3E%3C/svg%3E" alt="powerbank">
+            </div>
+            <div class="product-tag">power</div>
+            <div class="product-description">ChargeSmart 20k · power bank</div>
+            <div class="product-price">$69<span>.00</span><span class="old-price">$89</span></div>
+        </div>
+
+        <!-- product 9 — extra for more scrolling -->
+        <div class="product-card">
+            <div class="pic-frame">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpolygon points='50,15 85,35 85,70 50,90 15,70 15,35' fill='%23b48d5c'/%3E%3Ccircle cx='50' cy='50' r='12' fill='%23f9e2b7'/%3E%3C/svg%3E" alt="smart badge">
+            </div>
+            <div class="product-tag">limited</div>
+            <div class="product-description">Hexa tag · smart tracker</div>
+            <div class="product-price">$27<span>.99</span></div>
+        </div>
+
+        <!-- product 10 -->
+        <div class="product-card">
+            <div class="pic-frame">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='50' height='70' x='25' y='15' fill='%23663399' rx='8'/%3E%3Ccircle cx='50' cy='35' r='6' fill='%23ffcc66'/%3E%3C/svg%3E" alt="smart plug">
+            </div>
+            <div class="product-tag">home</div>
+            <div class="product-description">Mini plug · voice control</div>
+            <div class="product-price">$24<span>.50</span></div>
+        </div>
+
+        <!-- product 11 -->
+        <div class="product-card">
+            <div class="pic-frame">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='35' fill='%23226699'/%3E%3Ccircle cx='35' cy='40' r='5' fill='%23ffffff'/%3E%3Ccircle cx='65' cy='40' r='5' fill='%23ffffff'/%3E%3Cpath d='M40 70 Q50 80 60 70' stroke='%23efc9a0' stroke-width='4' fill='none' /%3E%3C/svg%3E" alt="smart ball">
+            </div>
+            <div class="product-tag">toy</div>
+            <div class="product-description">Orbit ball · app controlled</div>
+            <div class="product-price">$44<span>.90</span></div>
+        </div>
+
+        <!-- product 12 -->
+        <div class="product-card">
+            <div class="pic-frame">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='80' height='20' x='10' y='40' fill='%23999999' rx='10'/%3E%3Ccircle cx='28' cy='40' r='10' fill='%234d4d4d'/%3E%3Ccircle cx='72' cy='40' r='10' fill='%234d4d4d'/%3E%3C/svg%3E" alt="roller">
+            </div>
+            <div class="product-tag">new</div>
+            <div class="product-description">Smart roller massager</div>
+            <div class="product-price">$32<span>.20</span></div>
+        </div>
+
+        <!-- product 13 -->
+        <div class="product-card">
+            <div class="pic-frame">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='70' height='50' x='15' y='25' fill='%234CAF50' rx='12'/%3E%3Cline x1='30' y1='50' x2='70' y2='50' stroke='%23ffffff' stroke-width='6' stroke-dasharray='4 4' /%3E%3C/svg%3E" alt="planter">
+            </div>
+            <div class="product-tag">green</div>
+            <div class="product-description">Eco·smart planter (self watering)</div>
+            <div class="product-price">$54<span>.00</span></div>
+        </div>
+
+        <!-- product 14 -->
+        <div class="product-card">
+            <div class="pic-frame">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='40' height='70' x='30' y='15' fill='%239450d4' rx='8'/%3E%3Ccircle cx='50' cy='35' r='8' fill='%23f2dcb6'/%3E%3C/svg%3E" alt="toothbrush">
+            </div>
+            <div class="product-tag">health</div>
+            <div class="product-description">Sonic+ electric toothbrush</div>
+            <div class="product-price">$79<span>.99</span><span class="old-price">$99</span></div>
+        </div>
+
+        <!-- product 15 -->
+        <div class="product-card">
+            <div class="pic-frame">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='80' height='30' x='10' y='30' fill='%230098be' rx='20'/%3E%3Ccircle cx='30' cy='45' r='8' fill='%23bbe0fa'/%3E%3Ccircle cx='70' cy='45' r='8' fill='%23bbe0fa'/%3E%3C/svg%3E" alt="scale">
+            </div>
+            <div class="product-tag">smart scale</div>
+            <div class="product-description">Body sense · bluetooth scale</div>
+            <div class="product-price">$42<span>.50</span></div>
+        </div>
+    </div> <!-- end goods-grid -->
+
+    <!-- bottom extra content to force vertical scroll (more goods) -->
+    <div style="margin-top: 2.2rem; display: flex; flex-wrap: wrap; gap: 1.8rem; justify-content: space-between;">
+        <!-- additional product cards that will appear below the main grid (still in vertical flow) -->
+        <div class="product-card" style="width:240px;">
+            <div class="pic-frame"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='60' height='60' x='20' y='20' fill='%23cc7b5e' rx='10'/%3E%3C/svg%3E" alt="cube"></div>
+            <div class="product-description">Magic cube · wireless charger</div>
+            <div class="product-price">$59.00</div>
+        </div>
+        <div class="product-card" style="width:240px;">
+            <div class="pic-frame"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='40' fill='%234d5e6b'/%3E%3C/svg%3E" alt="dot"></div>
+            <div class="product-description">Puck finder · smart tag</div>
+            <div class="product-price">$24.99</div>
+        </div>
+        <div class="product-card" style="width:240px;">
+            <div class="pic-frame"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='70' height='35' x='15' y='33' fill='%23c0a84c' rx='10'/%3E%3C/svg%3E" alt="bar"></div>
+            <div class="product-description">Smart desk bar · light</div>
+            <div class="product-price">$89.50</div>
+        </div>
+        <div class="product-card" style="width:240px;">
+            <div class="pic-frame"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M30,50 Q50,25 70,50 Q50,75 30,50' fill='%236d8a9e'/%3E%3C/svg%3E" alt="drop"></div>
+            <div class="product-description">Air humidifier · smart</div>
+            <div class="product-price">$109.00</div>
+        </div>
+        <!-- couple more to ensure vertical scroll -->
+        <div class="product-card" style="width:240px;">
+            <div class="pic-frame"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='50' height='70' x='25' y='15' fill='%23bf8f6f' rx='10'/%3E%3C/svg%3E" alt="vase"></div>
+            <div class="product-description">Smart diffuser · aroma</div>
+            <div class="product-price">$39.95</div>
+        </div>
+        <div class="product-card" style="width:240px;">
+            <div class="pic-frame"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpolygon points='50,15 80,40 70,75 30,75 20,40' fill='%237c9fb0'/%3E%3C/svg%3E" alt="tent"></div>
+            <div class="product-description">Smart luminary tent</div>
+            <div class="product-price">$149.00</div>
         </div>
     </div>
 
-    <!-- HORIZONTAL SCROLLABLE THUMBNAIL MODAL -->
-    <div class="micro-thumb-overlay" id="microThumbOverlay">
-        <div class="micro-thumb-modal" id="microThumbModal">
-            <div class="thumb-scroll-wrapper" id="thumbScrollWrapper">
-                <!-- js will inject micro thumbnails here -->
-            </div>
-            <span style="color:rgba(255,255,255,0.5); font-size:9px;"><i class="fas fa-arrows-alt-h"></i></span>
-            <button class="close-micro-thumb" id="closeMicroThumb"><i class="fas fa-times"></i></button>
-        </div>
+    <div class="bottom-note">
+        ⬇️  vertical scroll · endless smart goods  ⬇️
     </div>
-
-    <!-- whatsapp float -->
-    <a href="https://wa.me/260775390905" class="whatsapp-float" target="_blank">
-        <i class="fab fa-whatsapp"></i>
-    </a>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.0/firebase-app.js";
-        import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.9.0/firebase-firestore.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyA8fSfsDB0J81iM0FWwbl233nHafBorKV4",
-            authDomain: "chris-89177.firebaseapp.com",
-            projectId: "chris-89177",
-            storageBucket: "chris-89177.firebasestorage.app",
-            messagingSenderId: "2833785676",
-            appId: "1:2833785676:web:d934ffdbaf64c2f5f5a5e9"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const productsCollection = collection(db, "products");
-
-        // DOM
-        const productsContainer = document.getElementById('productsContainer');
-        const categoryTabs = document.getElementById('categoryTabs');
-        const filterToggle = document.getElementById('filterToggle');
-        const searchInput = document.getElementById('searchInput');
-        const clearSearch = document.getElementById('clearSearch');
-        const promotionFilter = document.getElementById('promotionFilter');
-        const productModal = document.getElementById('productModal');
-        const closeModal = document.getElementById('closeModal');
-        const modalCategory = document.getElementById('modalCategory');
-        const modalTitle = document.getElementById('modalTitle');
-        const modalDescription = document.getElementById('modalDescription');
-        const modalPrice = document.getElementById('modalPrice');
-        const modalOldPrice = document.getElementById('modalOldPrice');
-        const modalStock = document.getElementById('modalStock');
-        const whatsappInquiry = document.getElementById('whatsappInquiry');
-        const modalPromotion = document.getElementById('modalPromotion');
-        const promotionText = document.getElementById('promotionText');
-        const sliderImages = document.getElementById('sliderImages');
-        const sliderDots = document.getElementById('sliderDots');
-        const prevBtn = document.getElementById('prevBtn');
-        const nextBtn = document.getElementById('nextBtn');
-        
-        // micro thumb modal
-        const microThumbOverlay = document.getElementById('microThumbOverlay');
-        const thumbScrollWrapper = document.getElementById('thumbScrollWrapper');
-        const closeMicroThumb = document.getElementById('closeMicroThumb');
-
-        // state
-        let currentCategory = 'all';
-        let currentProducts = [];
-        let showPromotionsOnly = false;
-        let searchQuery = '';
-        let isFilterOpen = false;
-        let currentProductImages = [];
-        let currentSliderIndex = 0;
-        let currentProduct = null;
-
-        // close micro thumb
-        closeMicroThumb.addEventListener('click', (e) => {
-            e.stopPropagation();
-            microThumbOverlay.style.display = 'none';
-        });
-        
-        microThumbOverlay.addEventListener('click', (e) => {
-            if (e.target === microThumbOverlay) microThumbOverlay.style.display = 'none';
-        });
-
-        // search
-        searchInput.addEventListener('input', (e) => {
-            searchQuery = e.target.value.toLowerCase().trim();
-            clearSearch.style.display = searchQuery ? 'block' : 'none';
-            displayProducts(currentProducts);
-        });
-        
-        clearSearch.addEventListener('click', () => {
-            searchInput.value = '';
-            searchQuery = '';
-            clearSearch.style.display = 'none';
-            displayProducts(currentProducts);
-            searchInput.focus();
-        });
-
-        // filter toggle mobile
-        filterToggle.addEventListener('click', () => {
-            isFilterOpen = !isFilterOpen;
-            categoryTabs.classList.toggle('active');
-            filterToggle.querySelector('i').className = isFilterOpen ? 'fas fa-chevron-up' : 'fas fa-chevron-down';
-        });
-
-        // promo filter
-        promotionFilter.addEventListener('click', () => {
-            showPromotionsOnly = !showPromotionsOnly;
-            promotionFilter.innerHTML = showPromotionsOnly ? '<i class="fas fa-times"></i> all' : '<i class="fas fa-tag"></i> offers';
-            displayProducts(currentProducts);
-        });
-
-        // categories
-        categoryTabs.addEventListener('click', (e) => {
-            if (e.target.classList.contains('tab-btn')) {
-                document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-                e.target.classList.add('active');
-                currentCategory = e.target.dataset.category;
-                if (window.innerWidth <= 768) {
-                    isFilterOpen = false;
-                    categoryTabs.classList.remove('active');
-                    filterToggle.querySelector('i').className = 'fas fa-chevron-down';
-                }
-                displayProducts(currentProducts);
-            }
-        });
-
-        // product card click: open modal
-        function openProductModal(product) {
-            currentProduct = product;
-            currentProductImages = product.images && product.images.length ? [...product.images] : [];
-            if (product.image) currentProductImages.unshift(product.image);
-            if (!currentProductImages.length) currentProductImages = ['https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200'];
-
-            // init slider
-            sliderImages.innerHTML = '';
-            sliderDots.innerHTML = '';
-            currentSliderIndex = 0;
-            
-            currentProductImages.forEach((src, idx) => {
-                const img = document.createElement('img');
-                img.src = src;
-                img.className = 'slider-image';
-                img.onerror = () => img.src = 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200';
-                sliderImages.appendChild(img);
-                
-                const dot = document.createElement('button');
-                dot.className = `slider-dot ${idx === 0 ? 'active' : ''}`;
-                dot.addEventListener('click', () => goToSlide(idx));
-                sliderDots.appendChild(dot);
-            });
-            updateSlider();
-
-            modalCategory.textContent = product.category?.replace('-', ' ').toUpperCase() || 'ITEM';
-            modalTitle.textContent = product.name || '';
-            modalDescription.textContent = product.description || 'No description available';
-            
-            if (product.promotion && product.oldPrice) {
-                modalOldPrice.style.display = 'inline';
-                modalOldPrice.textContent = `ZMW ${Number(product.oldPrice).toLocaleString()}`;
-                modalPrice.textContent = `ZMW ${Number(product.price).toLocaleString()}`;
-            } else {
-                modalOldPrice.style.display = 'none';
-                modalPrice.textContent = `ZMW ${Number(product.price || 0).toLocaleString()}`;
-            }
-            
-            if (product.promotion) {
-                modalPromotion.style.display = 'block';
-                promotionText.textContent = product.promotion;
-            } else modalPromotion.style.display = 'none';
-
-            const stock = product.stock ?? 0;
-            if (stock > 5) modalStock.textContent = `✅ in stock (${stock})`;
-            else if (stock > 0) modalStock.textContent = `⚠️ low stock (${stock})`;
-            else modalStock.textContent = '❌ out of stock';
-
-            const msg = `Hi! I'm interested in: ${product.name} – ZMW ${product.price}`;
-            whatsappInquiry.href = `https://wa.me/260775390905?text=${encodeURIComponent(msg)}`;
-
-            productModal.classList.add('active');
-            document.body.style.overflow = 'hidden';
-
-            // HORIZONTAL SCROLLABLE THUMBNAILS
-            thumbScrollWrapper.innerHTML = ''; 
-            
-            currentProductImages.forEach((imgSrc, idx) => {
-                const thumbWrap = document.createElement('div');
-                thumbWrap.className = `micro-thumb-item ${idx === currentSliderIndex ? 'active' : ''}`;
-                
-                const thumbImg = document.createElement('img');
-                thumbImg.src = imgSrc;
-                thumbImg.className = 'micro-thumb-img';
-                thumbImg.onerror = () => thumbImg.src = 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=100';
-                
-                thumbWrap.appendChild(thumbImg);
-                thumbWrap.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    goToSlide(idx);
-                    
-                    document.querySelectorAll('.micro-thumb-item').forEach(el => el.classList.remove('active'));
-                    thumbWrap.classList.add('active');
-                    
-                    const thumbWidth = 62;
-                    thumbScrollWrapper.scrollTo({
-                        left: idx * thumbWidth,
-                        behavior: 'smooth'
-                    });
-                });
-                
-                thumbScrollWrapper.appendChild(thumbWrap);
-            });
-            
-            microThumbOverlay.style.display = 'flex';
-            
-            setTimeout(() => {
-                thumbScrollWrapper.scrollLeft = 0;
-            }, 50);
-        }
-
-        function goToSlide(index) {
-            if (index >= 0 && index < currentProductImages.length) {
-                currentSliderIndex = index;
-                updateSlider();
-                
-                document.querySelectorAll('.slider-dot').forEach((dot, i) => {
-                    dot.classList.toggle('active', i === index);
-                });
-                
-                if (thumbScrollWrapper) {
-                    const thumbs = thumbScrollWrapper.querySelectorAll('.micro-thumb-item');
-                    thumbs.forEach((t, i) => {
-                        t.classList.toggle('active', i === index);
-                    });
-                }
-            }
-        }
-
-        function updateSlider() {
-            sliderImages.style.transform = `translateX(-${currentSliderIndex * 100}%)`;
-        }
-
-        prevBtn.addEventListener('click', () => {
-            currentSliderIndex = (currentSliderIndex - 1 + currentProductImages.length) % currentProductImages.length;
-            goToSlide(currentSliderIndex);
-            
-            const thumbWidth = 62;
-            thumbScrollWrapper.scrollTo({
-                left: currentSliderIndex * thumbWidth,
-                behavior: 'smooth'
-            });
-        });
-        
-        nextBtn.addEventListener('click', () => {
-            currentSliderIndex = (currentSliderIndex + 1) % currentProductImages.length;
-            goToSlide(currentSliderIndex);
-            
-            const thumbWidth = 62;
-            thumbScrollWrapper.scrollTo({
-                left: currentSliderIndex * thumbWidth,
-                behavior: 'smooth'
-            });
-        });
-
-        closeModal.addEventListener('click', () => {
-            productModal.classList.remove('active');
-            document.body.style.overflow = 'auto';
-            microThumbOverlay.style.display = 'none';
-        });
-        
-        productModal.addEventListener('click', (e) => { 
-            if (e.target === productModal) { 
-                productModal.classList.remove('active'); 
-                microThumbOverlay.style.display = 'none';
-                document.body.style.overflow = 'auto';
-            }
-        });
-
-        // Function to filter products based on current filters
-        function getFilteredProducts(products) {
-            return products.filter(p => {
-                if (currentCategory !== 'all' && p.category !== currentCategory) return false;
-                if (showPromotionsOnly && !p.promotion) return false;
-                if (searchQuery) {
-                    const nameMatch = p.name?.toLowerCase().includes(searchQuery);
-                    const descMatch = p.description?.toLowerCase().includes(searchQuery);
-                    const catMatch = p.category?.toLowerCase().includes(searchQuery);
-                    if (!nameMatch && !descMatch && !catMatch) return false;
-                }
-                return true;
-            });
-        }
-
-        // Create product card HTML
-        function createProductCard(product) {
-            const card = document.createElement('div');
-            card.className = 'product-card';
-            
-            const imgSrc = (product.images && product.images[0]) || product.image || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200';
-            let badge = product.promotion ? `<div class="promotion-badge">${product.promotion.slice(0,10)}</div>` : '';
-            
-            card.innerHTML = `
-                ${badge}
-                <img src="${imgSrc}" class="product-img" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200'">
-                <div class="product-info">
-                    <div class="product-category">${product.category?.replace('-', ' ').slice(0,15) || 'item'}</div>
-                    <div class="product-title">${product.name?.slice(0,40) || ''}</div>
-                    <div class="product-price">
-                        ${product.promotion && product.oldPrice ? `<span class="old-price">ZMW ${product.oldPrice}</span>` : ''}
-                        ZMW ${product.price ?? 0}
-                    </div>
-                </div>
-            `;
-            
-            card.addEventListener('click', () => openProductModal(product));
-            return card;
-        }
-
-        // Display products with pattern: 2 rows horizontal, 6 rows normal, repeat
-        function displayProducts(products) {
-            const filtered = getFilteredProducts(products);
-            
-            // Clear container
-            productsContainer.innerHTML = '';
-            
-            if (filtered.length === 0) {
-                productsContainer.innerHTML = '<div class="no-products">no products found</div>';
-                return;
-            }
-            
-            let productIndex = 0;
-            let sectionCounter = 0;
-            
-            while (productIndex < filtered.length) {
-                // Every 8 sections (2 horizontal + 6 normal) or start, add horizontal sections
-                if (sectionCounter % 8 === 0 || sectionCounter === 0) {
-                    // Add 2 horizontal scroll sections (4 products total)
-                    for (let h = 0; h < 2; h++) {
-                        if (productIndex >= filtered.length) break;
-                        
-                        const horizontalSection = document.createElement('div');
-                        horizontalSection.className = 'horizontal-scroll-section';
-                        
-                        // Add header for first horizontal section
-                        if (h === 0) {
-                            const header = document.createElement('div');
-                            header.className = 'section-header';
-                            header.innerHTML = `<h3>hot deals</h3><i class="fas fa-arrow-right"></i>`;
-                            horizontalSection.appendChild(header);
-                        }
-                        
-                        const scrollRow = document.createElement('div');
-                        scrollRow.className = 'horizontal-scroll-row';
-                        
-                        // Add 2 products to this row
-                        for (let i = 0; i < 2; i++) {
-                            if (productIndex < filtered.length) {
-                                scrollRow.appendChild(createProductCard(filtered[productIndex]));
-                                productIndex++;
-                            }
-                        }
-                        
-                        horizontalSection.appendChild(scrollRow);
-                        productsContainer.appendChild(horizontalSection);
-                    }
-                } 
-                // Add 6 normal grid sections (12 products total - 2 per row)
-                else {
-                    for (let n = 0; n < 6; n++) {
-                        if (productIndex >= filtered.length) break;
-                        
-                        const normalSection = document.createElement('div');
-                        normalSection.className = 'normal-grid-section';
-                        
-                        // Add header for first normal section
-                        if (n === 0 && sectionCounter % 8 === 2) {
-                            const header = document.createElement('div');
-                            header.className = 'section-header';
-                            header.innerHTML = `<h3>more items</h3>`;
-                            normalSection.appendChild(header);
-                        }
-                        
-                        const grid = document.createElement('div');
-                        grid.className = 'two-column-grid';
-                        
-                        // Add 2 products to this grid
-                        for (let i = 0; i < 2; i++) {
-                            if (productIndex < filtered.length) {
-                                grid.appendChild(createProductCard(filtered[productIndex]));
-                                productIndex++;
-                            }
-                        }
-                        
-                        normalSection.appendChild(grid);
-                        productsContainer.appendChild(normalSection);
-                    }
-                }
-                
-                sectionCounter++;
-                
-                // Safety check to prevent infinite loop
-                if (sectionCounter > 100) break;
-            }
-        }
-
-        // load firestore data
-        onSnapshot(productsCollection, (snap) => {
-            currentProducts = [];
-            snap.forEach(doc => {
-                let data = doc.data();
-                data.id = doc.id;
-                currentProducts.push(data);
-            });
-            
-            // sort by newest first
-            currentProducts.sort((a,b) => {
-                if (!a.createdAt) return 1;
-                if (!b.createdAt) return -1;
-                return new Date(b.createdAt) - new Date(a.createdAt);
-            });
-            
-            displayProducts(currentProducts);
-        }, (err) => {
-            console.error("Firestore error:", err);
-            productsContainer.innerHTML = `<div class="no-products">⚠️ error loading products</div>`;
-        });
-        
-        // handle window resize
-        window.addEventListener('resize', () => {
-            displayProducts(currentProducts);
-        });
-    </script>
+</div> <!-- end showroom -->
 </body>
 </html>
