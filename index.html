@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>trismart · sticky + dots</title>
+    <title>trismart · sticky top + clickable bottom icons</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* ultra compact – everything very small my guy */
         * {
             margin: 0;
             padding: 0;
@@ -23,6 +22,8 @@
             --border-light: #e5e5ea;
             --whatsapp: #25D366;
             --tiny-shadow: 0 1px 4px rgba(0,0,0,0.02);
+            --bottom-bar-bg: #0f212f;      /* deep navy */
+            --bottom-icon-gold: #e4a11b;    /* gold accent */
         }
 
         html, body {
@@ -70,7 +71,7 @@
         }
         .site-title span { color: #aaa; font-weight: 500; }
 
-        /* ——— STICKY SEARCH + CATEGORY DOTS ——— */
+        /* ——— STICKY SEARCH + CATEGORY DROPDOWN (top) ——— */
         .sticky-search-container {
             background: var(--primary);
             padding: 6px 0 4px;
@@ -78,10 +79,8 @@
             position: sticky;
             top: 0;
             z-index: 100;
-            /* guarantee it stays above content */
             box-shadow: 0 2px 6px rgba(0,0,0,0.02);
         }
-        /* flex row that holds both search and three‑dots */
         .sticky-row {
             display: flex;
             align-items: center;
@@ -208,7 +207,7 @@
         /* MAIN SCROLLABLE CONTENT AREA */
         .scrollable-content {
             flex: 1;
-            padding-bottom: 20px;
+            padding-bottom: 90px; /* space for sticky bottom bar */
         }
 
         /* Section headers */
@@ -328,7 +327,6 @@
             background: #f9f9fb;
             transform: scale(0.98);
         }
-        /* CRITICAL FIX: image anti‑blink */
         .product-img {
             width: 100%;
             aspect-ratio: 1 / 1;
@@ -339,7 +337,6 @@
             opacity: 1;
             transition: opacity 0.2s ease;
             will-change: opacity;
-            /* subtle placeholder while loading */
         }
         .product-img:not(.loaded) {
             background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
@@ -472,7 +469,7 @@
             margin-left: 4px;
         }
 
-        /* modal unchanged */
+        /* product modal (stock removed) */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -581,7 +578,7 @@
             font-size: 11px;
         }
         .whatsapp-float {
-            position: fixed; bottom: 15px; right: 15px; background: #25D366;
+            position: fixed; bottom: 95px; right: 15px; background: #25D366;
             width: 48px; height: 48px; border-radius: 48px; display: flex;
             align-items: center; justify-content: center; color: white; font-size: 22px;
             box-shadow: 0 3px 10px rgba(0,0,0,0.1); z-index: 999;
@@ -596,6 +593,125 @@
             background: white;
             border-radius: 10px;
         }
+
+        /* ——— STICKY BOTTOM BAR (icons only, matching file colors) ——— */
+        .sticky-bottom-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: black;
+          
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            padding: 8px 12px;
+            box-shadow: 0 -4px 10px rgba(0,0,0,0.15);
+            z-index: 9999;
+            gap: 8px 2px;
+        }
+
+        .bottom-icon-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #dddddd;
+            font-size: 0.75rem;
+            font-weight: 500;
+            transition: 0.1s;
+            min-width: 60px;
+            cursor: pointer;  /* clickable now */
+        }
+
+        .bottom-icon-item i {
+            font-size: 1.8rem;
+            color:  rgba(255, 255, 255, 0.7);  /* gold accent */
+            margin-bottom: 4px;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+        }
+
+        .bottom-icon-item span {
+            text-transform: uppercase;
+            font-size: 0.65rem;
+            letter-spacing: 0.4px;
+            font-weight: 600;
+            color: #eee;
+        }
+
+        .bottom-divider {
+            width: 2px;
+            height: 30px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+        }
+
+        /* info panel that appears when clicking bottom icons */
+        .info-panel {
+            position: fixed;
+            bottom: 95px;  /* just above bottom bar */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 380px;
+            background: white;
+            border-radius: 24px 24px 12px 12px;
+            box-shadow: 0 -6px 20px rgba(0,0,0,0.15);
+            padding: 18px 16px;
+            z-index: 10001;
+            display: none;
+          
+            border-bottom: none;
+        }
+
+        .info-panel.show {
+            display: block;
+            animation: slideUp 0.2s ease;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateX(-50%) translateY(20px); opacity: 0; }
+            to { transform: translateX(-50%) translateY(0); opacity: 1; }
+        }
+
+        .info-panel h4 {
+            font-size: 1.2rem;
+            margin-bottom: 12px;
+            color: #0f212f;
+            border-left: black;
+            padding-left: 12px;
+        }
+
+        .info-panel p {
+            margin: 10px 0;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #1e2b3a;
+        }
+
+        .info-panel i {
+            color: rgb(0, 0, 0);
+            width: 24px;
+            font-size: 1.2rem;
+        }
+
+        .close-info-panel {
+            position: absolute;
+            top: 10px;
+            right: 14px;
+            background: none;
+            border: none;
+            font-size: 1.6rem;
+            cursor: pointer;
+            color: #666;
+        }
+
+        @media (max-width: 450px) {
+            .bottom-icon-item i { font-size: 1.6rem; }
+            .bottom-icon-item span { font-size: 0.6rem; }
+        }
     </style>
 </head>
 <body>
@@ -608,7 +724,7 @@
             </div>
         </header>
 
-        <!-- STICKY SEARCH + THREE DOTS (left side) -->
+        <!-- STICKY SEARCH (top) + THREE DOTS (category dropdown) -->
         <div class="sticky-search-container">
             <div class="container">
                 <div class="sticky-row">
@@ -664,6 +780,33 @@
             </div>
         </div>
 
+        <!-- STICKY BOTTOM ICON BAR (contact, logistics, payment) – category removed as requested -->
+        <div class="sticky-bottom-bar">
+            <div class="bottom-icon-item" id="contactIcon">
+                <i class="fas fa-address-card"></i>
+                <span>CONTACT</span>
+            </div>
+            <div class="bottom-divider"></div>
+            <div class="bottom-icon-item" id="logisticsIcon">
+                <i class="fas fa-truck-moving"></i>
+                <span>LOGISTICS</span>
+            </div>
+            <div class="bottom-divider"></div>
+            <div class="bottom-icon-item" id="paymentIcon">
+                <i class="fas fa-credit-card"></i>
+                <span>PAYMENT</span>
+            </div>
+        </div>
+
+        <!-- INFO PANEL (appears when clicking bottom icons) -->
+        <div class="info-panel" id="infoPanel">
+            <button class="close-info-panel" id="closeInfoPanel">&times;</button>
+            <h4 id="panelTitle">Contact</h4>
+            <div id="panelContent">
+                <!-- dynamic content inserted via js -->
+            </div>
+        </div>
+
         <footer>
             <div class="container">
                 <div class="footer-content">
@@ -673,7 +816,7 @@
         </footer>
     </div>
 
-    <!-- product modal -->
+    <!-- product modal (stock removed) -->
     <div class="modal-overlay" id="productModal">
         <button class="close-modal" id="closeModal">×</button>
         <div class="product-modal">
@@ -694,7 +837,7 @@
                     <span id="modalPrice"></span>
                 </div>
                 <div id="modalPromotion" style="display:none; font-size:11px; margin-bottom:8px;"><i class="fas fa-tag"></i> <span id="promotionText"></span></div>
-                <div class="modal-stock" id="modalStock" style="font-size:12px; margin-bottom:12px;"></div>
+                <!-- stock line completely removed -->
                 <a href="#" class="whatsapp-btn" id="whatsappInquiry" target="_blank"><i class="fab fa-whatsapp"></i> inquire</a>
             </div>
         </div>
@@ -745,7 +888,6 @@
         const modalDescription = document.getElementById('modalDescription');
         const modalPrice = document.getElementById('modalPrice');
         const modalOldPrice = document.getElementById('modalOldPrice');
-        const modalStock = document.getElementById('modalStock');
         const whatsappInquiry = document.getElementById('whatsappInquiry');
         const modalPromotion = document.getElementById('modalPromotion');
         const promotionText = document.getElementById('promotionText');
@@ -756,6 +898,52 @@
         const microThumbOverlay = document.getElementById('microThumbOverlay');
         const thumbScrollWrapper = document.getElementById('thumbScrollWrapper');
         const closeMicroThumb = document.getElementById('closeMicroThumb');
+
+        // Info panel elements
+        const infoPanel = document.getElementById('infoPanel');
+        const panelTitle = document.getElementById('panelTitle');
+        const panelContent = document.getElementById('panelContent');
+        const closeInfoPanel = document.getElementById('closeInfoPanel');
+
+        // Bottom icon click handlers
+        document.getElementById('contactIcon').addEventListener('click', () => {
+            panelTitle.innerText = '📞 Contact Us';
+            panelContent.innerHTML = `
+                <p><i class="fas fa-phone-alt"></i> 0771287206 | 0775390905</p>
+<p><i class="fas fa-clock"></i> Mon-Sat 08:00 - 18:30</p>
+<p><i class="fas fa-store"></i> Online Store Only</p>
+            `;
+            infoPanel.classList.add('show');
+        });
+        document.getElementById('logisticsIcon').addEventListener('click', () => {
+            panelTitle.innerText = '🚚 Logistics';
+            panelContent.innerHTML = `
+                
+            <p><i class="fas fa-truck"></i> Free Lusaka delivery on orders above K400</p><p><i class="fas fa-clock"></i> Same-day delivery for orders placed before 18:00 (Lusaka only)</p>
+<p><i class="fas fa-truck"></i> Lusaka deliveries handled via Yango Ride – Delivery charges apply</p>
+<p><i class="fas fa-globe"></i> Nationwide shipping available via Platinum Couriers – Delivery time and charges depend on the courier service provider</p>
+            `;
+            infoPanel.classList.add('show');
+        });
+        document.getElementById('paymentIcon').addEventListener('click', () => {
+            panelTitle.innerText = '💳 Payment';
+            panelContent.innerHTML = `
+                <p><i class="fas fa-university"></i> FNB Bank Transfer – Account Name: Christopher Chishela | Account Number: 63042080133</p>
+<p><i class="fas fa-mobile-alt"></i> Airtel Money  – 0771287206 (Christopher Chishela)</p>
+
+            `;
+            infoPanel.classList.add('show');
+        });
+
+        closeInfoPanel.addEventListener('click', () => {
+            infoPanel.classList.remove('show');
+        });
+        // click outside to close (optional)
+        window.addEventListener('click', (e) => {
+            if (!infoPanel.contains(e.target) && !e.target.closest('.bottom-icon-item')) {
+                infoPanel.classList.remove('show');
+            }
+        });
 
         // state
         let currentCategory = 'all';
@@ -769,7 +957,6 @@
         categoryDotsBtn.addEventListener('click', () => {
             categoryDropdown.classList.toggle('show');
         });
-        // close dropdown when clicking outside (optional simple)
         document.addEventListener('click', (e) => {
             if (!categoryDotsBtn.contains(e.target) && !categoryDropdown.contains(e.target)) {
                 categoryDropdown.classList.remove('show');
@@ -803,12 +990,11 @@
                 document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
                 e.target.classList.add('active');
                 currentCategory = e.target.dataset.category;
-                categoryDropdown.classList.remove('show'); // hide after select
+                categoryDropdown.classList.remove('show');
                 displayAllSections(currentProducts);
             }
         });
 
-        // helper: check section membership (backward compat)
         function shouldDisplayInSection(product, section) {
             if (Array.isArray(product.sections)) return product.sections.includes(section);
             if (section === "hotsales") return true;
@@ -818,7 +1004,7 @@
             return true;
         }
 
-        // open modal + micro thumbs
+        // open modal (stock removed)
         function openProductModal(product) {
             currentProductImages = product.images && product.images.length ? [...product.images] : [];
             if (product.image) currentProductImages.unshift(product.image);
@@ -855,10 +1041,7 @@
                 modalPromotion.style.display = 'block';
                 promotionText.textContent = product.promotion;
             } else modalPromotion.style.display = 'none';
-            const stock = product.stock ?? 0;
-            if (stock > 5) modalStock.textContent = `✅ in stock (${stock})`;
-            else if (stock > 0) modalStock.textContent = `⚠️ low stock (${stock})`;
-            else modalStock.textContent = '❌ out of stock';
+            
             const msg = `Hi! I'm interested in: ${product.name} – ZMW ${product.price}`;
             whatsappInquiry.href = `https://wa.me/260775390905?text=${encodeURIComponent(msg)}`;
 
@@ -967,13 +1150,10 @@
                 horizontalScroll.innerHTML = '<div class="no-products">no products found</div>';
                 return;
             }
-            // hot sales
             filtered.filter(p => shouldDisplayInSection(p, 'hotsales')).slice(0,4).forEach(p => horizontalScroll.appendChild(createProductCard(p, true)));
-            // promotions
             const promo = filtered.filter(p => shouldDisplayInSection(p, 'specialpromotions')).slice(0,4);
             if (promo.length) promo.forEach(p => verticalScroll.appendChild(createProductCard(p, false, true)));
             else verticalScroll.innerHTML = '<div class="no-products" style="padding:20px;">no promotions</div>';
-            // more products
             filtered.filter(p => shouldDisplayInSection(p, 'moreproducts')).forEach(p => productsGrid.appendChild(createProductCard(p)));
         }
 
