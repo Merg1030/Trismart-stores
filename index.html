@@ -130,16 +130,17 @@
         }
         /* category dots — three dots button (sticks next to search) */
         .category-dots-btn {
-            background: white;
+          background: #636366;
             border: 1px solid #d1d1d6;
-            width: 42px;
-            height: 42px;
-            border-radius: 40px;
+            width: 48px;
+            height: 38px;
+            border-radius:30px ;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 20px;
-            color: #1c1c1e;
+            font-size: 10px;
+            color: #ffffff;
+            font-weight: 500;
             cursor: pointer;
             box-shadow: var(--tiny-shadow);
             flex-shrink: 0;
@@ -197,7 +198,7 @@
             text-align: center;
             flex-shrink: 0;
             position: fixed;
-            top: 60px;
+            top: 40px;
             left: 0;
             right: 0;
             z-index: 98;
@@ -747,7 +748,7 @@
                         <input type="text" class="search-bar" id="searchInput" placeholder="find...">
                         <button class="clear-search" id="clearSearch"><i class="fas fa-times"></i></button>
                     </div>
-                    <button class="category-dots-btn" id="categoryDotsBtn">⋯</button>
+                    <button class="category-dots-btn" id="categoryDotsBtn">category</button>
                 </div>
                 <!-- hidden dropdown panel (revealed by dots) -->
                 <div class="category-dropdown-panel" id="categoryDropdown">
