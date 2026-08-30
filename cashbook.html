@@ -1,0 +1,3100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Trismart · Accounting System</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <style>
+    :root {
+      --bg: #f0f2f8;
+      --bg2: #ffffff;
+      --bg3: #f8f9fc;
+      --border: #e4e8f0;
+      --text: #1a1e2e;
+      --text-fade: #6b7490;
+      --blue: #4361ee;
+      --green: #10b981;
+      --orange: #f59e0b;
+      --pink: #f72585;
+      --purple: #7c3aed;
+      --teal: #0d9488;
+      --red: #ef4444;
+      --radius-lg: 16px;
+      --radius-sm: 10px;
+      --sidebar-width: 240px;
+      --header-h: 64px;
+      --shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .shell {
+      display: flex;
+      min-height: 100vh;
+      width: 100%;
+    }
+
+    .sidebar {
+      width: var(--sidebar-width);
+      background: var(--bg2);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      z-index: 200;
+      box-shadow: 2px 0 12px rgba(0,0,0,0.04);
+      transition: transform 0.3s ease, margin-left 0.3s ease;
+    }
+    .sidebar.hidden {
+      transform: translateX(-100%);
+    }
+
+    .sidebar-brand {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .sidebar-brand .logo-mark {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--blue), var(--purple));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      color: white; font-size: 0.9rem; flex-shrink: 0;
+    }
+    .sidebar-brand .logo-text {
+      font-size: 1rem; font-weight: 800;
+    }
+    .sidebar-brand .logo-text span {
+      background: linear-gradient(135deg, var(--blue), var(--purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      padding: 16px 12px;
+      overflow-y: auto;
+    }
+    .sidebar-nav .nav-label {
+      font-size: 0.6rem;
+      font-weight: 700;
+      color: var(--text-fade);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 8px 12px 4px;
+    }
+    .sidebar-nav .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      color: var(--text-fade);
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      font-weight: 600;
+      font-size: 0.82rem;
+      margin-bottom: 2px;
+    }
+    .sidebar-nav .nav-item:hover {
+      background: var(--bg3);
+      color: var(--text);
+    }
+    .sidebar-nav .nav-item.active {
+      background: linear-gradient(135deg, var(--blue), var(--purple));
+      color: white;
+      box-shadow: 0 2px 12px rgba(67, 97, 238, 0.3);
+    }
+    .sidebar-nav .nav-item i {
+      width: 20px;
+      text-align: center;
+      font-size: 0.9rem;
+    }
+    .sidebar-nav .nav-item .badge {
+      margin-left: auto;
+      background: var(--bg3);
+      padding: 1px 8px;
+      border-radius: 100px;
+      font-size: 0.55rem;
+      font-weight: 700;
+      color: var(--text-fade);
+    }
+    .sidebar-nav .nav-item.active .badge {
+      background: rgba(255,255,255,0.2);
+      color: white;
+    }
+
+    .sidebar-footer {
+      padding: 16px 20px;
+      border-top: 1px solid var(--border);
+      font-size: 0.65rem;
+      color: var(--text-fade);
+    }
+
+    .main {
+      margin-left: var(--sidebar-width);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      transition: margin-left 0.3s ease;
+    }
+    .main.sidebar-hidden {
+      margin-left: 0;
+    }
+
+    .topbar {
+      height: var(--header-h);
+      flex-shrink: 0;
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: var(--shadow);
+    }
+    .topbar-left { display: flex; align-items: center; gap: 14px; }
+    .menu-toggle {
+      background: none;
+      border: none;
+      font-size: 1.2rem;
+      color: var(--text);
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 6px;
+      transition: all 0.15s ease;
+    }
+    .menu-toggle:hover { background: var(--bg3); }
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .topbar-title {
+      font-weight: 700;
+      font-size: 0.9rem;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 18px;
+      border-radius: var(--radius-sm);
+      border: none;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 700;
+      font-size: 0.78rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--blue), #3651d4);
+      color: white;
+      box-shadow: 0 2px 8px rgba(67, 97, 238, 0.3);
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(67, 97, 238, 0.4); }
+    .btn-green {
+      background: linear-gradient(135deg, var(--green), #059669);
+      color: white;
+      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+    }
+    .btn-green:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4); }
+    .btn-danger {
+      background: linear-gradient(135deg, var(--red), #dc2626);
+      color: white;
+      box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+    }
+    .btn-danger:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4); }
+    .btn-orange {
+      background: linear-gradient(135deg, var(--orange), #d97706);
+      color: white;
+      box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+    }
+    .btn-orange:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4); }
+    .btn-purple {
+      background: linear-gradient(135deg, var(--purple), #6d28d9);
+      color: white;
+      box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);
+    }
+    .btn-purple:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4); }
+    .btn-outline {
+      background: transparent;
+      color: var(--text-fade);
+      border: 1.5px solid var(--border);
+    }
+    .btn-outline:hover { background: var(--bg3); border-color: var(--text-fade); }
+    .btn-sm { padding: 5px 12px; font-size: 0.7rem; }
+    .btn-xs { padding: 3px 10px; font-size: 0.6rem; border-radius: 6px; }
+    .btn-back {
+      background: var(--bg3);
+      color: var(--text);
+    }
+    .btn-back:hover { background: var(--border); }
+
+    .content {
+      flex: 1;
+      padding: 28px 32px;
+      max-width: 1400px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .stat-item {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 18px 22px;
+      box-shadow: var(--shadow);
+      transition: transform 0.2s ease;
+      cursor: pointer;
+    }
+    .stat-item:hover { transform: translateY(-3px); }
+    .stat-item .label {
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: var(--text-fade);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .stat-item .value {
+      font-size: 1.5rem;
+      font-weight: 800;
+      margin-top: 6px;
+    }
+    .stat-item .icon { margin-right: 6px; }
+
+    .card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow);
+      transition: box-shadow 0.2s ease;
+    }
+    .card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .card-header h2 {
+      font-size: 1rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .card-header .badge {
+      background: var(--bg3);
+      padding: 2px 12px;
+      border-radius: 100px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: var(--text-fade);
+    }
+
+    .filter-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+      padding: 12px 16px;
+      background: var(--bg3);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+    }
+    .filter-bar label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--text-fade);
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .filter-bar select {
+      padding: 6px 12px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.78rem;
+      background: var(--bg2);
+      color: var(--text);
+      cursor: pointer;
+    }
+    .filter-bar select:focus {
+      outline: none;
+      border-color: var(--blue);
+    }
+    .filter-bar .btn {
+      margin-left: auto;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+      min-width: 600px;
+    }
+    table th {
+      text-align: left;
+      padding: 12px 16px;
+      font-weight: 700;
+      color: var(--text-fade);
+      border-bottom: 2px solid var(--border);
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      background: var(--bg3);
+      position: sticky;
+      top: 0;
+      z-index: 5;
+    }
+    table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+    table tr:last-child td { border-bottom: none; }
+    table tr:hover td { background: var(--bg3); }
+    
+    .text-right { text-align: right; }
+    .text-center { text-align: center; }
+    .text-green { color: var(--green); }
+    .text-red { color: var(--red); }
+    .text-blue { color: var(--blue); }
+    .text-orange { color: var(--orange); }
+    .text-purple { color: var(--purple); }
+    .fw-700 { font-weight: 700; }
+
+    .status-badge {
+      display: inline-block;
+      padding: 3px 12px;
+      border-radius: 100px;
+      font-size: 0.6rem;
+      font-weight: 700;
+    }
+    .status-badge.active { background: #d1fae5; color: #065f46; }
+    .status-badge.pending { background: #fef3c7; color: #92400e; }
+    .status-badge.asset { background: #dbeafe; color: #1e40af; }
+    .status-badge.liability { background: #fce4ec; color: #c62828; }
+    .status-badge.equity { background: #e8f5e9; color: #2e7d32; }
+    .status-badge.income { background: #e0f7fa; color: #00838f; }
+    .status-badge.expense { background: #fff3e0; color: #e65100; }
+
+    .clickable-row {
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .clickable-row:hover {
+      background: var(--bg3) !important;
+      border-left: 3px solid var(--blue);
+    }
+
+    .page-section { display: none; }
+    .page-section.active { display: block; }
+
+    .ledger-view {
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+    .ledger-view.active {
+      display: block;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .ledger-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .ledger-header .ledger-title {
+      font-size: 1.2rem;
+      font-weight: 800;
+    }
+    .ledger-header .ledger-subtitle {
+      font-size: 0.75rem;
+      color: var(--text-fade);
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--text-fade);
+      margin-bottom: 5px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem;
+      transition: all 0.15s ease;
+      background: var(--bg2);
+      color: var(--text);
+    }
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+    }
+    .form-group textarea { resize: vertical; min-height: 60px; }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 640px) {
+      .form-row { grid-template-columns: 1fr; }
+    }
+
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal {
+      background: var(--bg2);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      max-width: 540px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      animation: modalIn 0.25s ease;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    }
+    @keyframes modalIn {
+      from { opacity: 0; transform: scale(0.95) translateY(20px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+    .modal-header h3 { font-size: 1.1rem; font-weight: 800; }
+    .modal-close {
+      background: var(--bg3);
+      border: none;
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      font-size: 1.1rem;
+      color: var(--text-fade);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-close:hover { background: var(--border); color: var(--text); }
+    .modal .btn { width: 100%; justify-content: center; }
+
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.3);
+      z-index: 150;
+    }
+    .sidebar-overlay.show { display: block; }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        transform: translateX(-100%);
+      }
+      .sidebar.open {
+        transform: translateX(0);
+      }
+      .main {
+        margin-left: 0;
+      }
+      .menu-toggle {
+        display: block;
+      }
+      .topbar { padding: 0 16px; }
+      .content { padding: 16px; }
+      .stats-row { grid-template-columns: 1fr 1fr; }
+    }
+
+    .dropdown-container {
+      position: relative;
+      display: inline-block;
+    }
+    .dropdown-menu {
+      display: none;
+      position: absolute;
+      right: 0;
+      top: 100%;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+      min-width: 150px;
+      z-index: 300;
+      padding: 4px 0;
+    }
+    .dropdown-menu.show {
+      display: block;
+    }
+    .dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 16px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.1s ease;
+      color: var(--text);
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+    }
+    .dropdown-item:hover {
+      background: var(--bg3);
+    }
+    .dropdown-item.danger {
+      color: var(--red);
+    }
+    .dropdown-item i {
+      width: 16px;
+      text-align: center;
+    }
+    .dropdown-trigger {
+      background: none;
+      border: none;
+      padding: 4px 8px;
+      cursor: pointer;
+      color: var(--text-fade);
+      border-radius: 6px;
+      font-size: 1rem;
+      transition: all 0.15s ease;
+    }
+    .dropdown-trigger:hover {
+      background: var(--bg3);
+      color: var(--text);
+    }
+
+    .report-buttons {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .sidebar-nav .nav-item.external {
+      color: var(--text);
+    }
+    .sidebar-nav .nav-item.external:hover {
+      background: var(--bg3);
+    }
+    .sidebar-nav .nav-item.external i {
+      color: var(--blue);
+    }
+
+    /* Loading spinner */
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 3px solid rgba(67,97,238,0.2);
+      border-top-color: var(--blue);
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading-row td { text-align: center; padding: 30px; color: var(--text-fade); }
+
+    .toast-wrap {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      pointer-events: none;
+      max-width: 360px;
+    }
+    .toast {
+      background: #1e2029;
+      color: #fff;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+      animation: tIn 0.25s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      pointer-events: auto;
+    }
+    .toast.success { border-left: 4px solid var(--green); }
+    .toast.error { border-left: 4px solid var(--red); }
+    .toast.info { border-left: 4px solid var(--blue); }
+    .toast.fade-out { animation: tOut 0.25s ease forwards; }
+    @keyframes tIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes tOut { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(12px); } }
+
+    @media print {
+      .no-print { display: none !important; }
+      .sidebar { display: none !important; }
+      .main { margin-left: 0 !important; }
+      .topbar { display: none !important; }
+      .card { box-shadow: none !important; border: 1px solid #ddd !important; }
+      .filter-bar { background: #f5f5f5 !important; }
+      body { background: white !important; }
+      .content { padding: 20px !important; }
+    }
+  </style>
+</head>
+<body>
+<div class="shell">
+
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="logo-mark"><i class="fas fa-store-alt"></i></div>
+      <div class="logo-text">Tri<span>smart</span></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-label">Main</div>
+      <a class="nav-item active" data-page="dashboard" onclick="navigateTo('dashboard')">
+        <i class="fas fa-chart-pie"></i> Dashboard
+      </a>
+      
+      <div class="nav-label" style="margin-top:12px;">Accounting</div>
+      <a class="nav-item" data-page="accounts" onclick="navigateTo('accounts')">
+        <i class="fas fa-sitemap"></i> Chart of Accounts
+        <span class="badge" id="navAccountCount">0</span>
+      </a>
+      <a class="nav-item" data-page="cashbook" onclick="navigateTo('cashbook')">
+        <i class="fas fa-money-bill-wave"></i> Cashbook
+        <span class="badge" id="navCashCount">0</span>
+      </a>
+      <a class="nav-item" data-page="bank" onclick="navigateTo('bank')">
+        <i class="fas fa-university"></i> Bank Accounts
+        <span class="badge" id="navBankCount">0</span>
+      </a>
+      <a class="nav-item" data-page="expenses" onclick="navigateTo('expenses')">
+        <i class="fas fa-file-invoice-dollar"></i> Expenses
+        <span class="badge" id="navExpenseCount">0</span>
+      </a>
+      <a class="nav-item" data-page="reports" onclick="navigateTo('reports')">
+        <i class="fas fa-file-alt"></i> Reports
+        <span class="badge">PDF</span>
+      </a>
+
+      <div class="nav-label" style="margin-top:12px;">Business</div>
+      <a class="nav-item external" onclick="openPage('total-sales.html')">
+        <i class="fas fa-chart-line"></i> Revenue
+        <span class="badge">Sales</span>
+      </a>
+      <a class="nav-item external" onclick="openPage('daily_earnings.html')">
+        <i class="fas fa-coins"></i> Profits
+        <span class="badge">Earnings</span>
+      </a>
+      <a class="nav-item external" onclick="openPage('receipt.html')">
+        <i class="fas fa-receipt"></i> Receipts
+        <span class="badge">Print</span>
+      </a>
+      <a class="nav-item external" onclick="openPage('profit-and-loss-account.html')">
+        <i class="fas fa-file-invoice"></i> Financial Statements
+        <span class="badge">P&L</span>
+      </a>
+      <a class="nav-item external" onclick="openPage('payroll.html')">
+        <i class="fas fa-users"></i> Payroll
+        <span class="badge">Staff</span>
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <i class="fas fa-database"></i> v3.0 · Firestore
+    </div>
+  </aside>
+
+  <div class="main" id="mainContent">
+
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="menu-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+        <span class="topbar-title" id="pageTitle">Dashboard</span>
+      </div>
+      <div class="topbar-right no-print">
+        <span id="syncStatus" style="font-size:0.65rem;color:var(--text-fade);">
+          <i class="fas fa-circle" style="color:var(--green);font-size:0.5rem;"></i> Live
+        </span>
+      </div>
+    </header>
+
+    <div class="content">
+
+      <!-- DASHBOARD -->
+      <div class="page-section" id="page-dashboard">
+        <div class="stats-row">
+          <div class="stat-item" onclick="navigateTo('cashbook')">
+            <div class="label"><i class="fas fa-money-bill-wave icon" style="color:var(--green);"></i> Cash Balance</div>
+            <div class="value text-green" id="dashCash">0.00</div>
+          </div>
+          <div class="stat-item" onclick="navigateTo('bank')">
+            <div class="label"><i class="fas fa-university icon" style="color:var(--blue);"></i> Bank Balance</div>
+            <div class="value text-blue" id="dashBank">0.00</div>
+          </div>
+          <div class="stat-item" onclick="navigateTo('expenses')">
+            <div class="label"><i class="fas fa-file-invoice-dollar icon" style="color:var(--red);"></i> Total Expenses</div>
+            <div class="value text-red" id="dashExpenses">0.00</div>
+          </div>
+          <div class="stat-item">
+            <div class="label"><i class="fas fa-boxes icon" style="color:var(--orange);"></i> Inventory Value</div>
+            <div class="value text-orange" id="dashInventory">0.00</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <h2><i class="fas fa-rocket" style="color:var(--blue);"></i> Quick Actions</h2>
+          </div>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;">
+            <button class="btn btn-primary no-print" onclick="navigateTo('accounts');openModal('accountModal')"><i class="fas fa-plus"></i> Add Account</button>
+            <button class="btn btn-green no-print" onclick="navigateTo('cashbook');openModal('cashbookModal')"><i class="fas fa-plus"></i> Cash Entry</button>
+            <button class="btn btn-orange no-print" onclick="navigateTo('expenses');openModal('expenseModal')"><i class="fas fa-plus"></i> Add Expense</button>
+            <button class="btn btn-purple no-print" onclick="navigateTo('reports')"><i class="fas fa-file-pdf"></i> View Reports</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ACCOUNTS -->
+      <div class="page-section" id="page-accounts">
+        <div class="card">
+          <div class="card-header">
+            <h2><i class="fas fa-sitemap" style="color:var(--blue);"></i> Chart of Accounts</h2>
+            <div class="flex no-print">
+              <span class="badge" id="accountCount">0 accounts</span>
+              <button class="btn btn-primary btn-sm" onclick="openModal('accountModal')"><i class="fas fa-plus"></i> Add Account</button>
+              <button class="btn btn-primary btn-sm" onclick="downloadTrialBalancePDF()"><i class="fas fa-file-pdf"></i> Trial Balance</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:100px;">Code</th>
+                  <th>Account Name</th>
+                  <th style="width:120px;">Type</th>
+                  <th style="width:140px;text-align:right;">Balance</th>
+                  <th style="width:100px;text-align:center;" class="no-print">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="accountTableBody">
+                <tr class="loading-row"><td colspan="5"><span class="spinner"></span> Loading accounts...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ACCOUNT LEDGER -->
+      <div class="ledger-view" id="accountLedger">
+        <div class="card">
+          <div class="ledger-header">
+            <button class="btn btn-back btn-sm no-print" onclick="closeLedger()"><i class="fas fa-arrow-left"></i> Back</button>
+            <div>
+              <div class="ledger-title" id="ledgerAccountName">Account Name</div>
+              <div class="ledger-subtitle" id="ledgerAccountInfo">Code: 1000 | Type: Asset</div>
+            </div>
+            <div style="margin-left:auto;" class="no-print">
+              <button class="btn btn-green btn-sm" onclick="openModal('ledgerTransactionModal')"><i class="fas fa-plus"></i> Add Transaction</button>
+              <button class="btn btn-primary btn-sm" onclick="downloadLedgerPDF('account')"><i class="fas fa-file-pdf"></i> Statement</button>
+            </div>
+          </div>
+          <div class="filter-bar no-print">
+            <label>Month:</label>
+            <select id="accountFilterMonth" onchange="applyAccountFilter()">
+              <option value="all">All</option>
+              <option value="01">January</option>
+              <option value="02">February</option>
+              <option value="03">March</option>
+              <option value="04">April</option>
+              <option value="05">May</option>
+              <option value="06">June</option>
+              <option value="07">July</option>
+              <option value="08">August</option>
+              <option value="09">September</option>
+              <option value="10">October</option>
+              <option value="11">November</option>
+              <option value="12">December</option>
+            </select>
+            <label>Year:</label>
+            <select id="accountFilterYear" onchange="applyAccountFilter()">
+              <option value="all">All</option>
+            </select>
+            <button class="btn btn-outline btn-sm" onclick="resetAccountFilter()"><i class="fas fa-undo"></i> Reset</button>
+          </div>
+          <div id="accountLedgerContent">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width:120px;">Date</th>
+                    <th>Description</th>
+                    <th style="width:130px;text-align:right;">Debit</th>
+                    <th style="width:130px;text-align:right;">Credit</th>
+                    <th style="width:140px;text-align:right;">Balance</th>
+                    <th style="width:80px;text-align:center;" class="no-print">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="ledgerTableBody">
+                  <tr class="loading-row"><td colspan="6"><span class="spinner"></span> Loading transactions...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CASHBOOK -->
+      <div class="page-section" id="page-cashbook">
+        <div class="card">
+          <div class="card-header">
+            <h2><i class="fas fa-money-bill-wave" style="color:var(--green);"></i> Cashbook</h2>
+            <div class="flex no-print">
+              <span class="badge" id="cashbookCount">0 entries</span>
+              <button class="btn btn-green btn-sm" onclick="openModal('cashbookModal')"><i class="fas fa-plus"></i> Add Entry</button>
+              <button class="btn btn-primary btn-sm" onclick="downloadCashbookPDF()"><i class="fas fa-file-pdf"></i> PDF</button>
+            </div>
+          </div>
+          <div class="filter-bar no-print">
+            <label>Month:</label>
+            <select id="cashbookFilterMonth" onchange="renderCashbook()">
+              <option value="all">All</option>
+              <option value="01">January</option>
+              <option value="02">February</option>
+              <option value="03">March</option>
+              <option value="04">April</option>
+              <option value="05">May</option>
+              <option value="06">June</option>
+              <option value="07">July</option>
+              <option value="08">August</option>
+              <option value="09">September</option>
+              <option value="10">October</option>
+              <option value="11">November</option>
+              <option value="12">December</option>
+            </select>
+            <label>Year:</label>
+            <select id="cashbookFilterYear" onchange="renderCashbook()">
+              <option value="all">All</option>
+            </select>
+            <button class="btn btn-outline btn-sm" onclick="resetCashbookFilter()"><i class="fas fa-undo"></i> Reset</button>
+          </div>
+          <div id="cashbookContent">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width:120px;">Date</th>
+                    <th>Description</th>
+                    <th style="width:130px;text-align:right;">Debit</th>
+                    <th style="width:130px;text-align:right;">Credit</th>
+                    <th style="width:140px;text-align:right;">Balance</th>
+                    <th style="width:80px;text-align:center;" class="no-print">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="cashbookTableBody">
+                  <tr class="loading-row"><td colspan="6"><span class="spinner"></span> Loading cashbook...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BANK ACCOUNTS -->
+      <div class="page-section" id="page-bank">
+        <div class="card">
+          <div class="card-header">
+            <h2><i class="fas fa-university" style="color:var(--purple);"></i> Bank Accounts</h2>
+            <div class="flex no-print">
+              <span class="badge" id="bankCount">0 banks</span>
+              <button class="btn btn-primary btn-sm" onclick="openModal('bankModal')"><i class="fas fa-plus"></i> Add Bank</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Bank Name</th>
+                  <th style="width:180px;">Account #</th>
+                  <th style="width:140px;text-align:right;">Balance</th>
+                  <th style="width:100px;">Status</th>
+                  <th style="width:100px;text-align:center;" class="no-print">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="bankTableBody">
+                <tr class="loading-row"><td colspan="5"><span class="spinner"></span> Loading banks...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- BANK LEDGER -->
+      <div class="ledger-view" id="bankLedger">
+        <div class="card">
+          <div class="ledger-header">
+            <button class="btn btn-back btn-sm no-print" onclick="closeBankLedger()"><i class="fas fa-arrow-left"></i> Back</button>
+            <div>
+              <div class="ledger-title" id="bankLedgerName">Bank Account</div>
+              <div class="ledger-subtitle" id="bankLedgerInfo">Account #: 1234567890 | Balance: 0.00</div>
+            </div>
+            <div style="margin-left:auto;" class="no-print">
+              <button class="btn btn-green btn-sm" onclick="openModal('bankTransactionModal')"><i class="fas fa-plus"></i> Add Transaction</button>
+              <button class="btn btn-primary btn-sm" onclick="downloadLedgerPDF('bank')"><i class="fas fa-file-pdf"></i> Statement</button>
+            </div>
+          </div>
+          <div class="filter-bar no-print">
+            <label>Month:</label>
+            <select id="bankFilterMonth" onchange="applyBankFilter()">
+              <option value="all">All</option>
+              <option value="01">January</option>
+              <option value="02">February</option>
+              <option value="03">March</option>
+              <option value="04">April</option>
+              <option value="05">May</option>
+              <option value="06">June</option>
+              <option value="07">July</option>
+              <option value="08">August</option>
+              <option value="09">September</option>
+              <option value="10">October</option>
+              <option value="11">November</option>
+              <option value="12">December</option>
+            </select>
+            <label>Year:</label>
+            <select id="bankFilterYear" onchange="applyBankFilter()">
+              <option value="all">All</option>
+            </select>
+            <button class="btn btn-outline btn-sm" onclick="resetBankFilter()"><i class="fas fa-undo"></i> Reset</button>
+          </div>
+          <div id="bankLedgerContent">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width:120px;">Date</th>
+                    <th>Description</th>
+                    <th style="width:130px;text-align:right;">Debit</th>
+                    <th style="width:130px;text-align:right;">Credit</th>
+                    <th style="width:140px;text-align:right;">Balance</th>
+                    <th style="width:80px;text-align:center;" class="no-print">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="bankLedgerTableBody">
+                  <tr class="loading-row"><td colspan="6"><span class="spinner"></span> Loading transactions...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- EXPENSES -->
+      <div class="page-section" id="page-expenses">
+        <div class="card">
+          <div class="card-header">
+            <h2><i class="fas fa-file-invoice-dollar" style="color:var(--orange);"></i> Expenses Journal</h2>
+            <div class="flex no-print">
+              <span class="badge" id="expenseCount">0 expenses</span>
+              <button class="btn btn-orange btn-sm" onclick="openModal('expenseModal')"><i class="fas fa-plus"></i> Add Expense</button>
+              <button class="btn btn-primary btn-sm" onclick="downloadExpensesPDF()"><i class="fas fa-file-pdf"></i> PDF</button>
+            </div>
+          </div>
+          <div class="filter-bar no-print">
+            <label>Month:</label>
+            <select id="expenseFilterMonth" onchange="renderExpenses()">
+              <option value="all">All</option>
+              <option value="01">January</option>
+              <option value="02">February</option>
+              <option value="03">March</option>
+              <option value="04">April</option>
+              <option value="05">May</option>
+              <option value="06">June</option>
+              <option value="07">July</option>
+              <option value="08">August</option>
+              <option value="09">September</option>
+              <option value="10">October</option>
+              <option value="11">November</option>
+              <option value="12">December</option>
+            </select>
+            <label>Year:</label>
+            <select id="expenseFilterYear" onchange="renderExpenses()">
+              <option value="all">All</option>
+            </select>
+            <button class="btn btn-outline btn-sm" onclick="resetExpenseFilter()"><i class="fas fa-undo"></i> Reset</button>
+          </div>
+          <div id="expenseContent">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width:120px;">Date</th>
+                    <th style="width:150px;">Category</th>
+                    <th>Description</th>
+                    <th style="width:140px;text-align:right;">Amount</th>
+                    <th style="width:150px;">Paid From</th>
+                    <th style="width:80px;text-align:center;" class="no-print">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="expenseTableBody">
+                  <tr class="loading-row"><td colspan="6"><span class="spinner"></span> Loading expenses...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- REPORTS PAGE -->
+      <div class="page-section" id="page-reports">
+        <div class="card">
+          <div class="card-header">
+            <h2><i class="fas fa-file-alt" style="color:var(--purple);"></i> Reports</h2>
+            <span class="badge no-print">Download PDF</span>
+          </div>
+          
+          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+            <!-- Trial Balance Report -->
+            <div style="background:var(--bg3); border-radius:var(--radius-lg); padding:20px; border:1px solid var(--border);">
+              <h3 style="font-size:0.85rem; margin-bottom:8px;"><i class="fas fa-scale-balanced" style="color:var(--blue);"></i> Trial Balance</h3>
+              <p style="font-size:0.7rem; color:var(--text-fade); margin-bottom:12px;">Complete list of all accounts with their balances. Summary of Assets, Liabilities, Equity, Income, and Expenses.</p>
+              <button class="btn btn-primary btn-sm" onclick="downloadTrialBalancePDF()"><i class="fas fa-file-pdf"></i> Download PDF</button>
+            </div>
+
+            <!-- Dashboard Summary Report -->
+            <div style="background:var(--bg3); border-radius:var(--radius-lg); padding:20px; border:1px solid var(--border);">
+              <h3 style="font-size:0.85rem; margin-bottom:8px;"><i class="fas fa-chart-simple" style="color:var(--green);"></i> Financial Summary</h3>
+              <p style="font-size:0.7rem; color:var(--text-fade); margin-bottom:12px;">Summary of Cash Balance, Bank Balance, Total Expenses, and Inventory Value. Quick financial health overview.</p>
+              <button class="btn btn-green btn-sm" onclick="downloadSummaryPDF()"><i class="fas fa-file-pdf"></i> Download PDF</button>
+            </div>
+
+            <!-- Account Statement -->
+            <div style="background:var(--bg3); border-radius:var(--radius-lg); padding:20px; border:1px solid var(--border);">
+              <h3 style="font-size:0.85rem; margin-bottom:8px;"><i class="fas fa-book" style="color:var(--orange);"></i> Account Statement</h3>
+              <p style="font-size:0.7rem; color:var(--text-fade); margin-bottom:12px;">Select an account to generate a detailed statement with all transactions, running balance, and date filters.</p>
+              <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <select id="reportAccountSelect" style="flex:1; padding:6px 10px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:0.75rem;">
+                  <option value="">Select Account...</option>
+                </select>
+                <button class="btn btn-primary btn-sm" onclick="downloadAccountStatementPDF()"><i class="fas fa-file-pdf"></i> Go</button>
+              </div>
+            </div>
+
+            <!-- Bank Statement -->
+            <div style="background:var(--bg3); border-radius:var(--radius-lg); padding:20px; border:1px solid var(--border);">
+              <h3 style="font-size:0.85rem; margin-bottom:8px;"><i class="fas fa-university" style="color:var(--purple);"></i> Bank Statement</h3>
+              <p style="font-size:0.7rem; color:var(--text-fade); margin-bottom:12px;">Select a bank account to generate a detailed bank statement with all transactions and running balance.</p>
+              <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <select id="reportBankSelect" style="flex:1; padding:6px 10px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:0.75rem;">
+                  <option value="">Select Bank...</option>
+                </select>
+                <button class="btn btn-primary btn-sm" onclick="downloadBankStatementPDF()"><i class="fas fa-file-pdf"></i> Go</button>
+              </div>
+            </div>
+
+            <!-- Cashbook Report -->
+            <div style="background:var(--bg3); border-radius:var(--radius-lg); padding:20px; border:1px solid var(--border);">
+              <h3 style="font-size:0.85rem; margin-bottom:8px;"><i class="fas fa-money-bill-wave" style="color:var(--green);"></i> Cashbook Report</h3>
+              <p style="font-size:0.7rem; color:var(--text-fade); margin-bottom:12px;">Complete cashbook with all cash transactions, running balance, and date filters.</p>
+              <button class="btn btn-green btn-sm" onclick="downloadCashbookPDF()"><i class="fas fa-file-pdf"></i> Download PDF</button>
+            </div>
+
+            <!-- Expenses Report -->
+            <div style="background:var(--bg3); border-radius:var(--radius-lg); padding:20px; border:1px solid var(--border);">
+              <h3 style="font-size:0.85rem; margin-bottom:8px;"><i class="fas fa-file-invoice-dollar" style="color:var(--orange);"></i> Expenses Report</h3>
+              <p style="font-size:0.7rem; color:var(--text-fade); margin-bottom:12px;">All expense transactions categorized by type, with amounts and payment source.</p>
+              <button class="btn btn-orange btn-sm" onclick="downloadExpensesPDF()"><i class="fas fa-file-pdf"></i> Download PDF</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="accountModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="accountModalTitle">Add Account</h3>
+      <button class="modal-close" onclick="closeModal('accountModal')">&times;</button>
+    </div>
+    <form id="accountForm" onsubmit="saveAccount(event)">
+      <input type="hidden" id="accountEditId">
+      <div class="form-group">
+        <label>Account Code</label>
+        <input type="text" id="accountCode" placeholder="e.g. 1000" required>
+      </div>
+      <div class="form-group">
+        <label>Account Name</label>
+        <input type="text" id="accountName" placeholder="e.g. Cash in Hand" required>
+      </div>
+      <div class="form-group">
+        <label>Account Type</label>
+        <select id="accountType" required>
+          <option value="Asset">Asset</option>
+          <option value="Liability">Liability</option>
+          <option value="Equity">Equity</option>
+          <option value="Income">Income</option>
+          <option value="Expense">Expense</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Opening Balance</label>
+        <input type="number" id="accountBalance" step="0.01" value="0">
+      </div>
+      <button type="submit" class="btn btn-primary">Save Account</button>
+    </form>
+  </div>
+</div>
+
+<div class="modal-overlay" id="cashbookModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Add Cash Entry</h3>
+      <button class="modal-close" onclick="closeModal('cashbookModal')">&times;</button>
+    </div>
+    <form id="cashbookForm" onsubmit="saveCashbook(event)">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Date</label>
+          <input type="date" id="cashbookDate" required>
+        </div>
+        <div class="form-group">
+          <label>Type</label>
+          <select id="cashbookType" required>
+            <option value="debit">Debit (Receipt)</option>
+            <option value="credit">Credit (Payment)</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Description</label>
+        <input type="text" id="cashbookDesc" placeholder="Transaction description" required>
+      </div>
+      <div class="form-group">
+        <label>Amount</label>
+        <input type="number" id="cashbookAmount" step="0.01" placeholder="0.00" required>
+      </div>
+      <button type="submit" class="btn btn-green">Save Entry</button>
+    </form>
+  </div>
+</div>
+
+<div class="modal-overlay" id="bankModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="bankModalTitle">Add Bank Account</h3>
+      <button class="modal-close" onclick="closeModal('bankModal')">&times;</button>
+    </div>
+    <form id="bankForm" onsubmit="saveBank(event)">
+      <input type="hidden" id="bankEditId">
+      <div class="form-group">
+        <label>Bank Name</label>
+        <input type="text" id="bankName" placeholder="e.g. Chase Bank" required>
+      </div>
+      <div class="form-group">
+        <label>Account Number</label>
+        <input type="text" id="bankAccountNo" placeholder="e.g. 1234567890" required>
+      </div>
+      <div class="form-group">
+        <label>Balance</label>
+        <input type="number" id="bankBalance" step="0.01" value="0">
+      </div>
+      <button type="submit" class="btn btn-primary">Save Bank</button>
+    </form>
+  </div>
+</div>
+
+<div class="modal-overlay" id="bankTransactionModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Add Bank Transaction</h3>
+      <button class="modal-close" onclick="closeModal('bankTransactionModal')">&times;</button>
+    </div>
+    <form id="bankTransactionForm" onsubmit="saveBankTransaction(event)">
+      <input type="hidden" id="bankTxnBankId">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Date</label>
+          <input type="date" id="bankTxnDate" required>
+        </div>
+        <div class="form-group">
+          <label>Type</label>
+          <select id="bankTxnType" required>
+            <option value="debit">Debit (Deposit)</option>
+            <option value="credit">Credit (Withdrawal)</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Description</label>
+        <input type="text" id="bankTxnDesc" placeholder="Transaction description" required>
+      </div>
+      <div class="form-group">
+        <label>Amount</label>
+        <input type="number" id="bankTxnAmount" step="0.01" placeholder="0.00" required>
+      </div>
+      <button type="submit" class="btn btn-green">Save Transaction</button>
+    </form>
+  </div>
+</div>
+
+<div class="modal-overlay" id="expenseModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Add Expense</h3>
+      <button class="modal-close" onclick="closeModal('expenseModal')">&times;</button>
+    </div>
+    <form id="expenseForm" onsubmit="saveExpense(event)">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Date</label>
+          <input type="date" id="expenseDate" required>
+        </div>
+        <div class="form-group">
+          <label>Category</label>
+          <select id="expenseCategory" required>
+            <option value="Office Supplies">Office Supplies</option>
+            <option value="Utilities">Utilities</option>
+            <option value="Rent">Rent</option>
+            <option value="Salaries">Salaries</option>
+            <option value="Marketing">Marketing</option>
+            <option value="Travel">Travel</option>
+            <option value="Maintenance">Maintenance</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Description</label>
+        <input type="text" id="expenseDesc" placeholder="Expense description" required>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Amount</label>
+          <input type="number" id="expenseAmount" step="0.01" placeholder="0.00" required>
+        </div>
+        <div class="form-group">
+          <label>Paid From Account</label>
+          <select id="expenseAccount" required>
+            <option value="">Select Account...</option>
+          </select>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-orange">Save Expense</button>
+    </form>
+  </div>
+</div>
+
+<div class="modal-overlay" id="ledgerTransactionModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Add Transaction</h3>
+      <button class="modal-close" onclick="closeModal('ledgerTransactionModal')">&times;</button>
+    </div>
+    <form id="ledgerTransactionForm" onsubmit="saveLedgerTransaction(event)">
+      <input type="hidden" id="ledgerTxnAccountId">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Date</label>
+          <input type="date" id="ledgerTxnDate" required>
+        </div>
+        <div class="form-group">
+          <label>Type</label>
+          <select id="ledgerTxnType" required>
+            <option value="debit">Debit</option>
+            <option value="credit">Credit</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Description</label>
+        <input type="text" id="ledgerTxnDesc" placeholder="Transaction description" required>
+      </div>
+      <div class="form-group">
+        <label>Amount</label>
+        <input type="number" id="ledgerTxnAmount" step="0.01" placeholder="0.00" required>
+      </div>
+      <button type="submit" class="btn btn-green">Save Transaction</button>
+    </form>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-wrap" id="toastContainer"></div>
+
+<script type="module">
+// ============================================================
+// FIREBASE IMPORTS
+// ============================================================
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-app.js";
+import { 
+  getFirestore, 
+  collection, 
+  doc, 
+  query, 
+  where, 
+  onSnapshot, 
+  getDocs,
+  getDoc,
+  addDoc, 
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  writeBatch,
+  serverTimestamp,
+  increment
+} from "https://www.gstatic.com/firebasejs/11.5.0/firebase-firestore.js";
+
+// ============================================================
+// FIREBASE CONFIG
+// ============================================================
+const firebaseConfig = {
+  apiKey: "AIzaSyB-lm7Y3r1F6VvY8PKvY8glLabZDbJsHM1k",
+  authDomain: "trismartstores.firebaseapp.com",
+  projectId: "trismartstores",
+  storageBucket: "trismartstores.appspot.com",
+  messagingSenderId: "416692703333",
+  appId: "1:416692703333:web:d4b60292621435c748f68c"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// ============================================================
+// BRANCH ID
+// ============================================================
+const branchId = localStorage.getItem('branchId') || 'kabanana';
+
+// ============================================================
+// STATE
+// ============================================================
+let accounts = [];
+let cashbook = [];
+let banks = [];
+let expenses = [];
+let accountTransactions = {};
+let bankTransactions = {};
+
+let currentLedgerId = null;
+let currentLedgerType = 'account';
+let currentBankId = null;
+let inventoryValue = 0;
+
+let filterState = {
+  account: { month: 'all', year: 'all' },
+  bank: { month: 'all', year: 'all' },
+  cashbook: { month: 'all', year: 'all' },
+  expense: { month: 'all', year: 'all' }
+};
+
+let pageState = {
+  currentPage: 'dashboard',
+  currentLedger: null,
+  currentLedgerType: null,
+  currentBankId: null
+};
+
+// Unsubscribe functions
+let unsubAccounts = null;
+let unsubCashbook = null;
+let unsubBanks = null;
+let unsubExpenses = null;
+let unsubAccountTxns = {};
+let unsubBankTxns = {};
+
+// ============================================================
+// UTILITY FUNCTIONS
+// ============================================================
+function formatNumber(amount) { return parseFloat(amount || 0).toFixed(2); }
+function getToday() { return new Date().toISOString().split('T')[0]; }
+
+function getYearOptions() {
+  const currentYear = new Date().getFullYear();
+  let options = '<option value="all">All</option>';
+  for (let y = currentYear; y >= currentYear - 10; y--) {
+    options += `<option value="${y}">${y}</option>`;
+  }
+  return options;
+}
+
+function populateYearDropdowns() {
+  const yearOpts = getYearOptions();
+  document.querySelectorAll('select[id$="FilterYear"]').forEach(el => {
+    el.innerHTML = yearOpts;
+  });
+}
+
+// ============================================================
+// TOAST NOTIFICATIONS
+// ============================================================
+function toast(message, type = 'success') {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  const icons = { success: '✅', error: '❌', info: 'ℹ️' };
+  toast.innerHTML = `<span>${icons[type] || 'ℹ️'}</span> ${message}`;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.classList.add('fade-out');
+    setTimeout(() => toast.remove(), 300);
+  }, 4000);
+}
+
+// ============================================================
+// SIDEBAR & NAVIGATION
+// ============================================================
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const main = document.getElementById('mainContent');
+  sidebar.classList.toggle('hidden');
+  main.classList.toggle('sidebar-hidden');
+}
+
+function navigateTo(page, saveState = true) {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('show');
+  
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  const navItem = document.querySelector(`.nav-item[data-page="${page}"]`);
+  if (navItem) navItem.classList.add('active');
+  
+  document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.ledger-view').forEach(el => el.classList.remove('active'));
+  
+  const section = document.getElementById(`page-${page}`);
+  if (section) section.classList.add('active');
+  
+  const titles = {
+    dashboard: 'Dashboard',
+    accounts: 'Chart of Accounts',
+    cashbook: 'Cashbook',
+    bank: 'Bank Accounts',
+    expenses: 'Expenses Journal',
+    reports: 'Reports'
+  };
+  document.getElementById('pageTitle').textContent = titles[page] || page;
+  
+  if (page === 'reports') populateReportSelects();
+  
+  if (saveState) {
+    pageState.currentPage = page;
+    pageState.currentLedger = null;
+    pageState.currentLedgerType = null;
+    pageState.currentBankId = null;
+  }
+}
+
+function openModal(id) {
+  document.getElementById(id).classList.add('show');
+  if (id === 'expenseModal') populateExpenseAccounts();
+  const dateInput = document.getElementById(id.replace('Modal', 'Date'));
+  if (dateInput && !dateInput.value) dateInput.value = getToday();
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('show');
+}
+
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('show');
+  });
+});
+
+// ============================================================
+// DROPDOWN HELPERS
+// ============================================================
+function toggleDropdown(id) {
+  const menu = document.getElementById(id);
+  if (menu) {
+    menu.classList.toggle('show');
+    document.querySelectorAll('.dropdown-menu.show').forEach(m => {
+      if (m.id !== id) m.classList.remove('show');
+    });
+  }
+}
+
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.dropdown-container')) {
+    document.querySelectorAll('.dropdown-menu.show').forEach(m => m.classList.remove('show'));
+  }
+});
+
+// ============================================================
+// OPEN EXTERNAL PAGES
+// ============================================================
+function openPage(url) {
+  window.location.href = url;
+}
+
+// ============================================================
+// ACCOUNTS - FIRESTORE (NO orderBy)
+// ============================================================
+function setupAccountsListener() {
+  if (unsubAccounts) unsubAccounts();
+  
+  // Removed orderBy to avoid index requirement - sort client-side
+  const q = query(
+    collection(db, 'accounts'),
+    where('branchId', '==', branchId)
+  );
+  
+  unsubAccounts = onSnapshot(q, (snapshot) => {
+    accounts = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+    // Sort client-side
+    accounts.sort((a, b) => (a.code || '').localeCompare(b.code || ''));
+    renderAccounts();
+    updateStats();
+    populateReportSelects();
+    populateExpenseAccounts();
+  }, (error) => {
+    console.error('Accounts listener error:', error);
+    toast('Error loading accounts: ' + error.message, 'error');
+  });
+}
+
+function renderAccounts() {
+  const tbody = document.getElementById('accountTableBody');
+  if (accounts.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted" style="padding:20px;">No accounts found. Add one!</td></tr>`;
+    document.getElementById('accountCount').textContent = '0 accounts';
+    document.getElementById('navAccountCount').textContent = '0';
+    return;
+  }
+  
+  tbody.innerHTML = accounts.map(a => `
+    <tr class="clickable-row" onclick="openAccountLedger('${a.id}')">
+      <td><span class="fw-700 text-blue">${a.code}</span></td>
+      <td><i class="fas fa-chevron-right" style="font-size:0.6rem;color:var(--text-fade);margin-right:8px;"></i>${a.name}</td>
+      <td><span class="status-badge ${a.type.toLowerCase()}">${a.type}</span></td>
+      <td class="fw-700 text-right">${formatNumber(a.balance)}</td>
+      <td class="text-center no-print" onclick="event.stopPropagation();">
+        <div class="dropdown-container">
+          <button class="dropdown-trigger" onclick="toggleDropdown('accountDropdown_${a.id}')">
+            <i class="fas fa-ellipsis-v"></i>
+          </button>
+          <div class="dropdown-menu" id="accountDropdown_${a.id}">
+            <button class="dropdown-item" onclick="editAccount('${a.id}')"><i class="fas fa-edit"></i> Edit</button>
+            <button class="dropdown-item danger" onclick="deleteAccount('${a.id}')"><i class="fas fa-trash"></i> Delete</button>
+          </div>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+  
+  document.getElementById('accountCount').textContent = accounts.length + ' accounts';
+  document.getElementById('navAccountCount').textContent = accounts.length;
+}
+
+async function saveAccount(e) {
+  e.preventDefault();
+  const editId = document.getElementById('accountEditId').value;
+  const data = {
+    code: document.getElementById('accountCode').value.trim(),
+    name: document.getElementById('accountName').value.trim(),
+    type: document.getElementById('accountType').value,
+    balance: parseFloat(document.getElementById('accountBalance').value) || 0,
+    branchId: branchId,
+    updatedAt: serverTimestamp()
+  };
+  
+  try {
+    if (editId) {
+      await updateDoc(doc(db, 'accounts', editId), data);
+      toast('Account updated successfully!');
+    } else {
+      data.createdAt = serverTimestamp();
+      const docRef = await addDoc(collection(db, 'accounts'), data);
+      if (data.balance > 0) {
+        await addDoc(collection(db, 'accountTransactions'), {
+          accountId: docRef.id,
+          date: getToday(),
+          type: 'debit',
+          description: 'Opening Balance',
+          amount: data.balance,
+          branchId: branchId,
+          createdAt: serverTimestamp()
+        });
+      }
+      toast('Account created successfully!');
+    }
+    closeModal('accountModal');
+    document.getElementById('accountForm').reset();
+    document.getElementById('accountEditId').value = '';
+    document.getElementById('accountModalTitle').textContent = 'Add Account';
+  } catch (error) {
+    console.error('Save account error:', error);
+    toast('Error saving account: ' + error.message, 'error');
+  }
+}
+
+async function editAccount(id) {
+  const account = accounts.find(a => a.id === id);
+  if (!account) return;
+  document.getElementById('accountEditId').value = account.id;
+  document.getElementById('accountCode').value = account.code;
+  document.getElementById('accountName').value = account.name;
+  document.getElementById('accountType').value = account.type;
+  document.getElementById('accountBalance').value = account.balance;
+  document.getElementById('accountModalTitle').textContent = 'Edit Account';
+  openModal('accountModal');
+}
+
+async function deleteAccount(id) {
+  if (!confirm('Delete this account and all transactions?')) return;
+  try {
+    await deleteDoc(doc(db, 'accounts', id));
+    const txnQuery = query(
+      collection(db, 'accountTransactions'),
+      where('accountId', '==', id)
+    );
+    const snap = await getDocs(txnQuery);
+    const batch = writeBatch(db);
+    snap.docs.forEach(d => batch.delete(doc(db, 'accountTransactions', d.id)));
+    await batch.commit();
+    toast('Account deleted successfully!');
+  } catch (error) {
+    console.error('Delete account error:', error);
+    toast('Error deleting account: ' + error.message, 'error');
+  }
+}
+
+// ============================================================
+// ACCOUNT LEDGER - FIRESTORE (NO orderBy)
+// ============================================================
+function setupAccountTransactionsListener(accountId) {
+  if (unsubAccountTxns[accountId]) {
+    unsubAccountTxns[accountId]();
+    delete unsubAccountTxns[accountId];
+  }
+  
+  // Removed orderBy to avoid index requirement
+  const q = query(
+    collection(db, 'accountTransactions'),
+    where('accountId', '==', accountId)
+  );
+  
+  unsubAccountTxns[accountId] = onSnapshot(q, (snapshot) => {
+    accountTransactions[accountId] = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+    // Sort client-side
+    accountTransactions[accountId].sort((a, b) => new Date(a.date) - new Date(b.date));
+    renderLedgerTransactions();
+  }, (error) => {
+    console.error('Account transactions listener error:', error);
+  });
+}
+
+async function openAccountLedger(accountId, saveState = true) {
+  currentLedgerId = accountId;
+  currentLedgerType = 'account';
+  const account = accounts.find(a => a.id === accountId);
+  if (!account) return;
+  
+  document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.ledger-view').forEach(el => el.classList.remove('active'));
+  document.getElementById('accountLedger').classList.add('active');
+  
+  document.getElementById('ledgerAccountName').textContent = account.name;
+  document.getElementById('ledgerAccountInfo').textContent = `Code: ${account.code} | Type: ${account.type} | Balance: ${formatNumber(account.balance)}`;
+  
+  document.getElementById('accountFilterMonth').value = filterState.account.month;
+  document.getElementById('accountFilterYear').value = filterState.account.year;
+  
+  setupAccountTransactionsListener(accountId);
+  document.getElementById('ledgerTxnAccountId').value = accountId;
+  
+  if (saveState) {
+    pageState.currentPage = 'accounts';
+    pageState.currentLedger = accountId;
+    pageState.currentLedgerType = 'account';
+    pageState.currentBankId = null;
+  }
+}
+
+function renderLedgerTransactions() {
+  const tbody = document.getElementById('ledgerTableBody');
+  const transactions = accountTransactions[currentLedgerId] || [];
+  
+  const month = document.getElementById('accountFilterMonth').value;
+  const year = document.getElementById('accountFilterYear').value;
+  
+  let filtered = transactions;
+  if (month !== 'all') {
+    filtered = filtered.filter(t => {
+      const d = new Date(t.date);
+      return String(d.getMonth() + 1).padStart(2, '0') === month;
+    });
+  }
+  if (year !== 'all') {
+    filtered = filtered.filter(t => {
+      const d = new Date(t.date);
+      return String(d.getFullYear()) === year;
+    });
+  }
+  
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted" style="padding:20px;">No transactions for this period.</td></tr>`;
+    return;
+  }
+  
+  let balance = 0;
+  const allTxns = transactions;
+  let startBalance = 0;
+  for (const t of allTxns) {
+    const d = new Date(t.date);
+    let match = true;
+    if (month !== 'all') match = match && String(d.getMonth() + 1).padStart(2, '0') === month;
+    if (year !== 'all') match = match && String(d.getFullYear()) === year;
+    if (match) break;
+    if (t.type === 'debit') startBalance += t.amount;
+    else startBalance -= t.amount;
+  }
+  
+  balance = startBalance;
+  tbody.innerHTML = filtered.map(txn => {
+    if (txn.type === 'debit') balance += txn.amount;
+    else balance -= txn.amount;
+    return `
+      <tr>
+        <td>${txn.date}</td>
+        <td>${txn.description}</td>
+        <td class="text-green fw-700 text-right">${txn.type === 'debit' ? formatNumber(txn.amount) : ''}</td>
+        <td class="text-red fw-700 text-right">${txn.type === 'credit' ? formatNumber(txn.amount) : ''}</td>
+        <td class="fw-700 text-right">${formatNumber(balance)}</td>
+        <td class="text-center no-print" onclick="event.stopPropagation();">
+          <div class="dropdown-container">
+            <button class="dropdown-trigger" onclick="toggleDropdown('ledgerTxnDropdown_${txn.id}')">
+              <i class="fas fa-ellipsis-v"></i>
+            </button>
+            <div class="dropdown-menu" id="ledgerTxnDropdown_${txn.id}">
+              <button class="dropdown-item danger" onclick="deleteLedgerTransaction('${txn.id}')"><i class="fas fa-trash"></i> Delete</button>
+            </div>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+  
+  filterState.account.month = month;
+  filterState.account.year = year;
+}
+
+function applyAccountFilter() { renderLedgerTransactions(); }
+function resetAccountFilter() {
+  document.getElementById('accountFilterMonth').value = 'all';
+  document.getElementById('accountFilterYear').value = 'all';
+  filterState.account.month = 'all';
+  filterState.account.year = 'all';
+  renderLedgerTransactions();
+}
+
+async function saveLedgerTransaction(e) {
+  e.preventDefault();
+  const accountId = document.getElementById('ledgerTxnAccountId').value;
+  const data = {
+    accountId: accountId,
+    date: document.getElementById('ledgerTxnDate').value,
+    type: document.getElementById('ledgerTxnType').value,
+    description: document.getElementById('ledgerTxnDesc').value.trim(),
+    amount: parseFloat(document.getElementById('ledgerTxnAmount').value) || 0,
+    branchId: branchId,
+    createdAt: serverTimestamp()
+  };
+  
+  try {
+    await addDoc(collection(db, 'accountTransactions'), data);
+    
+    const accountRef = doc(db, 'accounts', accountId);
+    const accountSnap = await getDoc(accountRef);
+    if (accountSnap.exists()) {
+      const currentBalance = accountSnap.data().balance || 0;
+      const delta = data.type === 'debit' ? data.amount : -data.amount;
+      await updateDoc(accountRef, { balance: currentBalance + delta });
+    }
+    
+    toast('Transaction added successfully!');
+    closeModal('ledgerTransactionModal');
+    document.getElementById('ledgerTransactionForm').reset();
+  } catch (error) {
+    console.error('Save transaction error:', error);
+    toast('Error saving transaction: ' + error.message, 'error');
+  }
+}
+
+async function deleteLedgerTransaction(txnId) {
+  if (!confirm('Delete this transaction?')) return;
+  try {
+    const txnRef = doc(db, 'accountTransactions', txnId);
+    const txnSnap = await getDoc(txnRef);
+    if (!txnSnap.exists()) return;
+    
+    const txn = txnSnap.data();
+    const accountId = txn.accountId;
+    
+    await deleteDoc(txnRef);
+    
+    const accountRef = doc(db, 'accounts', accountId);
+    const accountSnap = await getDoc(accountRef);
+    if (accountSnap.exists()) {
+      const currentBalance = accountSnap.data().balance || 0;
+      const delta = txn.type === 'debit' ? -txn.amount : txn.amount;
+      await updateDoc(accountRef, { balance: currentBalance + delta });
+    }
+    
+    toast('Transaction deleted successfully!');
+  } catch (error) {
+    console.error('Delete transaction error:', error);
+    toast('Error deleting transaction: ' + error.message, 'error');
+  }
+}
+
+function closeLedger() {
+  document.querySelectorAll('.ledger-view').forEach(el => el.classList.remove('active'));
+  const activeNav = document.querySelector('.nav-item.active');
+  if (activeNav) navigateTo(activeNav.dataset.page);
+  else navigateTo('dashboard');
+}
+
+// ============================================================
+// CASHBOOK - FIRESTORE (NO orderBy)
+// ============================================================
+function setupCashbookListener() {
+  if (unsubCashbook) unsubCashbook();
+  
+  // Removed orderBy to avoid index requirement
+  const q = query(
+    collection(db, 'cashbook'),
+    where('branchId', '==', branchId)
+  );
+  
+  unsubCashbook = onSnapshot(q, (snapshot) => {
+    cashbook = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+    // Sort client-side
+    cashbook.sort((a, b) => new Date(a.date) - new Date(b.date));
+    renderCashbook();
+    updateStats();
+  }, (error) => {
+    console.error('Cashbook listener error:', error);
+    toast('Error loading cashbook: ' + error.message, 'error');
+  });
+}
+
+function renderCashbook() {
+  const tbody = document.getElementById('cashbookTableBody');
+  const month = document.getElementById('cashbookFilterMonth').value;
+  const year = document.getElementById('cashbookFilterYear').value;
+  
+  let filtered = cashbook;
+  if (month !== 'all') {
+    filtered = filtered.filter(e => {
+      const d = new Date(e.date);
+      return String(d.getMonth() + 1).padStart(2, '0') === month;
+    });
+  }
+  if (year !== 'all') {
+    filtered = filtered.filter(e => {
+      const d = new Date(e.date);
+      return String(d.getFullYear()) === year;
+    });
+  }
+  
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted" style="padding:20px;">No entries for this period.</td></tr>`;
+    document.getElementById('cashbookCount').textContent = cashbook.length + ' entries';
+    document.getElementById('navCashCount').textContent = cashbook.length;
+    return;
+  }
+  
+  let balance = 0;
+  const allBefore = cashbook.filter(e => {
+    const d = new Date(e.date);
+    let match = true;
+    if (month !== 'all') match = match && String(d.getMonth() + 1).padStart(2, '0') === month;
+    if (year !== 'all') match = match && String(d.getFullYear()) === year;
+    return !match && new Date(e.date) <= new Date(filtered[0]?.date || getToday());
+  });
+  for (const e of allBefore) {
+    if (e.type === 'debit') balance += e.amount;
+    else balance -= e.amount;
+  }
+  
+  tbody.innerHTML = filtered.map(entry => {
+    if (entry.type === 'debit') balance += entry.amount;
+    else balance -= entry.amount;
+    return `
+      <tr>
+        <td>${entry.date}</td>
+        <td>${entry.description}</td>
+        <td class="text-green fw-700 text-right">${entry.type === 'debit' ? formatNumber(entry.amount) : ''}</td>
+        <td class="text-red fw-700 text-right">${entry.type === 'credit' ? formatNumber(entry.amount) : ''}</td>
+        <td class="fw-700 text-right">${formatNumber(balance)}</td>
+        <td class="text-center no-print" onclick="event.stopPropagation();">
+          <div class="dropdown-container">
+            <button class="dropdown-trigger" onclick="toggleDropdown('cashbookDropdown_${entry.id}')">
+              <i class="fas fa-ellipsis-v"></i>
+            </button>
+            <div class="dropdown-menu" id="cashbookDropdown_${entry.id}">
+              <button class="dropdown-item danger" onclick="deleteCashbook('${entry.id}')"><i class="fas fa-trash"></i> Delete</button>
+            </div>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+  
+  document.getElementById('cashbookCount').textContent = cashbook.length + ' entries';
+  document.getElementById('navCashCount').textContent = cashbook.length;
+}
+
+function resetCashbookFilter() {
+  document.getElementById('cashbookFilterMonth').value = 'all';
+  document.getElementById('cashbookFilterYear').value = 'all';
+  filterState.cashbook.month = 'all';
+  filterState.cashbook.year = 'all';
+  renderCashbook();
+}
+
+async function saveCashbook(e) {
+  e.preventDefault();
+  const data = {
+    date: document.getElementById('cashbookDate').value,
+    type: document.getElementById('cashbookType').value,
+    description: document.getElementById('cashbookDesc').value.trim(),
+    amount: parseFloat(document.getElementById('cashbookAmount').value) || 0,
+    branchId: branchId,
+    createdAt: serverTimestamp()
+  };
+  
+  try {
+    await addDoc(collection(db, 'cashbook'), data);
+    toast('Cash entry added successfully!');
+    closeModal('cashbookModal');
+    document.getElementById('cashbookForm').reset();
+  } catch (error) {
+    console.error('Save cashbook error:', error);
+    toast('Error saving cash entry: ' + error.message, 'error');
+  }
+}
+
+async function deleteCashbook(id) {
+  if (!confirm('Delete this entry?')) return;
+  try {
+    await deleteDoc(doc(db, 'cashbook', id));
+    toast('Entry deleted successfully!');
+  } catch (error) {
+    console.error('Delete cashbook error:', error);
+    toast('Error deleting entry: ' + error.message, 'error');
+  }
+}
+
+// ============================================================
+// BANK ACCOUNTS - FIRESTORE
+// ============================================================
+function setupBanksListener() {
+  if (unsubBanks) unsubBanks();
+  
+  const q = query(
+    collection(db, 'bankAccounts'),
+    where('branchId', '==', branchId)
+  );
+  
+  unsubBanks = onSnapshot(q, (snapshot) => {
+    banks = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+    renderBanks();
+    updateStats();
+    populateReportSelects();
+  }, (error) => {
+    console.error('Banks listener error:', error);
+    toast('Error loading banks: ' + error.message, 'error');
+  });
+}
+
+function renderBanks() {
+  const tbody = document.getElementById('bankTableBody');
+  if (banks.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted" style="padding:20px;">No banks found. Add one!</td></tr>`;
+    document.getElementById('bankCount').textContent = '0 banks';
+    document.getElementById('navBankCount').textContent = '0';
+    return;
+  }
+  
+  tbody.innerHTML = banks.map(b => `
+    <tr class="clickable-row" onclick="openBankLedger('${b.id}')">
+      <td class="fw-700">${b.name}</td>
+      <td>${b.accountNo}</td>
+      <td class="fw-700 text-blue text-right">${formatNumber(b.balance)}</td>
+      <td><span class="status-badge active">Active</span></td>
+      <td class="text-center no-print" onclick="event.stopPropagation();">
+        <div class="dropdown-container">
+          <button class="dropdown-trigger" onclick="toggleDropdown('bankDropdown_${b.id}')">
+            <i class="fas fa-ellipsis-v"></i>
+          </button>
+          <div class="dropdown-menu" id="bankDropdown_${b.id}">
+            <button class="dropdown-item" onclick="editBank('${b.id}')"><i class="fas fa-edit"></i> Edit</button>
+            <button class="dropdown-item danger" onclick="deleteBank('${b.id}')"><i class="fas fa-trash"></i> Delete</button>
+          </div>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+  
+  document.getElementById('bankCount').textContent = banks.length + ' banks';
+  document.getElementById('navBankCount').textContent = banks.length;
+}
+
+async function saveBank(e) {
+  e.preventDefault();
+  const editId = document.getElementById('bankEditId').value;
+  const data = {
+    name: document.getElementById('bankName').value.trim(),
+    accountNo: document.getElementById('bankAccountNo').value.trim(),
+    balance: parseFloat(document.getElementById('bankBalance').value) || 0,
+    branchId: branchId,
+    updatedAt: serverTimestamp()
+  };
+  
+  try {
+    if (editId) {
+      await updateDoc(doc(db, 'bankAccounts', editId), data);
+      toast('Bank updated successfully!');
+    } else {
+      data.createdAt = serverTimestamp();
+      const docRef = await addDoc(collection(db, 'bankAccounts'), data);
+      if (data.balance > 0) {
+        await addDoc(collection(db, 'bankTransactions'), {
+          bankId: docRef.id,
+          date: getToday(),
+          type: 'debit',
+          description: 'Opening Balance',
+          amount: data.balance,
+          branchId: branchId,
+          createdAt: serverTimestamp()
+        });
+      }
+      toast('Bank added successfully!');
+    }
+    closeModal('bankModal');
+    document.getElementById('bankForm').reset();
+    document.getElementById('bankEditId').value = '';
+    document.getElementById('bankModalTitle').textContent = 'Add Bank Account';
+  } catch (error) {
+    console.error('Save bank error:', error);
+    toast('Error saving bank: ' + error.message, 'error');
+  }
+}
+
+async function editBank(id) {
+  const bank = banks.find(b => b.id === id);
+  if (!bank) return;
+  document.getElementById('bankEditId').value = bank.id;
+  document.getElementById('bankName').value = bank.name;
+  document.getElementById('bankAccountNo').value = bank.accountNo;
+  document.getElementById('bankBalance').value = bank.balance;
+  document.getElementById('bankModalTitle').textContent = 'Edit Bank';
+  openModal('bankModal');
+}
+
+async function deleteBank(id) {
+  if (!confirm('Delete this bank account and all transactions?')) return;
+  try {
+    await deleteDoc(doc(db, 'bankAccounts', id));
+    const txnQuery = query(
+      collection(db, 'bankTransactions'),
+      where('bankId', '==', id)
+    );
+    const snap = await getDocs(txnQuery);
+    const batch = writeBatch(db);
+    snap.docs.forEach(d => batch.delete(doc(db, 'bankTransactions', d.id)));
+    await batch.commit();
+    toast('Bank deleted successfully!');
+  } catch (error) {
+    console.error('Delete bank error:', error);
+    toast('Error deleting bank: ' + error.message, 'error');
+  }
+}
+
+// ============================================================
+// BANK LEDGER - FIRESTORE (NO orderBy)
+// ============================================================
+function setupBankTransactionsListener(bankId) {
+  if (unsubBankTxns[bankId]) {
+    unsubBankTxns[bankId]();
+    delete unsubBankTxns[bankId];
+  }
+  
+  // Removed orderBy to avoid index requirement
+  const q = query(
+    collection(db, 'bankTransactions'),
+    where('bankId', '==', bankId)
+  );
+  
+  unsubBankTxns[bankId] = onSnapshot(q, (snapshot) => {
+    bankTransactions[bankId] = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+    // Sort client-side
+    bankTransactions[bankId].sort((a, b) => new Date(a.date) - new Date(b.date));
+    renderBankLedgerTransactions();
+  }, (error) => {
+    console.error('Bank transactions listener error:', error);
+  });
+}
+
+async function openBankLedger(bankId, saveState = true) {
+  currentBankId = bankId;
+  currentLedgerType = 'bank';
+  const bank = banks.find(b => b.id === bankId);
+  if (!bank) return;
+  
+  document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.ledger-view').forEach(el => el.classList.remove('active'));
+  document.getElementById('bankLedger').classList.add('active');
+  
+  document.getElementById('bankLedgerName').textContent = bank.name;
+  document.getElementById('bankLedgerInfo').textContent = `Account #: ${bank.accountNo} | Balance: ${formatNumber(bank.balance)}`;
+  
+  document.getElementById('bankFilterMonth').value = filterState.bank.month;
+  document.getElementById('bankFilterYear').value = filterState.bank.year;
+  
+  setupBankTransactionsListener(bankId);
+  document.getElementById('bankTxnBankId').value = bankId;
+  
+  if (saveState) {
+    pageState.currentPage = 'bank';
+    pageState.currentLedger = bankId;
+    pageState.currentLedgerType = 'bank';
+    pageState.currentBankId = bankId;
+  }
+}
+
+function renderBankLedgerTransactions() {
+  const tbody = document.getElementById('bankLedgerTableBody');
+  const transactions = bankTransactions[currentBankId] || [];
+  
+  const month = document.getElementById('bankFilterMonth').value;
+  const year = document.getElementById('bankFilterYear').value;
+  
+  let filtered = transactions;
+  if (month !== 'all') {
+    filtered = filtered.filter(t => {
+      const d = new Date(t.date);
+      return String(d.getMonth() + 1).padStart(2, '0') === month;
+    });
+  }
+  if (year !== 'all') {
+    filtered = filtered.filter(t => {
+      const d = new Date(t.date);
+      return String(d.getFullYear()) === year;
+    });
+  }
+  
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted" style="padding:20px;">No transactions for this period.</td></tr>`;
+    return;
+  }
+  
+  let balance = 0;
+  const allTxns = transactions;
+  let startBalance = 0;
+  for (const t of allTxns) {
+    const d = new Date(t.date);
+    let match = true;
+    if (month !== 'all') match = match && String(d.getMonth() + 1).padStart(2, '0') === month;
+    if (year !== 'all') match = match && String(d.getFullYear()) === year;
+    if (match) break;
+    if (t.type === 'debit') startBalance += t.amount;
+    else startBalance -= t.amount;
+  }
+  
+  balance = startBalance;
+  tbody.innerHTML = filtered.map(txn => {
+    if (txn.type === 'debit') balance += txn.amount;
+    else balance -= txn.amount;
+    return `
+      <tr>
+        <td>${txn.date}</td>
+        <td>${txn.description}</td>
+        <td class="text-green fw-700 text-right">${txn.type === 'debit' ? formatNumber(txn.amount) : ''}</td>
+        <td class="text-red fw-700 text-right">${txn.type === 'credit' ? formatNumber(txn.amount) : ''}</td>
+        <td class="fw-700 text-right">${formatNumber(balance)}</td>
+        <td class="text-center no-print" onclick="event.stopPropagation();">
+          <div class="dropdown-container">
+            <button class="dropdown-trigger" onclick="toggleDropdown('bankTxnDropdown_${txn.id}')">
+              <i class="fas fa-ellipsis-v"></i>
+            </button>
+            <div class="dropdown-menu" id="bankTxnDropdown_${txn.id}">
+              <button class="dropdown-item danger" onclick="deleteBankTransaction('${txn.id}')"><i class="fas fa-trash"></i> Delete</button>
+            </div>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+  
+  filterState.bank.month = month;
+  filterState.bank.year = year;
+}
+
+function applyBankFilter() { renderBankLedgerTransactions(); }
+function resetBankFilter() {
+  document.getElementById('bankFilterMonth').value = 'all';
+  document.getElementById('bankFilterYear').value = 'all';
+  filterState.bank.month = 'all';
+  filterState.bank.year = 'all';
+  renderBankLedgerTransactions();
+}
+
+async function saveBankTransaction(e) {
+  e.preventDefault();
+  const bankId = document.getElementById('bankTxnBankId').value;
+  const data = {
+    bankId: bankId,
+    date: document.getElementById('bankTxnDate').value,
+    type: document.getElementById('bankTxnType').value,
+    description: document.getElementById('bankTxnDesc').value.trim(),
+    amount: parseFloat(document.getElementById('bankTxnAmount').value) || 0,
+    branchId: branchId,
+    createdAt: serverTimestamp()
+  };
+  
+  try {
+    await addDoc(collection(db, 'bankTransactions'), data);
+    
+    const bankRef = doc(db, 'bankAccounts', bankId);
+    const bankSnap = await getDoc(bankRef);
+    if (bankSnap.exists()) {
+      const currentBalance = bankSnap.data().balance || 0;
+      const delta = data.type === 'debit' ? data.amount : -data.amount;
+      await updateDoc(bankRef, { balance: currentBalance + delta });
+    }
+    
+    toast('Transaction added successfully!');
+    closeModal('bankTransactionModal');
+    document.getElementById('bankTransactionForm').reset();
+  } catch (error) {
+    console.error('Save bank transaction error:', error);
+    toast('Error saving transaction: ' + error.message, 'error');
+  }
+}
+
+async function deleteBankTransaction(txnId) {
+  if (!confirm('Delete this transaction?')) return;
+  try {
+    const txnRef = doc(db, 'bankTransactions', txnId);
+    const txnSnap = await getDoc(txnRef);
+    if (!txnSnap.exists()) return;
+    
+    const txn = txnSnap.data();
+    const bankId = txn.bankId;
+    
+    await deleteDoc(txnRef);
+    
+    const bankRef = doc(db, 'bankAccounts', bankId);
+    const bankSnap = await getDoc(bankRef);
+    if (bankSnap.exists()) {
+      const currentBalance = bankSnap.data().balance || 0;
+      const delta = txn.type === 'debit' ? -txn.amount : txn.amount;
+      await updateDoc(bankRef, { balance: currentBalance + delta });
+    }
+    
+    toast('Transaction deleted successfully!');
+  } catch (error) {
+    console.error('Delete bank transaction error:', error);
+    toast('Error deleting transaction: ' + error.message, 'error');
+  }
+}
+
+function closeBankLedger() {
+  document.querySelectorAll('.ledger-view').forEach(el => el.classList.remove('active'));
+  const activeNav = document.querySelector('.nav-item.active');
+  if (activeNav) navigateTo(activeNav.dataset.page);
+  else navigateTo('dashboard');
+}
+
+// ============================================================
+// EXPENSES - FIRESTORE (NO orderBy)
+// ============================================================
+function setupExpensesListener() {
+  if (unsubExpenses) unsubExpenses();
+  
+  // Removed orderBy to avoid index requirement
+  const q = query(
+    collection(db, 'expenses'),
+    where('branchId', '==', branchId)
+  );
+  
+  unsubExpenses = onSnapshot(q, (snapshot) => {
+    expenses = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+    // Sort client-side (newest first)
+    expenses.sort((a, b) => new Date(b.date) - new Date(a.date));
+    renderExpenses();
+    updateStats();
+  }, (error) => {
+    console.error('Expenses listener error:', error);
+    toast('Error loading expenses: ' + error.message, 'error');
+  });
+}
+
+function populateExpenseAccounts() {
+  const select = document.getElementById('expenseAccount');
+  select.innerHTML = '<option value="">Select Account...</option>';
+  accounts.forEach(a => {
+    const opt = document.createElement('option');
+    opt.value = a.id;
+    opt.textContent = `${a.code} - ${a.name} (${formatNumber(a.balance)})`;
+    select.appendChild(opt);
+  });
+}
+
+function renderExpenses() {
+  const tbody = document.getElementById('expenseTableBody');
+  const month = document.getElementById('expenseFilterMonth').value;
+  const year = document.getElementById('expenseFilterYear').value;
+  
+  let filtered = expenses;
+  if (month !== 'all') {
+    filtered = filtered.filter(e => {
+      const d = new Date(e.date);
+      return String(d.getMonth() + 1).padStart(2, '0') === month;
+    });
+  }
+  if (year !== 'all') {
+    filtered = filtered.filter(e => {
+      const d = new Date(e.date);
+      return String(d.getFullYear()) === year;
+    });
+  }
+  
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted" style="padding:20px;">No expenses for this period.</td></tr>`;
+    document.getElementById('expenseCount').textContent = expenses.length + ' expenses';
+    document.getElementById('navExpenseCount').textContent = expenses.length;
+    return;
+  }
+  
+  tbody.innerHTML = filtered.map(e => {
+    const account = accounts.find(a => a.id === e.accountId);
+    return `
+      <tr>
+        <td>${e.date}</td>
+        <td><span class="status-badge pending">${e.category}</span></td>
+        <td>${e.description}</td>
+        <td class="text-red fw-700 text-right">${formatNumber(e.amount)}</td>
+        <td>${account ? account.name : 'Unknown'}</td>
+        <td class="text-center no-print" onclick="event.stopPropagation();">
+          <div class="dropdown-container">
+            <button class="dropdown-trigger" onclick="toggleDropdown('expenseDropdown_${e.id}')">
+              <i class="fas fa-ellipsis-v"></i>
+            </button>
+            <div class="dropdown-menu" id="expenseDropdown_${e.id}">
+              <button class="dropdown-item danger" onclick="deleteExpense('${e.id}')"><i class="fas fa-trash"></i> Delete</button>
+            </div>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+  
+  document.getElementById('expenseCount').textContent = expenses.length + ' expenses';
+  document.getElementById('navExpenseCount').textContent = expenses.length;
+}
+
+function resetExpenseFilter() {
+  document.getElementById('expenseFilterMonth').value = 'all';
+  document.getElementById('expenseFilterYear').value = 'all';
+  filterState.expense.month = 'all';
+  filterState.expense.year = 'all';
+  renderExpenses();
+}
+
+async function saveExpense(e) {
+  e.preventDefault();
+  const accountId = document.getElementById('expenseAccount').value;
+  if (!accountId) {
+    toast('Please select an account to pay from.', 'error');
+    return;
+  }
+  
+  const amount = parseFloat(document.getElementById('expenseAmount').value) || 0;
+  const data = {
+    date: document.getElementById('expenseDate').value,
+    category: document.getElementById('expenseCategory').value,
+    description: document.getElementById('expenseDesc').value.trim(),
+    amount: amount,
+    accountId: accountId,
+    branchId: branchId,
+    createdAt: serverTimestamp()
+  };
+  
+  try {
+    await addDoc(collection(db, 'expenses'), data);
+    
+    const accountRef = doc(db, 'accounts', accountId);
+    const accountSnap = await getDoc(accountRef);
+    if (accountSnap.exists()) {
+      const currentBalance = accountSnap.data().balance || 0;
+      await updateDoc(accountRef, { balance: currentBalance - amount });
+    }
+    
+    await addDoc(collection(db, 'accountTransactions'), {
+      accountId: accountId,
+      date: data.date,
+      type: 'credit',
+      description: `Expense: ${data.category} - ${data.description}`,
+      amount: amount,
+      branchId: branchId,
+      createdAt: serverTimestamp()
+    });
+    
+    toast('Expense added successfully!');
+    closeModal('expenseModal');
+    document.getElementById('expenseForm').reset();
+  } catch (error) {
+    console.error('Save expense error:', error);
+    toast('Error saving expense: ' + error.message, 'error');
+  }
+}
+
+async function deleteExpense(id) {
+  if (!confirm('Delete this expense and reverse deduction?')) return;
+  try {
+    const expenseRef = doc(db, 'expenses', id);
+    const expenseSnap = await getDoc(expenseRef);
+    if (!expenseSnap.exists()) return;
+    
+    const expense = expenseSnap.data();
+    const accountId = expense.accountId;
+    
+    await deleteDoc(expenseRef);
+    
+    const accountRef = doc(db, 'accounts', accountId);
+    const accountSnap = await getDoc(accountRef);
+    if (accountSnap.exists()) {
+      const currentBalance = accountSnap.data().balance || 0;
+      await updateDoc(accountRef, { balance: currentBalance + expense.amount });
+    }
+    
+    const txnQuery = query(
+      collection(db, 'accountTransactions'),
+      where('accountId', '==', accountId),
+      where('description', '==', `Expense: ${expense.category} - ${expense.description}`),
+      where('amount', '==', expense.amount)
+    );
+    const txnSnap = await getDocs(txnQuery);
+    const batch = writeBatch(db);
+    txnSnap.docs.forEach(d => batch.delete(doc(db, 'accountTransactions', d.id)));
+    await batch.commit();
+    
+    toast('Expense deleted successfully!');
+  } catch (error) {
+    console.error('Delete expense error:', error);
+    toast('Error deleting expense: ' + error.message, 'error');
+  }
+}
+
+// ============================================================
+// REPORTS - PDF GENERATION
+// ============================================================
+function populateReportSelects() {
+  const accountSelect = document.getElementById('reportAccountSelect');
+  if (accountSelect) {
+    accountSelect.innerHTML = '<option value="">Select Account...</option>';
+    accounts.forEach(a => {
+      const opt = document.createElement('option');
+      opt.value = a.id;
+      opt.textContent = `${a.code} - ${a.name} (${a.type})`;
+      accountSelect.appendChild(opt);
+    });
+  }
+  
+  const bankSelect = document.getElementById('reportBankSelect');
+  if (bankSelect) {
+    bankSelect.innerHTML = '<option value="">Select Bank...</option>';
+    banks.forEach(b => {
+      const opt = document.createElement('option');
+      opt.value = b.id;
+      opt.textContent = `${b.name} - ${b.accountNo}`;
+      bankSelect.appendChild(opt);
+    });
+  }
+}
+
+async function downloadAccountStatementPDF() {
+  const select = document.getElementById('reportAccountSelect');
+  const accountId = select.value;
+  if (!accountId) {
+    toast('Please select an account first.', 'error');
+    return;
+  }
+  
+  const account = accounts.find(a => a.id === accountId);
+  if (!account) return;
+  
+  const txns = accountTransactions[accountId] || [];
+  const sorted = [...txns].sort((a,b) => new Date(a.date) - new Date(b.date));
+  let balance = 0;
+  
+  let rows = '';
+  sorted.forEach(txn => {
+    if (txn.type === 'debit') balance += txn.amount;
+    else balance -= txn.amount;
+    rows += `
+      <tr>
+        <td style="padding:6px 10px; border-bottom:1px solid #eee;">${txn.date}</td>
+        <td style="padding:6px 10px; border-bottom:1px solid #eee;">${txn.description}</td>
+        <td style="padding:6px 10px; border-bottom:1px solid #eee; text-align:right;">${txn.type === 'debit' ? formatNumber(txn.amount) : ''}</td>
+        <td style="padding:6px 10px; border-bottom:1px solid #eee; text-align:right;">${txn.type === 'credit' ? formatNumber(txn.amount) : ''}</td>
+        <td style="padding:6px 10px; border-bottom:1px solid #eee; text-align:right; font-weight:700;">${formatNumber(balance)}</td>
+      </tr>
+    `;
+  });
+  
+  if (sorted.length === 0) {
+    rows = `<tr><td colspan="5" style="padding:20px; text-align:center; color:#999;">No transactions found.</td></tr>`;
+  }
+  
+  const html = `
+    <div style="padding:30px; font-family: 'DM Sans', sans-serif;">
+      <h1 style="font-size:1.5rem; margin-bottom:4px;">${account.name}</h1>
+      <p style="color:#6b7490; margin-bottom:4px;">Code: ${account.code} | Type: ${account.type}</p>
+      <p style="color:#6b7490; margin-bottom:16px;">Branch: ${branchId} | Balance: ${formatNumber(account.balance)}</p>
+      <p style="color:#6b7490; margin-bottom:16px; font-size:0.7rem;">Generated: ${new Date().toLocaleString()}</p>
+      <hr style="margin-bottom:16px;">
+      <table style="width:100%; border-collapse:collapse; font-size:0.8rem;">
+        <thead>
+          <tr style="background:#f5f5f5;">
+            <th style="padding:8px 10px; text-align:left; border-bottom:2px solid #ddd;">Date</th>
+            <th style="padding:8px 10px; text-align:left; border-bottom:2px solid #ddd;">Description</th>
+            <th style="padding:8px 10px; text-align:right; border-bottom:2px solid #ddd;">Debit</th>
+            <th style="padding:8px 10px; text-align:right; border-bottom:2px solid #ddd;">Credit</th>
+            <th style="padding:8px 10px; text-align:right; border-bottom:2px solid #ddd;">Balance</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows}
+        </tbody>
+      </table>
+      <p style="margin-top:20px; color:#6b7490; font-size:0.7rem;">Statement generated from Trismart Accounting System</p>
+    </div>
+  `;
+  
+  generatePDF(html, `${account.name}_Statement.pdf`);
+}
+
+async function downloadBankStatementPDF() {
+  const select = document.getElementById('reportBankSelect');
+  const bankId = select.value;
+  if (!bankId) {
+    toast('Please select a bank account first.', 'error');
+    return;
+  }
+  
+  const bank = banks.find(b => b.id === bankId);
+  if (!bank) return;
+  
+  const txns = bankTransactions[bankId] || [];
+  const sorted = [...txns].sort((a,b) => new Date(a.date) - new Date(b.date));
+  let balance = 0;
+  
+  let rows = '';
+  sorted.forEach(txn => {
+    if (txn.type === 'debit') balance += txn.amount;
+    else balance -= txn.amount;
+    rows += `
+      <tr>
+        <td style="padding:6px 10px; border-bottom:1px solid #eee;">${txn.date}</td>
+        <td style="padding:6px 10px; border-bottom:1px solid #eee;">${txn.description}</td>
+        <td style="padding:6px 10px; border-bottom:1px solid #eee; text-align:right;">${txn.type === 'debit' ? formatNumber(txn.amount) : ''}</td>
+        <td style="padding:6px 10px; border-bottom:1px solid #eee; text-align:right;">${txn.type === 'credit' ? formatNumber(txn.amount) : ''}</td>
+        <td style="padding:6px 10px; border-bottom:1px solid #eee; text-align:right; font-weight:700;">${formatNumber(balance)}</td>
+      </tr>
+    `;
+  });
+  
+  if (sorted.length === 0) {
+    rows = `<tr><td colspan="5" style="padding:20px; text-align:center; color:#999;">No transactions found.</td></tr>`;
+  }
+  
+  const html = `
+    <div style="padding:30px; font-family: 'DM Sans', sans-serif;">
+      <h1 style="font-size:1.5rem; margin-bottom:4px;">${bank.name}</h1>
+      <p style="color:#6b7490; margin-bottom:4px;">Account #: ${bank.accountNo}</p>
+      <p style="color:#6b7490; margin-bottom:16px;">Branch: ${branchId} | Balance: ${formatNumber(bank.balance)}</p>
+      <p style="color:#6b7490; margin-bottom:16px; font-size:0.7rem;">Generated: ${new Date().toLocaleString()}</p>
+      <hr style="margin-bottom:16px;">
+      <table style="width:100%; border-collapse:collapse; font-size:0.8rem;">
+        <thead>
+          <tr style="background:#f5f5f5;">
+            <th style="padding:8px 10px; text-align:left; border-bottom:2px solid #ddd;">Date</th>
+            <th style="padding:8px 10px; text-align:left; border-bottom:2px solid #ddd;">Description</th>
+            <th style="padding:8px 10px; text-align:right; border-bottom:2px solid #ddd;">Debit</th>
+            <th style="padding:8px 10px; text-align:right; border-bottom:2px solid #ddd;">Credit</th>
+            <th style="padding:8px 10px; text-align:right; border-bottom:2px solid #ddd;">Balance</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows}
+        </tbody>
+      </table>
+      <p style="margin-top:20px; color:#6b7490; font-size:0.7rem;">Statement generated from Trismart Accounting System</p>
+    </div>
+  `;
+  
+  generatePDF(html, `${bank.name}_Statement.pdf`);
+}
+
+async function downloadTrialBalancePDF() {
+  let assets = [], liabilities = [], equity = [], income = [], expensesList = [];
+  
+  accounts.forEach(a => {
+    const balance = a.balance || 0;
+    if (a.type === 'Asset') assets.push({ ...a, balance });
+    else if (a.type === 'Liability') liabilities.push({ ...a, balance });
+    else if (a.type === 'Equity') equity.push({ ...a, balance });
+    else if (a.type === 'Income') income.push({ ...a, balance });
+    else if (a.type === 'Expense') expensesList.push({ ...a, balance });
+  });
+  
+  const totalAssets = assets.reduce((s, a) => s + a.balance, 0);
+  const totalLiabilities = liabilities.reduce((s, a) => s + a.balance, 0);
+  const totalEquity = equity.reduce((s, a) => s + a.balance, 0);
+  const totalIncome = income.reduce((s, a) => s + a.balance, 0);
+  const totalExpenses = expensesList.reduce((s, a) => s + a.balance, 0);
+  
+  function renderSection(title, items, total) {
+    if (items.length === 0) return '';
+    return `
+      <h3 style="font-size:1rem; margin:12px 0 4px; color:#4361ee;">${title}</h3>
+      ${items.map(a => `
+        <tr>
+          <td style="padding:4px 10px; border-bottom:1px solid #f0f0f0;">${a.code}</td>
+          <td style="padding:4px 10px; border-bottom:1px solid #f0f0f0;">${a.name}</td>
+          <td style="padding:4px 10px; border-bottom:1px solid #f0f0f0; text-align:right;">${formatNumber(a.balance)}</td>
+        </tr>
+      `).join('')}
+      <tr style="font-weight:700; border-top:2px solid #ddd;">
+        <td colspan="2" style="padding:6px 10px; text-align:right;">Total ${title}</td>
+        <td style="padding:6px 10px; text-align:right;">${formatNumber(total)}</td>
+      </tr>
+    `;
+  }
+  
+  const html = `
+    <div style="padding:30px; font-family: 'DM Sans', sans-serif;">
+      <h1 style="font-size:1.5rem; margin-bottom:4px;">Trial Balance</h1>
+      <p style="color:#6b7490; margin-bottom:4px;">Branch: ${branchId}</p>
+      <p style="color:#6b7490; margin-bottom:16px;">As of ${new Date().toLocaleDateString()}</p>
+      <hr style="margin-bottom:16px;">
+      <table style="width:100%; border-collapse:collapse; font-size:0.8rem;">
+        <thead>
+          <tr style="background:#f5f5f5;">
+            <th style="padding:8px 10px; text-align:left; border-bottom:2px solid #ddd;">Code</th>
+            <th style="padding:8px 10px; text-align:left; border-bottom:2px solid #ddd;">Account Name</th>
+            <th style="padding:8px 10px; text-align:right; border-bottom:2px solid #ddd;">Balance</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${renderSection('Assets', assets, totalAssets)}
+          ${renderSection('Liabilities', liabilities, totalLiabilities)}
+          ${renderSection('Equity', equity, totalEquity)}
+          ${renderSection('Income', income, totalIncome)}
+          ${renderSection('Expenses', expensesList, totalExpenses)}
+          <tr style="font-weight:800; border-top:3px solid #333;">
+            <td colspan="2" style="padding:8px 10px; text-align:right;">GRAND TOTAL</td>
+            <td style="padding:8px 10px; text-align:right;">${formatNumber(totalAssets + totalLiabilities + totalEquity + totalIncome + totalExpenses)}</td>
+          </tr>
+        </tbody>
+      </table>
+      <p style="margin-top:20px; color:#6b7490; font-size:0.7rem;">Report generated from Trismart Accounting System</p>
+    </div>
+  `;
+  
+  generatePDF(html, 'Trial_Balance.pdf');
+}
+
+async function downloadSummaryPDF() {
+  let cashBalance = 0;
+  cashbook.forEach(e => {
+    if (e.type === 'debit') cashBalance += e.amount;
+    else cashBalance -= e.amount;
+  });
+  
+  const bankBalance = banks.reduce((sum, b) => sum + b.balance, 0);
+  const totalExp = expenses.reduce((sum, e) => sum + e.amount, 0);
+  const totalAssets = accounts.filter(a => a.type === 'Asset').reduce((s, a) => s + a.balance, 0);
+  const totalLiabilities = accounts.filter(a => a.type === 'Liability').reduce((s, a) => s + a.balance, 0);
+  const totalEquity = accounts.filter(a => a.type === 'Equity').reduce((s, a) => s + a.balance, 0);
+  
+  let invValue = 0;
+  try {
+    const invQuery = query(collection(db, 'inventory'), where('branchId', '==', branchId));
+    const invSnap = await getDocs(invQuery);
+    invSnap.docs.forEach(d => {
+      const data = d.data();
+      invValue += (data.price || 0) * (data.stock || 0);
+    });
+  } catch (e) {
+    console.warn('Could not fetch inventory:', e);
+  }
+  
+  const html = `
+    <div style="padding:30px; font-family: 'DM Sans', sans-serif;">
+      <h1 style="font-size:1.5rem; margin-bottom:4px;">Financial Summary</h1>
+      <p style="color:#6b7490; margin-bottom:4px;">Branch: ${branchId}</p>
+      <p style="color:#6b7490; margin-bottom:16px;">${new Date().toLocaleString()}</p>
+      <hr style="margin-bottom:16px;">
+      
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px;">
+        <div style="background:#f8fafc; padding:16px; border-radius:8px; border:1px solid #e4e8f0;">
+          <h3 style="font-size:0.75rem; color:#6b7490; text-transform:uppercase; margin-bottom:4px;">Cash Balance</h3>
+          <p style="font-size:1.2rem; font-weight:800; color:#10b981;">${formatNumber(cashBalance)}</p>
+        </div>
+        <div style="background:#f8fafc; padding:16px; border-radius:8px; border:1px solid #e4e8f0;">
+          <h3 style="font-size:0.75rem; color:#6b7490; text-transform:uppercase; margin-bottom:4px;">Bank Balance</h3>
+          <p style="font-size:1.2rem; font-weight:800; color:#4361ee;">${formatNumber(bankBalance)}</p>
+        </div>
+        <div style="background:#f8fafc; padding:16px; border-radius:8px; border:1px solid #e4e8f0;">
+          <h3 style="font-size:0.75rem; color:#6b7490; text-transform:uppercase; margin-bottom:4px;">Total Expenses</h3>
+          <p style="font-size:1.2rem; font-weight:800; color:#ef4444;">${formatNumber(totalExp)}</p>
+        </div>
+        <div style="background:#f8fafc; padding:16px; border-radius:8px; border:1px solid #e4e8f0;">
+          <h3 style="font-size:0.75rem; color:#6b7490; text-transform:uppercase; margin-bottom:4px;">Inventory Value</h3>
+          <p style="font-size:1.2rem; font-weight:800; color:#f59e0b;">${formatNumber(invValue)}</p>
+        </div>
+      </div>
+      
+      <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-top:16px; padding-top:16px; border-top:1px solid #e4e8f0;">
+        <div>
+          <h4 style="font-size:0.7rem; color:#6b7490; text-transform:uppercase;">Total Assets</h4>
+          <p style="font-size:1rem; font-weight:700; color:#4361ee;">${formatNumber(totalAssets)}</p>
+        </div>
+        <div>
+          <h4 style="font-size:0.7rem; color:#6b7490; text-transform:uppercase;">Total Liabilities</h4>
+          <p style="font-size:1rem; font-weight:700; color:#ef4444;">${formatNumber(totalLiabilities)}</p>
+        </div>
+        <div>
+          <h4 style="font-size:0.7rem; color:#6b7490; text-transform:uppercase;">Total Equity</h4>
+          <p style="font-size:1rem; font-weight:700; color:#10b981;">${formatNumber(totalEquity)}</p>
+        </div>
+      </div>
+      
+      <p style="margin-top:20px; color:#6b7490; font-size:0.7rem;">Report generated from Trismart Accounting System</p>
+    </div>
+  `;
+  
+  generatePDF(html, 'Financial_Summary.pdf');
+}
+
+function downloadCashbookPDF() {
+  const element = document.getElementById('cashbookContent');
+  const opt = {
+    margin: [10, 10, 10, 10],
+    filename: 'Cashbook_Statement.pdf',
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+  };
+  
+  const clone = element.cloneNode(true);
+  const wrapper = document.createElement('div');
+  wrapper.style.padding = '20px';
+  wrapper.style.fontFamily = 'DM Sans, sans-serif';
+  wrapper.innerHTML = `
+    <h2 style="margin-bottom:4px;">Cashbook Statement</h2>
+    <p style="color:#6b7490;margin-bottom:4px;">Branch: ${branchId}</p>
+    <p style="color:#6b7490;margin-bottom:16px;">All Cash Transactions</p>
+    ${clone.innerHTML}
+    <p style="margin-top:16px;color:#6b7490;font-size:0.7rem;">Generated: ${new Date().toLocaleString()}</p>
+  `;
+  
+  document.body.appendChild(wrapper);
+  html2pdf().set(opt).from(wrapper).save().then(() => {
+    document.body.removeChild(wrapper);
+  });
+}
+
+function downloadExpensesPDF() {
+  const element = document.getElementById('expenseContent');
+  const opt = {
+    margin: [10, 10, 10, 10],
+    filename: 'Expenses_Statement.pdf',
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+  };
+  
+  const clone = element.cloneNode(true);
+  const wrapper = document.createElement('div');
+  wrapper.style.padding = '20px';
+  wrapper.style.fontFamily = 'DM Sans, sans-serif';
+  wrapper.innerHTML = `
+    <h2 style="margin-bottom:4px;">Expenses Journal</h2>
+    <p style="color:#6b7490;margin-bottom:4px;">Branch: ${branchId}</p>
+    <p style="color:#6b7490;margin-bottom:16px;">All Expense Transactions</p>
+    ${clone.innerHTML}
+    <p style="margin-top:16px;color:#6b7490;font-size:0.7rem;">Generated: ${new Date().toLocaleString()}</p>
+  `;
+  
+  document.body.appendChild(wrapper);
+  html2pdf().set(opt).from(wrapper).save().then(() => {
+    document.body.removeChild(wrapper);
+  });
+}
+
+function downloadLedgerPDF(type) {
+  const element = type === 'account' ? document.getElementById('accountLedgerContent') : document.getElementById('bankLedgerContent');
+  const title = type === 'account' ? document.getElementById('ledgerAccountName').textContent : document.getElementById('bankLedgerName').textContent;
+  const info = type === 'account' ? document.getElementById('ledgerAccountInfo').textContent : document.getElementById('bankLedgerInfo').textContent;
+  
+  const opt = {
+    margin: [10, 10, 10, 10],
+    filename: `${title}_Statement.pdf`,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+  };
+  
+  const clone = element.cloneNode(true);
+  const wrapper = document.createElement('div');
+  wrapper.style.padding = '20px';
+  wrapper.style.fontFamily = 'DM Sans, sans-serif';
+  wrapper.innerHTML = `
+    <h2 style="margin-bottom:4px;">${title}</h2>
+    <p style="color:#6b7490;margin-bottom:4px;">${info}</p>
+    <p style="color:#6b7490;margin-bottom:4px;">Branch: ${branchId}</p>
+    ${clone.innerHTML}
+    <p style="margin-top:16px;color:#6b7490;font-size:0.7rem;">Generated: ${new Date().toLocaleString()}</p>
+  `;
+  
+  document.body.appendChild(wrapper);
+  html2pdf().set(opt).from(wrapper).save().then(() => {
+    document.body.removeChild(wrapper);
+  });
+}
+
+function generatePDF(html, filename) {
+  const wrapper = document.createElement('div');
+  wrapper.innerHTML = html;
+  wrapper.style.position = 'fixed';
+  wrapper.style.left = '-9999px';
+  wrapper.style.top = '0';
+  wrapper.style.width = '800px';
+  wrapper.style.background = 'white';
+  document.body.appendChild(wrapper);
+  
+  const opt = {
+    margin: [10, 10, 10, 10],
+    filename: filename,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
+  
+  html2pdf().set(opt).from(wrapper).save().then(() => {
+    document.body.removeChild(wrapper);
+  });
+}
+
+// ============================================================
+// STATS
+// ============================================================
+function updateStats() {
+  let cashBalance = 0;
+  cashbook.forEach(e => {
+    if (e.type === 'debit') cashBalance += e.amount;
+    else cashBalance -= e.amount;
+  });
+  document.getElementById('dashCash').textContent = formatNumber(cashBalance);
+
+  let bankBalance = banks.reduce((sum, b) => sum + b.balance, 0);
+  document.getElementById('dashBank').textContent = formatNumber(bankBalance);
+
+  let totalExp = expenses.reduce((sum, e) => sum + e.amount, 0);
+  document.getElementById('dashExpenses').textContent = formatNumber(totalExp);
+  
+  fetchInventoryValue();
+}
+
+async function fetchInventoryValue() {
+  try {
+    const invQuery = query(collection(db, 'inventory'), where('branchId', '==', branchId));
+    const snap = await getDocs(invQuery);
+    let total = 0;
+    snap.docs.forEach(doc => {
+      const data = doc.data();
+      total += (data.price || 0) * (data.stock || 0);
+    });
+    inventoryValue = total;
+    document.getElementById('dashInventory').textContent = formatNumber(inventoryValue);
+  } catch (e) {
+    console.warn('Could not fetch inventory value:', e);
+    document.getElementById('dashInventory').textContent = formatNumber(0);
+  }
+}
+
+// ============================================================
+// INITIALIZATION
+// ============================================================
+function init() {
+  populateYearDropdowns();
+  
+  setupAccountsListener();
+  setupCashbookListener();
+  setupBanksListener();
+  setupExpensesListener();
+  
+  document.getElementById('accountFilterMonth').value = filterState.account.month;
+  document.getElementById('accountFilterYear').value = filterState.account.year;
+  document.getElementById('bankFilterMonth').value = filterState.bank.month;
+  document.getElementById('bankFilterYear').value = filterState.bank.year;
+  document.getElementById('cashbookFilterMonth').value = filterState.cashbook.month;
+  document.getElementById('cashbookFilterYear').value = filterState.cashbook.year;
+  document.getElementById('expenseFilterMonth').value = filterState.expense.month;
+  document.getElementById('expenseFilterYear').value = filterState.expense.year;
+  
+  document.getElementById('cashbookDate').value = getToday();
+  document.getElementById('expenseDate').value = getToday();
+  document.getElementById('ledgerTxnDate').value = getToday();
+  document.getElementById('bankTxnDate').value = getToday();
+  
+  navigateTo('dashboard', false);
+  
+  console.log('✅ Trismart Accounting System - Firestore Migration Complete (No indexes required!)');
+  console.log(`📊 Branch: ${branchId}`);
+  console.log('🔥 All sorting is done client-side, no Firestore indexes needed!');
+}
+
+init();
+
+// Make functions globally accessible
+window.toggleSidebar = toggleSidebar;
+window.navigateTo = navigateTo;
+window.openModal = openModal;
+window.closeModal = closeModal;
+window.toggleDropdown = toggleDropdown;
+window.openPage = openPage;
+window.openAccountLedger = openAccountLedger;
+window.closeLedger = closeLedger;
+window.saveAccount = saveAccount;
+window.editAccount = editAccount;
+window.deleteAccount = deleteAccount;
+window.saveCashbook = saveCashbook;
+window.deleteCashbook = deleteCashbook;
+window.saveBank = saveBank;
+window.editBank = editBank;
+window.deleteBank = deleteBank;
+window.openBankLedger = openBankLedger;
+window.closeBankLedger = closeBankLedger;
+window.saveBankTransaction = saveBankTransaction;
+window.deleteBankTransaction = deleteBankTransaction;
+window.saveExpense = saveExpense;
+window.deleteExpense = deleteExpense;
+window.saveLedgerTransaction = saveLedgerTransaction;
+window.deleteLedgerTransaction = deleteLedgerTransaction;
+window.applyAccountFilter = applyAccountFilter;
+window.resetAccountFilter = resetAccountFilter;
+window.applyBankFilter = applyBankFilter;
+window.resetBankFilter = resetBankFilter;
+window.resetCashbookFilter = resetCashbookFilter;
+window.resetExpenseFilter = resetExpenseFilter;
+window.downloadTrialBalancePDF = downloadTrialBalancePDF;
+window.downloadSummaryPDF = downloadSummaryPDF;
+window.downloadAccountStatementPDF = downloadAccountStatementPDF;
+window.downloadBankStatementPDF = downloadBankStatementPDF;
+window.downloadCashbookPDF = downloadCashbookPDF;
+window.downloadExpensesPDF = downloadExpensesPDF;
+window.downloadLedgerPDF = downloadLedgerPDF;
+window.populateExpenseAccounts = populateExpenseAccounts;
+</script>
+</body>
+</html>

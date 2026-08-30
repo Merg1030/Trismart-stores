@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Trismart· Expenses</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --primary: #1e3a8a;
+      --primary-light: #3b82f6;
+      --primary-dark: #1e40af;
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #475569;<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>OneBook · Expenses</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --primary: #1e3a8a;
+      --primary-light: #3b82f6;
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --radius: 16px;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .app {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .topbar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 1.5rem;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+    }
+
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+    }
+
+    .back-btn {
+      background: #f1f5f9;
+      border: 1px solid var(--border);
+      border-radius: 40px;
+      padding: 0.4rem 1rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.15s;
+    }
+    .back-btn:hover { background: #e2e8f0; }
+
+    .main-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .action-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 0.5rem 1rem;
+      border-radius: 40px;
+      font-weight: 600;
+      font-size: 0.75rem;
+      border: none;
+      cursor: pointer;
+      background: var(--primary);
+      color: white;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: 0.15s;
+    }
+    .btn:hover { opacity: 0.85; }
+
+    .btn-outline {
+      background: white;
+      border: 1.5px solid var(--border);
+      color: var(--text-main);
+    }
+    .btn-outline:hover { background: #f8fafc; }
+
+    .filter-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--surface);
+      padding: 0.5rem 1rem;
+      border-radius: 60px;
+      border: 1px solid var(--border);
+    }
+
+    .month-filter {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg);
+      padding: 0.25rem 0.8rem;
+      border-radius: 40px;
+    }
+    .month-filter input {
+      border: none;
+      background: transparent;
+      font-weight: 600;
+      font-size: 0.7rem;
+      font-family: inherit;
+      cursor: pointer;
+    }
+    .clear-filter {
+      background: #fee2e2;
+      border: none;
+      padding: 0.25rem 0.8rem;
+      border-radius: 40px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: #dc2626;
+      cursor: pointer;
+    }
+    .filter-badge {
+      background: #dbeafe;
+      padding: 0.25rem 0.8rem;
+      border-radius: 40px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    .table-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: var(--surface);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    .ledger-table-container {
+      flex: 1;
+      overflow: auto;
+    }
+
+    .ledger-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+      min-width: 500px;
+    }
+
+    .ledger-table th {
+      text-align: left;
+      padding: 0.9rem 0.8rem;
+      background: white;
+      border-bottom: 2px solid var(--border);
+      font-weight: 700;
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+
+    .ledger-table td {
+      padding: 0.75rem 0.8rem;
+      border-bottom: 1px solid #f0f2f5;
+    }
+
+    .amount-col {
+      font-weight: 700;
+      text-align: right;
+      font-family: 'DM Mono', monospace;
+      color: var(--text-main);
+    }
+
+    .action-btn {
+      background: none;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 30px;
+      cursor: pointer;
+      color: var(--text-muted);
+    }
+    .action-btn:hover { background: #f1f5f9; }
+
+    .total-bar {
+      border-top: 2px solid var(--border);
+      padding: 0.9rem 0.8rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--surface);
+      flex-shrink: 0;
+      font-weight: 700;
+    }
+    .total-bar .total-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      letter-spacing: 0.05em;
+    }
+    .total-bar .total-amount {
+      font-size: 1.1rem;
+      font-family: 'DM Mono', monospace;
+      color: var(--text-main);
+    }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.show { display: flex; }
+
+    .modal {
+      background: white;
+      border-radius: 24px;
+      width: 90%;
+      max-width: 460px;
+      padding: 1.5rem;
+    }
+    .modal h3 { margin-bottom: 1rem; }
+    .form-group { margin-bottom: 1rem; }
+    .form-group label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      display: block;
+      margin-bottom: 4px;
+      color: var(--text-muted);
+    }
+    .form-group input {
+      width: 100%;
+      padding: 0.6rem;
+      border-radius: 12px;
+      border: 1.5px solid var(--border);
+      font-size: 0.85rem;
+      font-family: inherit;
+      transition: 0.15s;
+    }
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--primary-light);
+    }
+
+    .toast-wrap {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 1100;
+    }
+    .toast {
+      background: #1e293b;
+      color: white;
+      padding: 10px 18px;
+      border-radius: 40px;
+      font-size: 0.75rem;
+      margin-top: 8px;
+    }
+
+    .dropdown-menu {
+      position: fixed;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      z-index: 200;
+      min-width: 110px;
+      border: 1px solid var(--border);
+    }
+    .dropdown-item {
+      padding: 8px 14px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .dropdown-item.danger { color: #dc2626; }
+    .dropdown-item:hover { background: #f1f5f9; }
+
+    .empty-state {
+      padding: 3rem 1rem;
+      text-align: center;
+      color: var(--text-muted);
+    }
+    .empty-state i { font-size: 2rem; opacity: 0.4; margin-bottom: 0.5rem; }
+    .empty-state p { font-weight: 600; }
+    .empty-state span { font-size: 0.8rem; }
+  </style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="logo">
+      <div class="logo-icon"><i class="fas fa-book-open"></i></div>
+      <span>Trismart</span>
+    </div>
+    <div class="back-btn" id="backBtn"><i class="fas fa-arrow-left"></i> Dashboard</div>
+  </div>
+  <div class="main-content">
+    <div class="action-row">
+      <div class="btn-group">
+        <button class="btn" id="addTxBtn"><i class="fas fa-plus-circle"></i> Add Expense</button>
+      </div>
+      <div class="filter-bar">
+        <div class="month-filter"><i class="fas fa-calendar-alt"></i><input type="month" id="monthFilterInput" placeholder="Filter by month"></div>
+        <button class="clear-filter" id="clearFilterBtn" style="display:none;"><i class="fas fa-times"></i> Clear</button>
+        <span id="filterBadge" class="filter-badge" style="display:none;"></span>
+      </div>
+    </div>
+
+    <div class="table-wrapper">
+      <div class="ledger-table-container">
+        <table class="ledger-table">
+          <thead>
+            <tr><th>Date</th><th>Description</th><th>Reference</th><th style="text-align:right;">Amount (K)</th><th></th></tr>
+          </thead>
+          <tbody id="ledgerTbody"><tr><td colspan="5" style="text-align:center; padding:2rem; color:var(--text-muted);">Loading...</td></tr></tbody>
+        </table>
+      </div>
+      <div class="total-bar">
+        <span class="total-label">Total Expenses</span>
+        <span class="total-amount" id="totalAmount">K 0.00</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Transaction Modal -->
+<div id="txModal" class="modal-overlay">
+  <div class="modal">
+    <h3 id="modalTitle">Add Expense</h3>
+    <div class="form-group"><label>Date</label><input type="date" id="txDate"></div>
+    <div class="form-group"><label>Description</label><input type="text" id="txDesc" placeholder="e.g., Groceries, Transport"></div>
+    <div class="form-group"><label>Reference (optional)</label><input type="text" id="txRef" placeholder="Receipt #, vendor"></div>
+    <div class="form-group"><label>Amount (K)</label><input type="number" id="txAmount" step="0.01" placeholder="0.00"></div>
+    <div class="btn-group" style="gap:8px; margin-top:8px;">
+      <button id="saveTxBtn" class="btn">Save</button>
+      <button id="closeTxBtn" class="btn btn-outline">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-app.js";
+  import { 
+    getFirestore, collection, query, addDoc, updateDoc, deleteDoc, doc, 
+    onSnapshot, orderBy 
+  } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyB-lm7Y3r1F6VvY8PKvY8glLabZDbJsHM1k",
+    authDomain: "trismartstores.firebaseapp.com",
+    projectId: "trismartstores",
+    storageBucket: "trismartstores.appspot.com",
+    messagingSenderId: "416692703333",
+    appId: "1:416692703333:web:d4b60292621435c748f68c"
+  };
+  
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // DEDICATED COLLECTION for this expense tracker
+  const EXPENSES_COLLECTION = 'onebook_expenses';
+
+  let allTransactions = [];
+  let unsubscribeTrans;
+  let activeDropdown = null;
+  let editingId = null;
+
+  // Month filter
+  const MONTH_FILTER_KEY = 'onebook_expense_filter';
+  function getStoredMonth() { return localStorage.getItem(MONTH_FILTER_KEY) || ''; }
+  function setStoredMonth(val) { val ? localStorage.setItem(MONTH_FILTER_KEY, val) : localStorage.removeItem(MONTH_FILTER_KEY); }
+
+  function getFilteredAndSorted() {
+    const monthFilter = getStoredMonth();
+    let filtered = [...allTransactions];
+    if (monthFilter) {
+      filtered = filtered.filter(tx => tx.date && tx.date.startsWith(monthFilter));
+    }
+    return filtered.sort((a, b) => a.date.localeCompare(b.date));
+  }
+
+  function formatMonthYear(ym) {
+    const [y, m] = ym.split('-');
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return `${months[parseInt(m)-1]} ${y}`;
+  }
+
+  function renderLedger() {
+    const tbody = document.getElementById('ledgerTbody');
+    const rows = getFilteredAndSorted();
+    const total = rows.reduce((sum, tx) => sum + Math.abs(tx.amount), 0);
+    
+    // Update total
+    document.getElementById('totalAmount').textContent = `K ${total.toFixed(2)}`;
+    
+    if (!rows.length) {
+      tbody.innerHTML = `
+        <tr><td colspan="5">
+          <div class="empty-state">
+            <i class="fas fa-receipt"></i>
+            <p>No expenses recorded</p>
+            <span>Tap "Add Expense" to start tracking</span>
+          </div>
+        </td></tr>
+      `;
+      return;
+    }
+    
+    tbody.innerHTML = rows.map(tx => {
+      const displayAmount = Math.abs(tx.amount);
+      return `
+        <tr>
+          <td>${tx.date || '-'}</td>
+          <td><strong>${escapeHtml(tx.description || '')}</strong></td>
+          <td>${escapeHtml(tx.reference || '—')}</td>
+          <td class="amount-col">K${displayAmount.toFixed(2)}</td>
+          <td class="action-cell"><button class="action-btn" data-txn-id="${tx.id}"><i class="fas fa-ellipsis-v"></i></button></td>
+        </tr>
+      `;
+    }).join('');
+    
+    document.querySelectorAll('[data-txn-id]').forEach(btn => {
+      const id = btn.getAttribute('data-txn-id');
+      btn.onclick = (e) => showDropdown(e, id);
+    });
+  }
+
+  function showDropdown(event, txId) {
+    event.stopPropagation();
+    closeDropdown();
+    const rect = event.currentTarget.getBoundingClientRect();
+    const div = document.createElement('div');
+    div.className = 'dropdown-menu';
+    div.style.position = 'fixed';
+    div.style.top = `${rect.bottom + 4}px`;
+    div.style.left = `${rect.left - 30}px`;
+    div.innerHTML = `
+      <div class="dropdown-item" data-action="edit"><i class="fas fa-pen"></i> Edit</div>
+      <div class="dropdown-item danger" data-action="delete"><i class="fas fa-trash"></i> Delete</div>
+    `;
+    document.body.appendChild(div);
+    activeDropdown = div;
+    
+    div.querySelector('[data-action="edit"]').onclick = () => { editTransaction(txId); closeDropdown(); };
+    div.querySelector('[data-action="delete"]').onclick = () => { deleteTransaction(txId); closeDropdown(); };
+    setTimeout(() => document.addEventListener('click', () => closeDropdown(), { once: true }), 10);
+  }
+
+  function closeDropdown() { if (activeDropdown) { activeDropdown.remove(); activeDropdown = null; } }
+
+  async function editTransaction(txId) {
+    const tx = allTransactions.find(t => t.id === txId);
+    if (!tx) return;
+    document.getElementById('modalTitle').innerText = 'Edit Expense';
+    document.getElementById('txDate').value = tx.date;
+    document.getElementById('txDesc').value = tx.description || '';
+    document.getElementById('txRef').value = tx.reference || '';
+    document.getElementById('txAmount').value = Math.abs(tx.amount);
+    editingId = txId;
+    document.getElementById('txModal').classList.add('show');
+  }
+
+  async function deleteTransaction(txId) {
+    if (!confirm('Delete this expense?')) return;
+    try {
+      await deleteDoc(doc(db, EXPENSES_COLLECTION, txId));
+      toast('Expense deleted');
+    } catch (err) { toast(err.message, 'error'); }
+  }
+
+  async function saveTransaction() {
+    const date = document.getElementById('txDate').value;
+    const desc = document.getElementById('txDesc').value.trim();
+    const ref = document.getElementById('txRef').value.trim();
+    const amount = parseFloat(document.getElementById('txAmount').value);
+    
+    if (!date || !desc || isNaN(amount) || amount <= 0) {
+      toast('Please fill in all fields correctly', 'error');
+      return;
+    }
+    
+    // Store as negative for expenses (keeps consistent with existing data)
+    const finalAmount = -amount;
+    
+    try {
+      if (editingId) {
+        await updateDoc(doc(db, EXPENSES_COLLECTION, editingId), {
+          date, description: desc, reference: ref, amount: finalAmount
+        });
+        toast('Expense updated');
+      } else {
+        await addDoc(collection(db, EXPENSES_COLLECTION), {
+          date,
+          description: desc,
+          reference: ref,
+          amount: finalAmount,
+          createdAt: new Date().toISOString()
+        });
+        toast('Expense added');
+      }
+      editingId = null;
+      document.getElementById('txModal').classList.remove('show');
+      document.getElementById('txDate').value = '';
+      document.getElementById('txDesc').value = '';
+      document.getElementById('txRef').value = '';
+      document.getElementById('txAmount').value = '';
+    } catch (err) { toast(err.message, 'error'); }
+  }
+
+  // Firestore subscription - uses dedicated collection
+  function loadTransactions() {
+    unsubscribeTrans = onSnapshot(
+      query(collection(db, EXPENSES_COLLECTION), orderBy('date', 'desc')),
+      (snap) => {
+        allTransactions = snap.docs.map(d => ({ id: d.id, ...d.data(), amount: Number(d.data().amount) || 0 }));
+        renderLedger();
+      },
+      (error) => {
+        console.error('Firestore error:', error);
+        toast('Error loading expenses', 'error');
+      }
+    );
+  }
+
+  // UI
+  function initUI() {
+    const monthInput = document.getElementById('monthFilterInput');
+    const saved = getStoredMonth();
+    if (saved) { monthInput.value = saved; updateFilterBadge(saved); }
+    
+    monthInput.addEventListener('change', () => {
+      setStoredMonth(monthInput.value);
+      if (monthInput.value) updateFilterBadge(monthInput.value);
+      else clearFilterBadge();
+      renderLedger();
+    });
+    
+    document.getElementById('clearFilterBtn').onclick = () => {
+      monthInput.value = '';
+      setStoredMonth('');
+      clearFilterBadge();
+      renderLedger();
+    };
+    
+    document.getElementById('addTxBtn').onclick = () => {
+      editingId = null;
+      document.getElementById('modalTitle').innerText = 'Add Expense';
+      document.getElementById('txDate').valueAsDate = new Date();
+      document.getElementById('txDesc').value = '';
+      document.getElementById('txRef').value = '';
+      document.getElementById('txAmount').value = '';
+      document.getElementById('txModal').classList.add('show');
+    };
+    
+    document.getElementById('saveTxBtn').onclick = saveTransaction;
+    document.getElementById('closeTxBtn').onclick = () => document.getElementById('txModal').classList.remove('show');
+    document.getElementById('backBtn').onclick = () => {
+      // Go back to dashboard or wherever
+      history.back();
+    };
+    window.addEventListener('click', (e) => { if (!e.target.closest('.dropdown-menu')) closeDropdown(); });
+  }
+  
+  function updateFilterBadge(month) {
+    const badge = document.getElementById('filterBadge');
+    badge.innerHTML = `<i class="fas fa-filter"></i> ${formatMonthYear(month)}`;
+    badge.style.display = 'inline-flex';
+    document.getElementById('clearFilterBtn').style.display = 'inline-flex';
+  }
+  
+  function clearFilterBadge() {
+    document.getElementById('filterBadge').style.display = 'none';
+    document.getElementById('clearFilterBtn').style.display = 'none';
+  }
+  
+  function toast(msg, type = 'info') {
+    const wrap = document.getElementById('toastWrap');
+    const div = document.createElement('div');
+    div.className = 'toast';
+    div.innerHTML = `<i class="fas ${type === 'error' ? 'fa-exclamation-circle' : 'fa-check-circle'}"></i> ${msg}`;
+    wrap.appendChild(div);
+    setTimeout(() => div.remove(), 3000);
+  }
+  
+  function escapeHtml(str) { if (!str) return ''; return String(str).replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m])); }
+  
+  initUI();
+  loadTransactions();
+</script>
+</body>
+</html>
+      --radius: 16px;
+      --danger: #dc2626;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .app {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .topbar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 1.5rem;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+    }
+
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+    }
+
+    .back-btn {
+      background: #f1f5f9;
+      border: 1px solid var(--border);
+      border-radius: 40px;
+      padding: 0.4rem 1rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.15s;
+    }
+    .back-btn:hover { background: #e2e8f0; }
+
+    .main-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem;
+    }
+
+    .action-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 0.5rem 1rem;
+      border-radius: 40px;
+      font-weight: 600;
+      font-size: 0.75rem;
+      border: none;
+      cursor: pointer;
+      background: var(--primary);
+      color: white;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: 0.15s;
+    }
+    .btn:hover { opacity: 0.85; }
+
+    .btn-outline {
+      background: white;
+      border: 1.5px solid var(--border);
+      color: var(--text-main);
+    }
+    .btn-outline:hover { background: #f8fafc; }
+
+    .filter-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--surface);
+      padding: 0.5rem 1rem;
+      border-radius: 60px;
+      border: 1px solid var(--border);
+    }
+
+    .month-filter {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg);
+      padding: 0.25rem 0.8rem;
+      border-radius: 40px;
+    }
+    .month-filter input {
+      border: none;
+      background: transparent;
+      font-weight: 600;
+      font-size: 0.7rem;
+      font-family: inherit;
+      cursor: pointer;
+    }
+    .clear-filter {
+      background: #fee2e2;
+      border: none;
+      padding: 0.25rem 0.8rem;
+      border-radius: 40px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--danger);
+      cursor: pointer;
+    }
+    .filter-badge {
+      background: #dbeafe;
+      padding: 0.25rem 0.8rem;
+      border-radius: 40px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    .ledger-table-container {
+      background: var(--surface);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      overflow: auto;
+      max-height: calc(100vh - 220px);
+    }
+
+    .ledger-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+      min-width: 500px;
+    }
+
+    .ledger-table th {
+      text-align: left;
+      padding: 0.9rem 0.8rem;
+      background: white;
+      border-bottom: 2px solid var(--border);
+      font-weight: 700;
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      position: sticky;
+      top: 0;
+    }
+
+    .ledger-table td {
+      padding: 0.75rem 0.8rem;
+      border-bottom: 1px solid #f0f2f5;
+    }
+
+    .amount-col {
+      font-weight: 700;
+      text-align: right;
+      font-family: 'DM Mono', monospace;
+    }
+    .amount-col.negative { color: var(--danger); }
+    .amount-col.positive { color: var(--primary); }
+
+    .action-btn {
+      background: none;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 30px;
+      cursor: pointer;
+      color: var(--text-muted);
+    }
+    .action-btn:hover { background: #f1f5f9; }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.show { display: flex; }
+
+    .modal {
+      background: white;
+      border-radius: 24px;
+      width: 90%;
+      max-width: 460px;
+      padding: 1.5rem;
+    }
+    .modal h3 { margin-bottom: 1rem; }
+    .form-group { margin-bottom: 1rem; }
+    .form-group label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      display: block;
+      margin-bottom: 4px;
+      color: var(--text-muted);
+    }
+    .form-group input {
+      width: 100%;
+      padding: 0.6rem;
+      border-radius: 12px;
+      border: 1.5px solid var(--border);
+      font-size: 0.85rem;
+      font-family: inherit;
+      transition: 0.15s;
+    }
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--primary-light);
+    }
+
+    .toast-wrap {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 1100;
+    }
+    .toast {
+      background: #1e293b;
+      color: white;
+      padding: 10px 18px;
+      border-radius: 40px;
+      font-size: 0.75rem;
+      margin-top: 8px;
+    }
+
+    .dropdown-menu {
+      position: fixed;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      z-index: 200;
+      min-width: 110px;
+      border: 1px solid var(--border);
+    }
+    .dropdown-item {
+      padding: 8px 14px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .dropdown-item.danger { color: var(--danger); }
+    .dropdown-item:hover { background: #f1f5f9; }
+
+    .empty-state {
+      padding: 3rem 1rem;
+      text-align: center;
+      color: var(--text-muted);
+    }
+    .empty-state i { font-size: 2rem; opacity: 0.4; margin-bottom: 0.5rem; }
+    .empty-state p { font-weight: 600; }
+    .empty-state span { font-size: 0.8rem; }
+  </style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="logo">
+      <div class="logo-icon"><i class="fas fa-book-open"></i></div>
+      <span>OneBook</span>
+    </div>
+    <div class="back-btn" id="backBtn"><i class="fas fa-arrow-left"></i> Dashboard</div>
+  </div>
+  <div class="main-content">
+    <div class="action-row">
+      <div class="btn-group">
+        <button class="btn" id="addTxBtn"><i class="fas fa-plus-circle"></i> Add Expense</button>
+      </div>
+      <div class="filter-bar">
+        <div class="month-filter"><i class="fas fa-calendar-alt"></i><input type="month" id="monthFilterInput" placeholder="Filter by month"></div>
+        <button class="clear-filter" id="clearFilterBtn" style="display:none;"><i class="fas fa-times"></i> Clear</button>
+        <span id="filterBadge" class="filter-badge" style="display:none;"></span>
+      </div>
+    </div>
+
+    <div class="ledger-table-container">
+      <table class="ledger-table">
+        <thead>
+          <tr><th>Date</th><th>Description</th><th>Reference</th><th style="text-align:right;">Amount (K)</th><th></th></tr>
+        </thead>
+        <tbody id="ledgerTbody"><tr><td colspan="5" style="text-align:center; padding:2rem; color:var(--text-muted);">Loading...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Transaction Modal -->
+<div id="txModal" class="modal-overlay">
+  <div class="modal">
+    <h3 id="modalTitle">Add Expense</h3>
+    <div class="form-group"><label>Date</label><input type="date" id="txDate"></div>
+    <div class="form-group"><label>Description</label><input type="text" id="txDesc" placeholder="e.g., Groceries, Transport"></div>
+    <div class="form-group"><label>Reference (optional)</label><input type="text" id="txRef" placeholder="Receipt #, vendor"></div>
+    <div class="form-group"><label>Amount (K)</label><input type="number" id="txAmount" step="0.01" placeholder="0.00"></div>
+    <div class="btn-group" style="gap:8px; margin-top:8px;">
+      <button id="saveTxBtn" class="btn">Save</button>
+      <button id="closeTxBtn" class="btn btn-outline">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-app.js";
+  import { 
+    getFirestore, collection, query, addDoc, updateDoc, deleteDoc, doc, 
+    onSnapshot, orderBy 
+  } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyB-lm7Y3r1F6VvY8PKvY8glLabZDbJsHM1k",
+    authDomain: "trismartstores.firebaseapp.com",
+    projectId: "trismartstores",
+    storageBucket: "trismartstores.appspot.com",
+    messagingSenderId: "416692703333",
+    appId: "1:416692703333:web:d4b60292621435c748f68c"
+  };
+  
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // DEDICATED COLLECTION for this expense tracker
+  const EXPENSES_COLLECTION = 'onebook_expenses';
+
+  let allTransactions = [];
+  let unsubscribeTrans;
+  let activeDropdown = null;
+  let editingId = null;
+
+  // Month filter
+  const MONTH_FILTER_KEY = 'onebook_expense_filter';
+  function getStoredMonth() { return localStorage.getItem(MONTH_FILTER_KEY) || ''; }
+  function setStoredMonth(val) { val ? localStorage.setItem(MONTH_FILTER_KEY, val) : localStorage.removeItem(MONTH_FILTER_KEY); }
+
+  function getFilteredAndSorted() {
+    const monthFilter = getStoredMonth();
+    let filtered = [...allTransactions];
+    if (monthFilter) {
+      filtered = filtered.filter(tx => tx.date && tx.date.startsWith(monthFilter));
+    }
+    return filtered.sort((a, b) => a.date.localeCompare(b.date));
+  }
+
+  function formatMonthYear(ym) {
+    const [y, m] = ym.split('-');
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return `${months[parseInt(m)-1]} ${y}`;
+  }
+
+  function renderLedger() {
+    const tbody = document.getElementById('ledgerTbody');
+    const rows = getFilteredAndSorted();
+    
+    if (!rows.length) {
+      tbody.innerHTML = `
+        <tr><td colspan="5">
+          <div class="empty-state">
+            <i class="fas fa-receipt"></i>
+            <p>No expenses recorded</p>
+            <span>Tap "Add Expense" to start tracking</span>
+          </div>
+        </td></tr>
+      `;
+      return;
+    }
+    
+    tbody.innerHTML = rows.map(tx => {
+      const isNegative = tx.amount < 0;
+      const displayAmount = Math.abs(tx.amount);
+      return `
+        <tr>
+          <td>${tx.date || '-'}</td>
+          <td><strong>${escapeHtml(tx.description || '')}</strong></td>
+          <td>${escapeHtml(tx.reference || '—')}</td>
+          <td class="amount-col ${isNegative ? 'negative' : 'positive'}">${isNegative ? '-' : ''}K${displayAmount.toFixed(2)}</td>
+          <td class="action-cell"><button class="action-btn" data-txn-id="${tx.id}"><i class="fas fa-ellipsis-v"></i></button></td>
+        </tr>
+      `;
+    }).join('');
+    
+    document.querySelectorAll('[data-txn-id]').forEach(btn => {
+      const id = btn.getAttribute('data-txn-id');
+      btn.onclick = (e) => showDropdown(e, id);
+    });
+  }
+
+  function showDropdown(event, txId) {
+    event.stopPropagation();
+    closeDropdown();
+    const rect = event.currentTarget.getBoundingClientRect();
+    const div = document.createElement('div');
+    div.className = 'dropdown-menu';
+    div.style.position = 'fixed';
+    div.style.top = `${rect.bottom + 4}px`;
+    div.style.left = `${rect.left - 30}px`;
+    div.innerHTML = `
+      <div class="dropdown-item" data-action="edit"><i class="fas fa-pen"></i> Edit</div>
+      <div class="dropdown-item danger" data-action="delete"><i class="fas fa-trash"></i> Delete</div>
+    `;
+    document.body.appendChild(div);
+    activeDropdown = div;
+    
+    div.querySelector('[data-action="edit"]').onclick = () => { editTransaction(txId); closeDropdown(); };
+    div.querySelector('[data-action="delete"]').onclick = () => { deleteTransaction(txId); closeDropdown(); };
+    setTimeout(() => document.addEventListener('click', () => closeDropdown(), { once: true }), 10);
+  }
+
+  function closeDropdown() { if (activeDropdown) { activeDropdown.remove(); activeDropdown = null; } }
+
+  async function editTransaction(txId) {
+    const tx = allTransactions.find(t => t.id === txId);
+    if (!tx) return;
+    document.getElementById('modalTitle').innerText = 'Edit Expense';
+    document.getElementById('txDate').value = tx.date;
+    document.getElementById('txDesc').value = tx.description || '';
+    document.getElementById('txRef').value = tx.reference || '';
+    document.getElementById('txAmount').value = Math.abs(tx.amount);
+    editingId = txId;
+    document.getElementById('txModal').classList.add('show');
+  }
+
+  async function deleteTransaction(txId) {
+    if (!confirm('Delete this expense?')) return;
+    try {
+      await deleteDoc(doc(db, EXPENSES_COLLECTION, txId));
+      toast('Expense deleted');
+    } catch (err) { toast(err.message, 'error'); }
+  }
+
+  async function saveTransaction() {
+    const date = document.getElementById('txDate').value;
+    const desc = document.getElementById('txDesc').value.trim();
+    const ref = document.getElementById('txRef').value.trim();
+    const amount = parseFloat(document.getElementById('txAmount').value);
+    
+    if (!date || !desc || isNaN(amount) || amount <= 0) {
+      toast('Please fill in all fields correctly', 'error');
+      return;
+    }
+    
+    // Store as negative for expenses
+    const finalAmount = -amount;
+    
+    try {
+      if (editingId) {
+        await updateDoc(doc(db, EXPENSES_COLLECTION, editingId), {
+          date, description: desc, reference: ref, amount: finalAmount
+        });
+        toast('Expense updated');
+      } else {
+        await addDoc(collection(db, EXPENSES_COLLECTION), {
+          date,
+          description: desc,
+          reference: ref,
+          amount: finalAmount,
+          createdAt: new Date().toISOString()
+        });
+        toast('Expense added');
+      }
+      editingId = null;
+      document.getElementById('txModal').classList.remove('show');
+      document.getElementById('txDate').value = '';
+      document.getElementById('txDesc').value = '';
+      document.getElementById('txRef').value = '';
+      document.getElementById('txAmount').value = '';
+    } catch (err) { toast(err.message, 'error'); }
+  }
+
+  // Firestore subscription - uses dedicated collection
+  function loadTransactions() {
+    unsubscribeTrans = onSnapshot(
+      query(collection(db, EXPENSES_COLLECTION), orderBy('date', 'desc')),
+      (snap) => {
+        allTransactions = snap.docs.map(d => ({ id: d.id, ...d.data(), amount: Number(d.data().amount) || 0 }));
+        renderLedger();
+      },
+      (error) => {
+        console.error('Firestore error:', error);
+        toast('Error loading expenses', 'error');
+      }
+    );
+  }
+
+  // UI
+  function initUI() {
+    const monthInput = document.getElementById('monthFilterInput');
+    const saved = getStoredMonth();
+    if (saved) { monthInput.value = saved; updateFilterBadge(saved); }
+    
+    monthInput.addEventListener('change', () => {
+      setStoredMonth(monthInput.value);
+      if (monthInput.value) updateFilterBadge(monthInput.value);
+      else clearFilterBadge();
+      renderLedger();
+    });
+    
+    document.getElementById('clearFilterBtn').onclick = () => {
+      monthInput.value = '';
+      setStoredMonth('');
+      clearFilterBadge();
+      renderLedger();
+    };
+    
+    document.getElementById('addTxBtn').onclick = () => {
+      editingId = null;
+      document.getElementById('modalTitle').innerText = 'Add Expense';
+      document.getElementById('txDate').valueAsDate = new Date();
+      document.getElementById('txDesc').value = '';
+      document.getElementById('txRef').value = '';
+      document.getElementById('txAmount').value = '';
+      document.getElementById('txModal').classList.add('show');
+    };
+    
+    document.getElementById('saveTxBtn').onclick = saveTransaction;
+    document.getElementById('closeTxBtn').onclick = () => document.getElementById('txModal').classList.remove('show');
+    document.getElementById('backBtn').onclick = () => location.href = 'accounts-dashboard.html';
+    window.addEventListener('click', (e) => { if (!e.target.closest('.dropdown-menu')) closeDropdown(); });
+  }
+  
+  function updateFilterBadge(month) {
+    const badge = document.getElementById('filterBadge');
+    badge.innerHTML = `<i class="fas fa-filter"></i> ${formatMonthYear(month)}`;
+    badge.style.display = 'inline-flex';
+    document.getElementById('clearFilterBtn').style.display = 'inline-flex';
+  }
+  
+  function clearFilterBadge() {
+    document.getElementById('filterBadge').style.display = 'none';
+    document.getElementById('clearFilterBtn').style.display = 'none';
+  }
+  
+  function toast(msg, type = 'info') {
+    const wrap = document.getElementById('toastWrap');
+    const div = document.createElement('div');
+    div.className = 'toast';
+    div.innerHTML = `<i class="fas ${type === 'error' ? 'fa-exclamation-circle' : 'fa-check-circle'}"></i> ${msg}`;
+    wrap.appendChild(div);
+    setTimeout(() => div.remove(), 3000);
+  }
+  
+  function escapeHtml(str) { if (!str) return ''; return String(str).replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m])); }
+  
+  initUI();
+  loadTransactions();
+</script>
+</body>
+</html>

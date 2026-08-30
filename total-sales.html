@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Trismart · Daily Sales & Tax</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --primary:   #4361ee;
+      --accent:    #4cc9f0;
+      --danger:    #f72585;
+      --warning:   #f8961e;
+      --success:   #2ecc71;
+      --bg:        #f4f6fb;
+      --surface:   #ffffff;
+      --bg-lighter:#f1f3f5;
+      --border:    #dee2e6;
+      --text:      #212529;
+      --text-fade: #6c757d;
+      --radius:    10px;
+      --radius-lg: 16px;
+      --shadow:    0 2px 12px rgba(67,97,238,0.08);
+      --shadow-lg: 0 8px 32px rgba(67,97,238,0.13);
+    }
+    * { scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+    *::-webkit-scrollbar { width: 5px; height: 5px; }
+    *::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+    html, body { height: 100%; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 18px; min-height: 60px;
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      box-shadow: var(--shadow); position: sticky; top: 0; z-index: 100;
+      flex-wrap: wrap; gap: 10px;
+    }
+    .topbar-left { display: flex; align-items: center; gap: 12px; }
+    .back-btn {
+      width: 34px; height: 34px; border-radius: var(--radius);
+      border: 1px solid var(--border); background: var(--bg-lighter);
+      color: var(--text-fade); display: flex; align-items: center;
+      justify-content: center; cursor: pointer; text-decoration: none; font-size: .82rem;
+      transition: all .15s;
+    }
+    .back-btn:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .page-title { font-size: 1rem; font-weight: 700; color: var(--primary); font-family: 'DM Sans', sans-serif; }
+    .topbar-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .month-pick {
+      display: flex; align-items: center; gap: 7px;
+      background: var(--bg-lighter); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 7px 12px; font-size: .82rem; color: var(--text-fade);
+    }
+    .month-pick input[type="month"] {
+      background: transparent; border: none; font-family: 'DM Sans', sans-serif;
+      font-size: .82rem; font-weight: 600; color: var(--text); outline: none; cursor: pointer;
+      width: 140px;
+    }
+    .month-pick input[type="month"]::-webkit-calendar-picker-indicator { cursor: pointer; opacity: .6; }
+    .year-pick {
+      display: flex; align-items: center; gap: 7px;
+      background: var(--bg-lighter); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 7px 12px; font-size: .82rem; color: var(--text-fade);
+    }
+    .year-pick input[type="number"] {
+      background: transparent; border: none; font-family: 'DM Sans', sans-serif;
+      font-size: .82rem; font-weight: 600; color: var(--text); outline: none;
+      width: 80px; -moz-appearance: textfield;
+    }
+    .year-pick input[type="number"]::-webkit-outer-spin-button,
+    .year-pick input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 14px; border-radius: var(--radius);
+      font-family: 'DM Sans', sans-serif; font-size: .8rem; font-weight: 600;
+      cursor: pointer; border: none; transition: all .15s; white-space: nowrap;
+      box-shadow: 0 1px 4px rgba(0,0,0,.07);
+    }
+    .btn-primary { background: linear-gradient(135deg, var(--primary), #3a56d4); color: white; }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(67,97,238,.3); }
+    .btn-ghost { background: var(--bg-lighter); color: var(--text-fade); border: 1px solid var(--border); }
+    .btn-ghost:hover { border-color: var(--primary); color: var(--primary); }
+    .btn-success { background: linear-gradient(135deg, var(--success), #27ae60); color: white; }
+    .btn-success:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(46,204,113,.3); }
+
+    .main { flex: 1; padding: 16px 18px; display: flex; flex-direction: column; gap: 12px; }
+
+    /* Branch filter */
+    .branch-filter {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--surface);
+      padding: 10px 14px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+    .branch-filter label {
+      font-size: .7rem;
+      font-weight: 700;
+      color: var(--text-fade);
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+    .branch-filter select {
+      padding: 6px 12px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      font-size: .82rem;
+      background: var(--bg-lighter);
+      outline: none;
+      cursor: pointer;
+    }
+    .branch-filter select:focus {
+      border-color: var(--primary);
+    }
+    .branch-filter .badge {
+      font-size: .7rem;
+      color: var(--text-fade);
+      background: var(--bg-lighter);
+      padding: 3px 10px;
+      border-radius: 100px;
+    }
+    .filter-toggle-group {
+      display: flex;
+      gap: 4px;
+      background: var(--bg-lighter);
+      border-radius: var(--radius);
+      padding: 3px;
+      border: 1px solid var(--border);
+    }
+    .filter-toggle-btn {
+      padding: 5px 12px;
+      border: none;
+      border-radius: 6px;
+      font-size: .7rem;
+      font-weight: 700;
+      cursor: pointer;
+      background: transparent;
+      color: var(--text-fade);
+      transition: all .15s;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .filter-toggle-btn.active {
+      background: var(--primary);
+      color: white;
+      box-shadow: 0 1px 4px rgba(67,97,238,.3);
+    }
+
+    /* Summary Cards */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+    }
+    .summary-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 16px 18px;
+      box-shadow: var(--shadow);
+      text-align: center;
+    }
+    .summary-card .label {
+      font-size: .64rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--text-fade);
+      margin-bottom: 4px;
+    }
+    .summary-card .value {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+    .summary-card .value.gross { color: var(--primary); }
+    .summary-card .value.tax { color: var(--warning); }
+    .summary-card .value.net { color: var(--success); }
+    .summary-card .sub {
+      font-size: .7rem;
+      color: var(--text-fade);
+      margin-top: 2px;
+    }
+
+    .table-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); box-shadow: var(--shadow);
+      overflow: hidden; flex: 1; display: flex; flex-direction: column;
+    }
+    .table-scroll { overflow-x: auto; flex: 1; }
+    table { width: 100%; border-collapse: collapse; font-size: .84rem; min-width: 500px; }
+    thead th {
+      background: var(--bg-lighter); color: var(--text-fade);
+      font-size: .64rem; font-weight: 700; letter-spacing: .1em;
+      text-transform: uppercase; padding: 11px 14px; text-align: left;
+      border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 10;
+      white-space: nowrap;
+    }
+    th.num, td.num { text-align: right; }
+    td {
+      padding: 11px 14px; border-bottom: 1px solid #f0f2f8;
+      color: var(--text); vertical-align: middle;
+    }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr { transition: background .1s; }
+    tbody tr:hover td { background: #f8f9ff; }
+    .empty-row td { text-align: center; padding: 52px 20px; color: var(--text-fade); font-size: .88rem; }
+    .amount-neutral { color: var(--text); font-weight: 500; }
+    .amount-bal { color: var(--primary); font-weight: 700; }
+    
+    .tax-row td { background: #fff8e1; font-weight: 700; }
+    .tax-row td:last-child { color: var(--warning); }
+    .total-row td { background: #e8f5e9; font-weight: 800; font-size: .95rem; }
+    .total-row td:last-child { color: var(--success); }
+
+    .grand-total-row td { 
+      background: linear-gradient(135deg, #e8f5e9, #c8e6c9); 
+      font-weight: 900; 
+      font-size: 1rem; 
+      border-top: 2.5px solid var(--success);
+    }
+    .grand-total-row td:last-child { color: var(--success); font-size: 1.1rem; }
+
+    /* Day count badge */
+    .day-count {
+      font-size: .6rem;
+      color: var(--text-fade);
+      background: var(--bg-lighter);
+      padding: 1px 8px;
+      border-radius: 100px;
+      margin-left: 6px;
+    }
+
+    .toast-wrap {
+      position: fixed; bottom: 20px; right: 16px; z-index: 9999;
+      display: flex; flex-direction: column; gap: 6px; pointer-events: none;
+      max-width: calc(100vw - 32px);
+    }
+    .toast {
+      background: var(--surface); border: 1px solid var(--border);
+      color: var(--text); border-radius: var(--radius);
+      padding: 10px 15px; font-size: .82rem; font-weight: 600;
+      display: flex; align-items: center; gap: 8px;
+      box-shadow: var(--shadow-lg); animation: tIn .2s ease;
+    }
+    .toast.success { border-left: 4px solid var(--success); }
+    .toast.success i { color: var(--success); }
+    .toast.error { border-left: 4px solid var(--danger); }
+    .toast.error i { color: var(--danger); }
+    .toast.info { border-left: 4px solid var(--warning); }
+    .toast.info i { color: var(--warning); }
+    @keyframes tIn { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: translateX(0); } }
+
+    @media(max-width: 640px) {
+      .topbar { padding: 0 12px; }
+      .main { padding: 12px; }
+      .summary-grid { grid-template-columns: 1fr 1fr; }
+      .summary-card .value { font-size: 1.1rem; }
+      .branch-filter { flex-direction: column; align-items: stretch; }
+      .filter-toggle-group { justify-content: stretch; }
+      .filter-toggle-btn { flex: 1; text-align: center; }
+      .month-pick input[type="month"] { width: 100px; }
+      .year-pick input[type="number"] { width: 60px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Top Bar -->
+<div class="topbar">
+  <div class="topbar-left">
+    <a href="cashbook.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
+    <span class="page-title">Daily Sales & Tax</span>
+  </div>
+  <div class="topbar-right">
+    <!-- Filter Toggle: Month / Year -->
+    <div class="filter-toggle-group" id="filterToggleGroup">
+      <button class="filter-toggle-btn active" data-filter="month" onclick="setFilterMode('month')">Month</button>
+      <button class="filter-toggle-btn" data-filter="year" onclick="setFilterMode('year')">Year</button>
+    </div>
+
+    <!-- Month Picker -->
+    <div class="month-pick" id="monthPickerContainer">
+      <i class="fas fa-calendar-alt" style="font-size:.72rem"></i>
+      <input type="month" id="monthPicker" value="">
+    </div>
+
+    <!-- Year Picker (hidden by default) -->
+    <div class="year-pick" id="yearPickerContainer" style="display:none;">
+      <i class="fas fa-calendar" style="font-size:.72rem"></i>
+      <input type="number" id="yearPicker" min="2020" max="2030" value="2026">
+    </div>
+
+    <button class="btn btn-ghost" id="pdfBtn"><i class="fas fa-file-pdf"></i> PDF</button>
+    <button class="btn btn-success" onclick="refreshData()"><i class="fas fa-sync"></i> Refresh</button>
+  </div>
+</div>
+
+<!-- Main -->
+<div class="main">
+
+  <!-- Branch Filter -->
+  <div class="branch-filter">
+    <label><i class="fas fa-store"></i> Branch:</label>
+    <select id="branchFilter" onchange="onBranchChange()">
+      <option value="all">🌐 All Branches</option>
+      <option value="master">🏢 Master Warehouse</option>
+      <option value="makeni">📍 Makeni Branch</option>
+      <option value="kabanana">📍 Kabanana Branch</option>
+      <option value="kabana">📍 Kabana Branch</option>
+      <option value="dealer_sale">📦 Dealer Sales</option>
+    </select>
+    <span class="badge" id="branchCount">0 sales</span>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="summary-grid" id="summaryGrid">
+    <div class="summary-card">
+      <div class="label">Total Sales (Gross)</div>
+      <div class="value gross" id="grossTotal">ZMW 0.00</div>
+      <div class="sub" id="transactionCount">0 transactions</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">Tax (4%)</div>
+      <div class="value tax" id="taxTotal">ZMW 0.00</div>
+      <div class="sub">4% of gross sales</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">Net Sales</div>
+      <div class="value net" id="netTotal">ZMW 0.00</div>
+      <div class="sub">After tax deduction</div>
+    </div>
+  </div>
+
+  <!-- Daily Summary Table -->
+  <div class="table-card">
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th class="num">Day</th>
+            <th class="num">Transactions</th>
+            <th class="num">Gross Sales</th>
+            <th class="num">Tax (4%)</th>
+            <th class="num">Net Sales</th>
+          </tr>
+        </thead>
+        <tbody id="salesTbody">
+          <tr class="empty-row"><td colspan="6"><i class="fas fa-spinner fa-spin"></i> Loading…</td></tr>
+        </tbody>
+        <tfoot id="tableFoot" style="display:none;">
+          <tr class="tax-row">
+            <td colspan="4" style="text-align:right;font-weight:700;">Total Tax (4%)</td>
+            <td class="num" id="footTax">ZMW 0.00</td>
+            <td></td>
+          </tr>
+          <tr class="grand-total-row">
+            <td colspan="3" style="text-align:right;font-weight:900;">MONTH TOTAL</td>
+            <td class="num" id="footGross">ZMW 0.00</td>
+            <td class="num" id="footTax2">ZMW 0.00</td>
+            <td class="num" id="footNet">ZMW 0.00</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+  // ==================== FIREBASE INIT ====================
+  firebase.initializeApp({
+    apiKey: "AIzaSyB-lm7Y3r1F6VvY8PKvY8glLabZDbJsHM1k",
+    authDomain: "trismartstores.firebaseapp.com",
+    projectId: "trismartstores",
+    storageBucket: "trismartstores.firebasestorage.app",
+    messagingSenderId: "416692703333",
+    appId: "1:416692703333:web:d4b60292621435c748f68c"
+  });
+
+  const db = firebase.firestore();
+  
+  db.enablePersistence().catch(err => {
+    if (err.code == 'failed-precondition') {
+      console.log('Multiple tabs open - persistence disabled');
+    }
+  });
+
+  // ==================== GLOBAL VARIABLES ====================
+  let allSales = [];
+  let filteredSales = [];
+  let unsubscribeListener = null;
+  let filterMode = 'month'; // 'month' or 'year'
+
+  // Month picker setup
+  const monthPicker = document.getElementById('monthPicker');
+  const today = new Date();
+  const currentMonth = today.toISOString().substring(0,7);
+  monthPicker.value = localStorage.getItem('sales_month_filter') || currentMonth;
+
+  // Year picker setup
+  const yearPicker = document.getElementById('yearPicker');
+  yearPicker.value = localStorage.getItem('sales_year_filter') || today.getFullYear().toString();
+
+  // Branch filter
+  const branchFilter = document.getElementById('branchFilter');
+  const savedBranch = localStorage.getItem('sales_branch_filter') || 'all';
+  branchFilter.value = savedBranch;
+
+  // ==================== HELPER FUNCTIONS ====================
+  function toast(message, type = 'success') {
+    const wrap = document.getElementById('toastWrap');
+    const el = document.createElement('div');
+    el.className = `toast ${type}`;
+    
+    let icon = 'check-circle';
+    if (type === 'error') icon = 'times-circle';
+    if (type === 'info') icon = 'info-circle';
+    
+    el.innerHTML = `<i class="fas fa-${icon}"></i> ${message}`;
+    wrap.appendChild(el);
+    
+    setTimeout(() => {
+      el.style.opacity = '0';
+      el.style.transform = 'translateX(16px)';
+      setTimeout(() => el.remove(), 300);
+    }, 3500);
+  }
+
+  function formatNumber(num) {
+    return Number(num).toLocaleString(undefined, { 
+      minimumFractionDigits: 2, 
+      maximumFractionDigits: 2 
+    });
+  }
+
+  function formatDate(dateStr) {
+    if (!dateStr) return '—';
+    const d = new Date(dateStr + 'T00:00:00');
+    return d.toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' });
+  }
+
+  function getDayOfMonth(dateStr) {
+    if (!dateStr) return '—';
+    return new Date(dateStr + 'T00:00:00').getDate();
+  }
+
+  // ==================== FILTER MODE TOGGLE ====================
+  window.setFilterMode = function(mode) {
+    filterMode = mode;
+    // Update toggle buttons
+    document.querySelectorAll('.filter-toggle-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.filter === mode);
+    });
+    // Show/hide pickers
+    document.getElementById('monthPickerContainer').style.display = mode === 'month' ? 'flex' : 'none';
+    document.getElementById('yearPickerContainer').style.display = mode === 'year' ? 'flex' : 'none';
+    
+    // Store preference
+    localStorage.setItem('sales_filter_mode', mode);
+    applyFilters();
+  };
+
+  // ==================== APPLY FILTERS & GROUP BY DAY ====================
+  function applyFilters() {
+    const selectedMonth = monthPicker.value;
+    const selectedYear = yearPicker.value;
+    const selectedBranch = branchFilter.value;
+    
+    let filtered = [...allSales];
+    
+    // Filter by branch
+    if (selectedBranch !== 'all') {
+      filtered = filtered.filter(t => t.branchId === selectedBranch);
+    }
+    
+    // Filter by month or year
+    if (filterMode === 'month' && selectedMonth) {
+      filtered = filtered.filter(t => {
+        if (!t.date) return false;
+        return t.date.substring(0,7) === selectedMonth;
+      });
+    } else if (filterMode === 'year' && selectedYear) {
+      filtered = filtered.filter(t => {
+        if (!t.date) return false;
+        return t.date.substring(0,4) === selectedYear;
+      });
+    }
+    
+    filteredSales = filtered;
+    
+    // GROUP BY DATE
+    const dailyTotals = {};
+    filtered.forEach(t => {
+      const date = t.date || 'unknown';
+      const total = (t.price || 0) * (t.quantity || 1) - (t.discount || 0);
+      
+      if (!dailyTotals[date]) {
+        dailyTotals[date] = {
+          date: date,
+          gross: 0,
+          count: 0,
+          transactions: []
+        };
+      }
+      dailyTotals[date].gross += total;
+      dailyTotals[date].count += 1;
+      dailyTotals[date].transactions.push(t);
+    });
+    
+    // Convert to array and sort by date
+    let dailyArray = Object.values(dailyTotals);
+    dailyArray.sort((a, b) => {
+      if (!a.date) return 1;
+      if (!b.date) return -1;
+      return a.date.localeCompare(b.date);
+    });
+    
+    // Update branch count
+    const totalInBranch = selectedBranch === 'all' 
+      ? allSales.length 
+      : allSales.filter(t => t.branchId === selectedBranch).length;
+    document.getElementById('branchCount').textContent = 
+      `${filtered.length} of ${totalInBranch} sales | ${dailyArray.length} days`;
+    
+    renderDailyTable(dailyArray);
+    updateSummary(dailyArray);
+  }
+
+  // ==================== UPDATE SUMMARY ====================
+  function updateSummary(dailyArray) {
+    let grossTotal = 0;
+    let totalCount = 0;
+    
+    dailyArray.forEach(day => {
+      grossTotal += day.gross;
+      totalCount += day.count;
+    });
+    
+    const taxRate = 0.04;
+    const taxAmount = grossTotal * taxRate;
+    const netTotal = grossTotal - taxAmount;
+    
+    document.getElementById('grossTotal').textContent = `ZMW ${formatNumber(grossTotal)}`;
+    document.getElementById('taxTotal').textContent = `ZMW ${formatNumber(taxAmount)}`;
+    document.getElementById('netTotal').textContent = `ZMW ${formatNumber(netTotal)}`;
+    document.getElementById('transactionCount').textContent = `${totalCount} transactions across ${dailyArray.length} days`;
+    
+    const foot = document.getElementById('tableFoot');
+    if (dailyArray.length > 0) {
+      foot.style.display = 'table-footer-group';
+      document.getElementById('footTax').textContent = `ZMW ${formatNumber(taxAmount)}`;
+      document.getElementById('footTax2').textContent = `ZMW ${formatNumber(taxAmount)}`;
+      document.getElementById('footGross').textContent = `ZMW ${formatNumber(grossTotal)}`;
+      document.getElementById('footNet').textContent = `ZMW ${formatNumber(netTotal)}`;
+    } else {
+      foot.style.display = 'none';
+    }
+  }
+
+  // ==================== RENDER DAILY TABLE ====================
+  function renderDailyTable(dailyArray) {
+    const tbody = document.getElementById('salesTbody');
+
+    if (dailyArray.length === 0) {
+      const label = filterMode === 'month' 
+        ? (monthPicker.value || 'this month') 
+        : (yearPicker.value || 'this year');
+      const branchLabel = branchFilter.value === 'all' ? 'all branches' : branchFilter.value;
+      tbody.innerHTML = `<tr class="empty-row"><td colspan="6">
+        <i class="fas fa-inbox"></i> No sales for ${label} in ${branchLabel}
+      </td></tr>`;
+      return;
+    }
+
+    let rows = '';
+    let runningGross = 0;
+
+    dailyArray.forEach(day => {
+      const tax = day.gross * 0.04;
+      const net = day.gross - tax;
+      runningGross += day.gross;
+
+      rows += `
+        <tr>
+          <td><strong>${formatDate(day.date)}</strong></td>
+          <td class="num">${getDayOfMonth(day.date)}</td>
+          <td class="num">${day.count}</td>
+          <td class="num amount-bal">ZMW ${formatNumber(day.gross)}</td>
+          <td class="num" style="color:var(--warning);">ZMW ${formatNumber(tax)}</td>
+          <td class="num" style="color:var(--success);font-weight:700;">ZMW ${formatNumber(net)}</td>
+        </tr>
+      `;
+    });
+
+    tbody.innerHTML = rows;
+  }
+
+  // ==================== REFRESH DATA ====================
+  window.refreshData = function() {
+    toast('Refreshing data…', 'info');
+    setupListener();
+  };
+
+  // ==================== BRANCH CHANGE ====================
+  window.onBranchChange = function() {
+    localStorage.setItem('sales_branch_filter', branchFilter.value);
+    applyFilters();
+    toast(`Switched to ${branchFilter.value === 'all' ? 'All Branches' : branchFilter.value}`, 'info');
+  };
+
+  // ==================== SETUP FIREBASE LISTENER ====================
+  function setupListener() {
+    document.getElementById('salesTbody').innerHTML = 
+      '<tr class="empty-row"><td colspan="6"><i class="fas fa-spinner fa-spin"></i> Loading…</td></tr>';
+    
+    if (unsubscribeListener) {
+      unsubscribeListener();
+    }
+    
+    unsubscribeListener = db.collection('sales')
+      .onSnapshot(snapshot => {
+        
+        allSales = [];
+        let branchCounts = {};
+        
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          const branch = data.branchId || 'unknown';
+          branchCounts[branch] = (branchCounts[branch] || 0) + 1;
+          
+          allSales.push({
+            id: doc.id,
+            ...data,
+            price: Number(data.price) || 0,
+            quantity: Number(data.quantity) || 1,
+            discount: Number(data.discount) || 0,
+            total: Number(data.total) || 0,
+            branchId: branch
+          });
+        });
+        
+        console.log(`📊 Loaded ${allSales.length} sales from branches:`, branchCounts);
+        
+        // Auto-select branch if only one branch has sales
+        const branchesWithSales = Object.keys(branchCounts);
+        if (branchesWithSales.length === 1 && branchFilter.value === 'all') {
+          const onlyBranch = branchesWithSales[0];
+          toast(`💡 Only "${onlyBranch}" has sales. Auto-switching.`, 'info');
+          branchFilter.value = onlyBranch;
+          localStorage.setItem('sales_branch_filter', onlyBranch);
+        }
+        
+        applyFilters();
+        
+        if (allSales.length > 0) {
+          const branchInfo = branchFilter.value === 'all' 
+            ? `${allSales.length} total sales across ${Object.keys(branchCounts).length} branches`
+            : `${allSales.filter(t => t.branchId === branchFilter.value).length} sales in ${branchFilter.value}`;
+          toast(`✅ ${branchInfo}`, 'success');
+        } else {
+          toast('No sales records found. Start making sales!', 'info');
+        }
+        
+      }, error => {
+        console.error('Listener error:', error);
+        document.getElementById('salesTbody').innerHTML = 
+          `<tr class="empty-row"><td colspan="6">
+            <i class="fas fa-exclamation-triangle" style="color:#ef4444"></i> 
+            Error: ${error.message}
+          </td></tr>`;
+        toast('Sync error: ' + error.message, 'error');
+      });
+  }
+
+  // ==================== PDF EXPORT ====================
+  document.getElementById('pdfBtn').addEventListener('click', () => {
+    try {
+      const selectedMonth = monthPicker.value;
+      const selectedYear = yearPicker.value;
+      const selectedBranch = branchFilter.value;
+      
+      let filtered = [...allSales];
+      if (selectedBranch !== 'all') {
+        filtered = filtered.filter(t => t.branchId === selectedBranch);
+      }
+      if (filterMode === 'month' && selectedMonth) {
+        filtered = filtered.filter(t => t.date && t.date.substring(0,7) === selectedMonth);
+      } else if (filterMode === 'year' && selectedYear) {
+        filtered = filtered.filter(t => t.date && t.date.substring(0,4) === selectedYear);
+      }
+      
+      const dailyTotals = {};
+      filtered.forEach(t => {
+        const date = t.date || 'unknown';
+        const total = (t.price || 0) * (t.quantity || 1) - (t.discount || 0);
+        if (!dailyTotals[date]) {
+          dailyTotals[date] = { date, gross: 0, count: 0 };
+        }
+        dailyTotals[date].gross += total;
+        dailyTotals[date].count += 1;
+      });
+      
+      let dailyArray = Object.values(dailyTotals);
+      dailyArray.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+      
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'pt',
+        format: 'a4'
+      });
+      
+      const pageWidth = doc.internal.pageSize.getWidth();
+      
+      // Header
+      doc.setFontSize(18);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(67, 97, 238);
+      doc.text('TRISMART STORES', pageWidth/2, 40, { align: 'center' });
+      
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(33, 37, 41);
+      doc.text('Daily Sales & Tax Report', pageWidth/2, 60, { align: 'center' });
+      
+      doc.setFontSize(10);
+      doc.setTextColor(108, 117, 125);
+      const periodLabel = filterMode === 'month' 
+        ? (selectedMonth || 'All Time') 
+        : (selectedYear || 'All Time');
+      const branchDisplay = selectedBranch === 'all' ? 'All Branches' : selectedBranch;
+      doc.text(`Period: ${periodLabel} (${filterMode}) | Branch: ${branchDisplay}`, pageWidth/2, 80, { align: 'center' });
+      doc.text(`Generated: ${new Date().toLocaleDateString('en-GB')}`, pageWidth/2, 92, { align: 'center' });
+      
+      // Calculate totals
+      let totalGross = 0;
+      dailyArray.forEach(d => { totalGross += d.gross; });
+      const totalTax = totalGross * 0.04;
+      const totalNet = totalGross - totalTax;
+      
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Gross Sales: ZMW ${formatNumber(totalGross)}`, 20, 115);
+      doc.text(`Tax (4%): ZMW ${formatNumber(totalTax)}`, 20, 125);
+      doc.text(`Net Sales: ZMW ${formatNumber(totalNet)}`, 20, 135);
+      
+      // Table
+      const headers = ['Date', 'Day', 'Txns', 'Gross', 'Tax (4%)', 'Net'];
+      const colWidths = [110, 40, 50, 80, 80, 80];
+      let y = 160;
+      let x = 20;
+      
+      doc.setFillColor(67, 97, 238);
+      doc.rect(x, y-10, colWidths.reduce((a,b) => a+b, 0), 22, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8);
+      
+      headers.forEach((header, i) => {
+        const align = (i >= 2) ? { align: 'right' } : {};
+        doc.text(header, x + 5, y, align);
+        x += colWidths[i];
+      });
+      
+      y += 20;
+      doc.setTextColor(33, 37, 41);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      
+      dailyArray.forEach(day => {
+        const tax = day.gross * 0.04;
+        const net = day.gross - tax;
+        
+        x = 20;
+        const rowData = [
+          formatDate(day.date),
+          String(getDayOfMonth(day.date)),
+          String(day.count),
+          formatNumber(day.gross),
+          formatNumber(tax),
+          formatNumber(net)
+        ];
+        
+        rowData.forEach((text, i) => {
+          const align = (i >= 2) ? { align: 'right' } : {};
+          doc.text(text.toString(), x + 5, y, align);
+          x += colWidths[i];
+        });
+        
+        y += 18;
+        
+        if (y > 700) {
+          doc.addPage();
+          y = 50;
+          x = 20;
+          doc.setFillColor(67, 97, 238);
+          doc.rect(x, y-10, colWidths.reduce((a,b) => a+b, 0), 22, 'F');
+          doc.setTextColor(255, 255, 255);
+          doc.setFont('helvetica', 'bold');
+          headers.forEach((header, i) => {
+            const align = (i >= 2) ? { align: 'right' } : {};
+            doc.text(header, x + 5, y, align);
+            x += colWidths[i];
+          });
+          y += 20;
+          doc.setTextColor(33, 37, 41);
+          doc.setFont('helvetica', 'normal');
+        }
+      });
+      
+      // Totals row
+      y += 6;
+      doc.setDrawColor(46, 204, 113);
+      doc.setLineWidth(1.5);
+      doc.line(20, y-2, pageWidth-20, y-2);
+      
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9);
+      doc.setTextColor(33, 37, 41);
+      const periodTotalLabel = filterMode === 'month' ? 'MONTH TOTAL' : 'YEAR TOTAL';
+      doc.text(periodTotalLabel, 25, y+6);
+      doc.text(`ZMW ${formatNumber(totalGross)}`, pageWidth - 240, y+6, { align: 'right' });
+      doc.setTextColor(246, 150, 30);
+      doc.text(`ZMW ${formatNumber(totalTax)}`, pageWidth - 160, y+6, { align: 'right' });
+      doc.setTextColor(46, 204, 113);
+      doc.text(`ZMW ${formatNumber(totalNet)}`, pageWidth - 80, y+6, { align: 'right' });
+      
+      y += 20;
+      doc.setDrawColor(67, 97, 238);
+      doc.setLineWidth(0.5);
+      doc.line(20, doc.internal.pageSize.getHeight() - 30, pageWidth - 20, doc.internal.pageSize.getHeight() - 30);
+      doc.setFontSize(8);
+      doc.setTextColor(108, 117, 125);
+      doc.text('Trismart Stores · Daily Sales & Tax Report', 20, doc.internal.pageSize.getHeight() - 15);
+      doc.text(`Page ${doc.internal.getNumberOfPages()}`, pageWidth - 20, doc.internal.pageSize.getHeight() - 15, { align: 'right' });
+      
+      const fileSuffix = filterMode === 'month' ? (monthPicker.value || 'all') : (yearPicker.value || 'all');
+      doc.save(`Trismart_Daily_Sales_Tax_${fileSuffix}.pdf`);
+      toast('PDF generated successfully!', 'success');
+      
+    } catch (error) {
+      console.error('PDF error:', error);
+      toast('Error generating PDF: ' + error.message, 'error');
+    }
+  });
+
+  // ==================== PICKER CHANGE EVENTS ====================
+  monthPicker.addEventListener('change', () => {
+    localStorage.setItem('sales_month_filter', monthPicker.value);
+    applyFilters();
+  });
+
+  yearPicker.addEventListener('change', () => {
+    localStorage.setItem('sales_year_filter', yearPicker.value);
+    applyFilters();
+  });
+
+  // ==================== INITIAL SETUP ====================
+  document.addEventListener('DOMContentLoaded', () => {
+    // Restore filter mode
+    const savedMode = localStorage.getItem('sales_filter_mode') || 'month';
+    setFilterMode(savedMode);
+    setupListener();
+  });
+
+  // ==================== CLEANUP ====================
+  window.addEventListener('beforeunload', () => {
+    if (unsubscribeListener) {
+      unsubscribeListener();
+    }
+  });
+</script>
+</body>
+</html>

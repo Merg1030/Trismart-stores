@@ -1,0 +1,1237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>TriSmart | Profit & Loss</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: #f4f6fb;
+            color: #1a1e2e;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            border: 1px solid #e2e6ef;
+            padding: 28px 30px;
+            box-shadow: 0 1px 6px rgba(67,97,238,0.08);
+        }
+
+        /* ===== HEADER ===== */
+        .company-header {
+            text-align: center;
+            margin-bottom: 24px;
+            border-bottom: 2px solid #e2e6ef;
+            padding-bottom: 16px;
+            position: relative;
+        }
+
+        .company-header h1 {
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            color: #1a1e2e;
+        }
+
+        .company-header h1 span {
+            color: #4361ee;
+        }
+
+        .company-header .sub {
+            font-size: 13px;
+            color: #6b7490;
+            letter-spacing: 3px;
+            font-weight: 500;
+            margin-top: 2px;
+        }
+
+        .toggle-btn {
+            position: absolute;
+            right: 0;
+            top: 0;
+            background: #f1f3f5;
+            border: 1px solid #e2e6ef;
+            border-radius: 8px;
+            padding: 5px 14px;
+            cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            color: #6b7490;
+            transition: 0.15s;
+        }
+
+        .toggle-btn:hover {
+            background: #e2e6ef;
+            color: #1a1e2e;
+        }
+
+        /* ===== VIEW SELECTOR ===== */
+        .view-selector {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+            background: #f8f9ff;
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: 1px solid #e2e6ef;
+        }
+
+        .view-selector label {
+            font-weight: 600;
+            font-size: 12px;
+            color: #6b7490;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .view-selector select {
+            font-family: 'DM Sans', sans-serif;
+            padding: 6px 12px;
+            border: 1px solid #e2e6ef;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            background: white;
+            color: #1a1e2e;
+            cursor: pointer;
+            outline: none;
+            transition: 0.15s;
+        }
+
+        .view-selector select:focus {
+            border-color: #4361ee;
+            box-shadow: 0 0 0 3px rgba(67,97,238,0.12);
+        }
+
+        /* ===== INPUT SECTION ===== */
+        .input-section {
+            margin-bottom: 20px;
+            padding: 16px 18px;
+            border: 1px solid #e2e6ef;
+            border-radius: 12px;
+            background: #f8f9ff;
+            transition: 0.3s;
+        }
+
+        .input-section.hidden {
+            display: none;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex: 1;
+            min-width: 100px;
+        }
+
+        .input-group label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #6b7490;
+        }
+
+        .input-group input {
+            font-family: 'DM Sans', sans-serif;
+            border: 1px solid #e2e6ef;
+            padding: 8px 12px;
+            font-size: 13px;
+            border-radius: 8px;
+            background: white;
+            width: 100%;
+            outline: none;
+            transition: 0.15s;
+            color: #1a1e2e;
+        }
+
+        .input-group input:focus {
+            border-color: #4361ee;
+            box-shadow: 0 0 0 3px rgba(67,97,238,0.12);
+        }
+
+        .input-group input[type="number"] {
+            -moz-appearance: textfield;
+            text-align: right;
+        }
+
+        .input-group input[type="number"]::-webkit-outer-spin-button,
+        .input-group input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+        }
+
+        /* ===== BUTTONS ===== */
+        .btn {
+            font-family: 'DM Sans', sans-serif;
+            padding: 8px 22px;
+            border: none;
+            border-radius: 8px;
+            background: #4361ee;
+            color: white;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 700;
+            transition: 0.15s;
+            height: 38px;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn:hover {
+            background: #3a56d4;
+            transform: translateY(-1px);
+        }
+
+        .btn:active {
+            transform: scale(0.97);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: #f1f3f5;
+            color: #6b7490;
+            border: 1px solid #e2e6ef;
+        }
+
+        .btn-secondary:hover {
+            background: #e2e6ef;
+            color: #1a1e2e;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        /* ===== SECTION TITLES ===== */
+        .section-title {
+            font-weight: 700;
+            font-size: 14px;
+            color: #1a1e2e;
+            margin: 20px 0 10px 0;
+            padding: 6px 0;
+            border-bottom: 2px solid #e2e6ef;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title i {
+            color: #4361ee;
+            font-size: 14px;
+        }
+
+        .section-title:first-of-type {
+            margin-top: 0;
+        }
+
+        /* ===== ENTRY ROWS ===== */
+        .entry-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 4px;
+            padding: 6px 8px;
+            align-items: center;
+            border-radius: 6px;
+            transition: 0.15s;
+        }
+
+        .entry-row:hover {
+            background: #f8f9ff;
+        }
+
+        .entry-row .label {
+            flex: 2.5;
+            font-size: 14px;
+            font-weight: 500;
+            color: #1a1e2e;
+            padding-left: 4px;
+        }
+
+        .entry-row .amount-debit {
+            flex: 1;
+            text-align: right;
+            font-size: 14px;
+            font-weight: 600;
+            color: #ef4444;
+        }
+
+        .entry-row .amount-credit {
+            flex: 1;
+            text-align: right;
+            font-size: 14px;
+            font-weight: 600;
+            color: #10b981;
+        }
+
+        .entry-row .dash {
+            color: #cdd3e0;
+            text-align: center;
+            flex: 1;
+        }
+
+        .menu-wrapper {
+            position: relative;
+            flex: 0.3;
+            text-align: right;
+        }
+
+        .dots-btn {
+            background: none;
+            border: 1px solid transparent;
+            font-size: 16px;
+            cursor: pointer;
+            color: #a0a8c0;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-family: 'DM Sans', sans-serif;
+            line-height: 1;
+            transition: 0.15s;
+        }
+
+        .dots-btn:hover {
+            background: #f1f3f5;
+            border-color: #e2e6ef;
+            color: #1a1e2e;
+        }
+
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 100%;
+            background: white;
+            border: 1px solid #e2e6ef;
+            border-radius: 10px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            min-width: 130px;
+            z-index: 100;
+            padding: 4px 0;
+            overflow: hidden;
+        }
+
+        .dropdown-menu.show {
+            display: block;
+        }
+
+        .dropdown-item {
+            display: block;
+            width: 100%;
+            padding: 8px 16px;
+            border: none;
+            background: none;
+            text-align: left;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            color: #1a1e2e;
+            transition: 0.1s;
+        }
+
+        .dropdown-item:hover {
+            background: #f1f3f5;
+        }
+
+        .dropdown-item.edit {
+            color: #4361ee;
+        }
+
+        .dropdown-item.delete {
+            color: #ef4444;
+            border-top: 1px solid #f0f2f8;
+        }
+
+        .dropdown-item.delete:hover {
+            background: #fef2f2;
+        }
+
+        /* ===== TOTALS ===== */
+        .total-row {
+            display: flex;
+            gap: 12px;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 2px solid #1a1e2e;
+            font-weight: 700;
+            font-size: 15px;
+        }
+
+        .total-row .label {
+            flex: 2.5;
+            color: #1a1e2e;
+        }
+
+        .total-row .amount {
+            flex: 2;
+            text-align: right;
+            font-family: 'DM Mono', monospace;
+        }
+
+        .total-income .amount {
+            color: #10b981;
+        }
+
+        .total-expense .amount {
+            color: #ef4444;
+        }
+
+        /* ===== NET PROFIT ===== */
+        .net-profit-row {
+            display: flex;
+            gap: 12px;
+            margin-top: 18px;
+            padding-top: 16px;
+            border-top: 3px double #4361ee;
+            font-weight: 800;
+            font-size: 18px;
+            background: #f8f9ff;
+            padding: 14px 12px;
+            border-radius: 10px;
+        }
+
+        .net-profit-row .label {
+            flex: 2.5;
+            color: #1a1e2e;
+        }
+
+        .net-profit-row .amount {
+            flex: 2;
+            text-align: right;
+            font-family: 'DM Mono', monospace;
+        }
+
+        .net-profit-row .amount.profit {
+            color: #10b981;
+        }
+
+        .net-profit-row .amount.loss {
+            color: #ef4444;
+        }
+
+        /* ===== EMPTY STATE ===== */
+        .empty-msg {
+            color: #a0a8c0;
+            font-style: italic;
+            padding: 16px 0;
+            text-align: center;
+            font-size: 13px;
+        }
+
+        /* ===== STATUS ===== */
+        .status-msg {
+            text-align: center;
+            font-size: 12px;
+            color: #6b7490;
+            padding: 8px;
+            font-style: italic;
+            border-top: 1px solid #f0f2f8;
+            margin-top: 16px;
+        }
+
+        /* ===== MODAL ===== */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.45);
+            backdrop-filter: blur(3px);
+            z-index: 999;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal-box {
+            background: white;
+            padding: 28px 32px;
+            border-radius: 16px;
+            max-width: 450px;
+            width: 90%;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-box h3 {
+            font-size: 17px;
+            font-weight: 800;
+            margin-bottom: 16px;
+            border-bottom: 1px solid #e2e6ef;
+            padding-bottom: 10px;
+            color: #1a1e2e;
+        }
+
+        .modal-box h3 i {
+            color: #4361ee;
+            margin-right: 6px;
+        }
+
+        .modal-group {
+            margin-bottom: 14px;
+        }
+
+        .modal-group label {
+            display: block;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #6b7490;
+            margin-bottom: 3px;
+        }
+
+        .modal-group input {
+            font-family: 'DM Sans', sans-serif;
+            border: 1px solid #e2e6ef;
+            padding: 8px 12px;
+            font-size: 13px;
+            border-radius: 8px;
+            width: 100%;
+            outline: none;
+            transition: 0.15s;
+        }
+
+        .modal-group input:focus {
+            border-color: #4361ee;
+            box-shadow: 0 0 0 3px rgba(67,97,238,0.12);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 18px;
+            justify-content: flex-end;
+        }
+
+        .modal-actions .btn {
+            padding: 7px 22px;
+            height: auto;
+        }
+
+        /* ===== TOAST ===== */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #1f2937;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+            animation: slideUp 0.3s ease;
+        }
+
+        .toast.success {
+            background: #10b981;
+        }
+
+        .toast.error {
+            background: #ef4444;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 640px) {
+            .container {
+                padding: 16px;
+            }
+
+            .company-header h1 {
+                font-size: 18px;
+            }
+
+            .toggle-btn {
+                position: relative;
+                margin-top: 10px;
+                width: 100%;
+            }
+
+            .entry-row {
+                flex-wrap: wrap;
+                gap: 4px;
+                padding: 6px 4px;
+            }
+
+            .entry-row .label {
+                flex: 1 1 100%;
+            }
+
+            .entry-row .amount-debit,
+            .entry-row .amount-credit,
+            .entry-row .dash {
+                flex: 1 1 40%;
+            }
+
+            .total-row {
+                flex-wrap: wrap;
+            }
+
+            .net-profit-row {
+                flex-wrap: wrap;
+                font-size: 16px;
+            }
+
+            .input-row {
+                flex-direction: column;
+            }
+
+            .input-group {
+                min-width: 100%;
+            }
+
+            .view-selector {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+            }
+
+            .menu-wrapper {
+                flex: 0.5;
+            }
+
+            .modal-box {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+
+        <div class="company-header">
+            <h1>Tri<span>smart</span></h1>
+            <div class="sub">PROFIT &amp; LOSS STATEMENT</div>
+            <button class="toggle-btn" id="toggleFormBtn"><i class="fas fa-chevron-up"></i> Hide Form</button>
+        </div>
+
+        <div class="view-selector">
+            <label for="viewSelect"><i class="fas fa-filter"></i> View:</label>
+            <select id="viewSelect">
+                <option value="monthly">Monthly</option>
+                <option value="yearly">Yearly</option>
+            </select>
+
+            <label for="monthSelect" id="monthLabel" style="margin-left:4px;">Month:</label>
+            <select id="monthSelect">
+                <option value="1">January</option>
+                <option value="2">February</option>
+                <option value="3">March</option>
+                <option value="4">April</option>
+                <option value="5">May</option>
+                <option value="6">June</option>
+                <option value="7">July</option>
+                <option value="8">August</option>
+                <option value="9">September</option>
+                <option value="10">October</option>
+                <option value="11">November</option>
+                <option value="12">December</option>
+            </select>
+
+            <label for="yearSelect" style="margin-left:4px;">Year:</label>
+            <select id="yearSelect">
+                <option value="2024">2024</option>
+                <option value="2025">2025</option>
+                <option value="2026" selected>2026</option>
+            </select>
+        </div>
+
+        <div class="input-section" id="inputSection">
+            <div class="input-row">
+                <div class="input-group" style="flex:2;">
+                    <label><i class="fas fa-tag"></i> Description</label>
+                    <input type="text" id="newDesc" placeholder="e.g., Sales, Rent, Salary..." />
+                </div>
+                <div class="input-group">
+                    <label><i class="fas fa-arrow-up" style="color:#ef4444;"></i> Expense</label>
+                    <input type="number" id="newDebit" placeholder="0.00" step="0.01" min="0" />
+                </div>
+                <div class="input-group">
+                    <label><i class="fas fa-arrow-down" style="color:#10b981;"></i> Income</label>
+                    <input type="number" id="newCredit" placeholder="0.00" step="0.01" min="0" />
+                </div>
+                <div class="input-group" style="flex:0.5; min-width:80px;">
+                    <label>&nbsp;</label>
+                    <button class="btn" id="addBtn"><i class="fas fa-plus"></i> Add</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-title"><i class="fas fa-arrow-down" style="color:#10b981;"></i> INCOME</div>
+        <div id="incomeRows"></div>
+        <div class="total-row total-income">
+            <span class="label">TOTAL INCOME</span>
+            <span class="amount" id="totalIncomeAmount">0.00</span>
+        </div>
+
+        <div class="section-title"><i class="fas fa-arrow-up" style="color:#ef4444;"></i> EXPENSES</div>
+        <div id="expenseRows"></div>
+        <div class="total-row total-expense">
+            <span class="label">TOTAL EXPENSES</span>
+            <span class="amount" id="totalExpenseAmount">0.00</span>
+        </div>
+
+        <div class="net-profit-row">
+            <span class="label" id="netLabel"><i class="fas fa-chart-line"></i> NET PROFIT</span>
+            <span class="amount" id="netProfitAmount">0.00</span>
+        </div>
+
+        <div class="status-msg" id="statusMsg"><i class="fas fa-spinner fa-spin"></i> Loading from Firestore...</div>
+
+    </div>
+
+    <!-- ===== MODAL ===== -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-box">
+            <h3><i class="fas fa-edit"></i> Edit Transaction</h3>
+            <div class="modal-group">
+                <label>Description</label>
+                <input type="text" id="modalDesc" />
+            </div>
+            <div class="modal-group">
+                <label>Expense</label>
+                <input type="number" id="modalDebit" step="0.01" min="0" />
+            </div>
+            <div class="modal-group">
+                <label>Income</label>
+                <input type="number" id="modalCredit" step="0.01" min="0" />
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" id="modalCancel"><i class="fas fa-times"></i> Cancel</button>
+                <button class="btn" id="modalSave"><i class="fas fa-check"></i> Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "firebase/app": "https://www.gstatic.com/firebasejs/11.5.0/firebase-app.js",
+                "firebase/firestore": "https://www.gstatic.com/firebasejs/11.5.0/firebase-firestore.js"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import { initializeApp } from "firebase/app";
+        import {
+            getFirestore,
+            collection,
+            query,
+            orderBy,
+            onSnapshot,
+            addDoc,
+            updateDoc,
+            deleteDoc,
+            doc,
+            serverTimestamp
+        } from "firebase/firestore";
+
+        // ============================================================
+        // FIREBASE CONFIG
+        // ============================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyB-lm7Y3r1F6VvY8PKvY8glLabZDbJsHM1k",
+            authDomain: "trismartstores.firebaseapp.com",
+            projectId: "trismartstores",
+            storageBucket: "trismartstores.appspot.com",
+            messagingSenderId: "416692703333",
+            appId: "1:416692703333:web:d4b60292621435c748f68c",
+            measurementId: "G-NJPQ7L3QWJ"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // ============================================================
+        // STATE
+        // ============================================================
+        let entries = [];
+        let editingId = null;
+        let openMenuId = null;
+        let unsubscribe = null;
+
+        // ============================================================
+        // DOM REFS
+        // ============================================================
+        const incomeRows = document.getElementById('incomeRows');
+        const expenseRows = document.getElementById('expenseRows');
+        const totalIncomeAmount = document.getElementById('totalIncomeAmount');
+        const totalExpenseAmount = document.getElementById('totalExpenseAmount');
+        const netProfitAmount = document.getElementById('netProfitAmount');
+        const netLabel = document.getElementById('netLabel');
+        const statusMsg = document.getElementById('statusMsg');
+
+        const newDesc = document.getElementById('newDesc');
+        const newDebit = document.getElementById('newDebit');
+        const newCredit = document.getElementById('newCredit');
+        const addBtn = document.getElementById('addBtn');
+
+        const viewSelect = document.getElementById('viewSelect');
+        const monthSelect = document.getElementById('monthSelect');
+        const yearSelect = document.getElementById('yearSelect');
+        const monthLabel = document.getElementById('monthLabel');
+
+        const toggleFormBtn = document.getElementById('toggleFormBtn');
+        const inputSection = document.getElementById('inputSection');
+
+        const modalOverlay = document.getElementById('modalOverlay');
+        const modalDesc = document.getElementById('modalDesc');
+        const modalDebit = document.getElementById('modalDebit');
+        const modalCredit = document.getElementById('modalCredit');
+        const modalCancel = document.getElementById('modalCancel');
+        const modalSave = document.getElementById('modalSave');
+
+        // ============================================================
+        // HELPERS
+        // ============================================================
+        function formatNum(n) {
+            return Number(n).toFixed(2);
+        }
+
+        function getFilteredEntries() {
+            const view = viewSelect.value;
+            const year = parseInt(yearSelect.value);
+
+            if (view === 'yearly') {
+                return entries.filter(e => {
+                    if (!e.date) return false;
+                    const parts = e.date.split('-');
+                    if (parts.length !== 3) return false;
+                    return parseInt(parts[0]) === year;
+                });
+            } else {
+                const month = parseInt(monthSelect.value);
+                return entries.filter(e => {
+                    if (!e.date) return false;
+                    const parts = e.date.split('-');
+                    if (parts.length !== 3) return false;
+                    const entryMonth = parseInt(parts[1]);
+                    const entryYear = parseInt(parts[0]);
+                    return entryMonth === month && entryYear === year;
+                });
+            }
+        }
+
+        function closeAllMenus() {
+            document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('show'));
+            openMenuId = null;
+        }
+
+        function showToast(message, type = 'success') {
+            const existing = document.querySelector('.toast');
+            if (existing) existing.remove();
+
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i> ${message}`;
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        // ============================================================
+        // RENDER
+        // ============================================================
+        function render() {
+            const filtered = getFilteredEntries();
+
+            const income = filtered.filter(e => e.credit > 0 || (e.debit === 0 && e.credit === 0));
+            const expenses = filtered.filter(e => e.debit > 0);
+
+            if (income.length === 0) {
+                incomeRows.innerHTML = `<div class="empty-msg"><i class="fas fa-inbox"></i> No income entries</div>`;
+            } else {
+                let html = '';
+                income.forEach((e) => {
+                    html += `
+                        <div class="entry-row" data-id="${e.id}">
+                            <span class="label">${e.desc || 'Untitled'}</span>
+                            <span class="dash">—</span>
+                            <span class="amount-credit">${formatNum(e.credit)}</span>
+                            <div class="menu-wrapper">
+                                <button class="dots-btn" data-id="${e.id}"><i class="fas fa-ellipsis-v"></i></button>
+                                <div class="dropdown-menu" data-id="${e.id}">
+                                    <button class="dropdown-item edit" data-id="${e.id}"><i class="fas fa-edit"></i> Edit</button>
+                                    <button class="dropdown-item delete" data-id="${e.id}"><i class="fas fa-trash"></i> Delete</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                incomeRows.innerHTML = html;
+            }
+
+            if (expenses.length === 0) {
+                expenseRows.innerHTML = `<div class="empty-msg"><i class="fas fa-inbox"></i> No expense entries</div>`;
+            } else {
+                let html = '';
+                expenses.forEach((e) => {
+                    html += `
+                        <div class="entry-row" data-id="${e.id}">
+                            <span class="label">${e.desc || 'Untitled'}</span>
+                            <span class="amount-debit">${formatNum(e.debit)}</span>
+                            <span class="dash">—</span>
+                            <div class="menu-wrapper">
+                                <button class="dots-btn" data-id="${e.id}"><i class="fas fa-ellipsis-v"></i></button>
+                                <div class="dropdown-menu" data-id="${e.id}">
+                                    <button class="dropdown-item edit" data-id="${e.id}"><i class="fas fa-edit"></i> Edit</button>
+                                    <button class="dropdown-item delete" data-id="${e.id}"><i class="fas fa-trash"></i> Delete</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                expenseRows.innerHTML = html;
+            }
+
+            let totalIncome = 0,
+                totalExpense = 0;
+            filtered.forEach(e => {
+                totalIncome += e.credit || 0;
+                totalExpense += e.debit || 0;
+            });
+
+            totalIncomeAmount.textContent = formatNum(totalIncome);
+            totalExpenseAmount.textContent = formatNum(totalExpense);
+
+            const net = totalIncome - totalExpense;
+            const netEl = netProfitAmount;
+            netEl.textContent = formatNum(net);
+            netEl.className = 'amount';
+
+            if (net > 0.005) {
+                netEl.classList.add('profit');
+                netLabel.innerHTML = `<i class="fas fa-chart-line" style="color:#10b981;"></i> NET PROFIT`;
+            } else if (net < -0.005) {
+                netEl.classList.add('loss');
+                netLabel.innerHTML = `<i class="fas fa-chart-line" style="color:#ef4444;"></i> NET LOSS`;
+            } else {
+                netLabel.innerHTML = `<i class="fas fa-chart-line"></i> NET PROFIT / LOSS`;
+            }
+
+            // Event listeners for dropdowns
+            document.querySelectorAll('.dots-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const id = this.dataset.id;
+                    const menu = document.querySelector(`.dropdown-menu[data-id="${id}"]`);
+                    closeAllMenus();
+                    if (menu) {
+                        menu.classList.toggle('show');
+                        if (menu.classList.contains('show')) {
+                            openMenuId = id;
+                        }
+                    }
+                });
+            });
+
+            document.querySelectorAll('.dropdown-item.edit').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const id = this.dataset.id;
+                    openEditModal(id);
+                    closeAllMenus();
+                });
+            });
+
+            document.querySelectorAll('.dropdown-item.delete').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const id = this.dataset.id;
+                    if (confirm('Delete this transaction?')) {
+                        deleteEntry(id);
+                        closeAllMenus();
+                    }
+                });
+            });
+
+            document.addEventListener('click', function() {
+                closeAllMenus();
+            });
+
+            statusMsg.innerHTML = `<i class="fas fa-check-circle" style="color:#10b981;"></i> ${filtered.length} transactions loaded`;
+        }
+
+        // ============================================================
+        // FIRESTORE OPERATIONS
+        // ============================================================
+
+        async function addEntry() {
+            const desc = newDesc.value.trim() || 'Untitled';
+            const debit = parseFloat(newDebit.value) || 0;
+            const credit = parseFloat(newCredit.value) || 0;
+
+            if (debit === 0 && credit === 0) {
+                showToast('Please enter either an expense or income amount.', 'error');
+                return;
+            }
+
+            const month = parseInt(monthSelect.value);
+            const year = parseInt(yearSelect.value);
+            const dateStr = year + '-' + String(month).padStart(2, '0') + '-01';
+
+            try {
+                addBtn.disabled = true;
+                addBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+                await addDoc(collection(db, 'transactions'), {
+                    date: dateStr,
+                    desc: desc,
+                    debit: debit,
+                    credit: credit,
+                    createdAt: serverTimestamp()
+                });
+
+                newDesc.value = '';
+                newDebit.value = '';
+                newCredit.value = '';
+                newDesc.focus();
+
+                showToast('✅ Transaction added successfully!');
+            } catch (error) {
+                console.error('Error adding:', error);
+                showToast('❌ Error: ' + error.message, 'error');
+            } finally {
+                addBtn.disabled = false;
+                addBtn.innerHTML = '<i class="fas fa-plus"></i> Add';
+            }
+        }
+
+        async function deleteEntry(id) {
+            try {
+                await deleteDoc(doc(db, 'transactions', id));
+                showToast('✅ Transaction deleted');
+            } catch (error) {
+                console.error('Error deleting:', error);
+                showToast('❌ Error deleting: ' + error.message, 'error');
+            }
+        }
+
+        async function updateEntry(id, desc, debit, credit) {
+            try {
+                await updateDoc(doc(db, 'transactions', id), {
+                    desc: desc,
+                    debit: debit,
+                    credit: credit
+                });
+                showToast('✅ Transaction updated');
+            } catch (error) {
+                console.error('Error updating:', error);
+                showToast('❌ Error updating: ' + error.message, 'error');
+            }
+        }
+
+        // ============================================================
+        // LISTEN TO FIRESTORE
+        // ============================================================
+        function listenToTransactions() {
+            if (unsubscribe) {
+                unsubscribe();
+                unsubscribe = null;
+            }
+
+            statusMsg.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading from Firestore...';
+
+            const q = query(
+                collection(db, 'transactions'),
+                orderBy('createdAt', 'desc')
+            );
+
+            unsubscribe = onSnapshot(q, (snapshot) => {
+                entries = [];
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    entries.push({
+                        id: doc.id,
+                        date: data.date || '',
+                        desc: data.desc || 'Untitled',
+                        debit: data.debit || 0,
+                        credit: data.credit || 0
+                    });
+                });
+                render();
+                console.log('📊 Loaded', entries.length, 'transactions from Firestore');
+            }, (error) => {
+                console.error('Firestore error:', error);
+                statusMsg.innerHTML = `<i class="fas fa-exclamation-circle" style="color:#ef4444;"></i> Error: ${error.message}`;
+                showToast('❌ Error loading data: ' + error.message, 'error');
+            });
+        }
+
+        // ============================================================
+        // EDIT MODAL
+        // ============================================================
+        function openEditModal(id) {
+            const entry = entries.find(e => e.id === id);
+            if (!entry) return;
+
+            editingId = id;
+            modalDesc.value = entry.desc || '';
+            modalDebit.value = entry.debit || '';
+            modalCredit.value = entry.credit || '';
+            modalOverlay.classList.add('show');
+        }
+
+        function closeModal() {
+            modalOverlay.classList.remove('show');
+            editingId = null;
+        }
+
+        async function saveEdit() {
+            if (editingId === null) return;
+
+            const desc = modalDesc.value.trim() || 'Untitled';
+            const debit = parseFloat(modalDebit.value) || 0;
+            const credit = parseFloat(modalCredit.value) || 0;
+
+            if (debit === 0 && credit === 0) {
+                showToast('Please enter either an expense or income amount.', 'error');
+                return;
+            }
+
+            modalSave.disabled = true;
+            modalSave.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+            await updateEntry(editingId, desc, debit, credit);
+
+            modalSave.disabled = false;
+            modalSave.innerHTML = '<i class="fas fa-check"></i> Save Changes';
+            closeModal();
+        }
+
+        // ============================================================
+        // VIEW TOGGLE
+        // ============================================================
+        function toggleView() {
+            const view = viewSelect.value;
+            if (view === 'yearly') {
+                monthSelect.style.display = 'none';
+                monthLabel.style.display = 'none';
+            } else {
+                monthSelect.style.display = 'inline-block';
+                monthLabel.style.display = 'inline-block';
+            }
+            render();
+        }
+
+        // ============================================================
+        // EVENTS
+        // ============================================================
+        addBtn.addEventListener('click', addEntry);
+
+        [newDesc, newDebit, newCredit].forEach(field => {
+            field.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addEntry();
+                }
+            });
+        });
+
+        viewSelect.addEventListener('change', toggleView);
+        monthSelect.addEventListener('change', render);
+        yearSelect.addEventListener('change', render);
+
+        toggleFormBtn.addEventListener('click', function() {
+            inputSection.classList.toggle('hidden');
+            this.innerHTML = inputSection.classList.contains('hidden') ?
+                '<i class="fas fa-chevron-down"></i> Show Form' :
+                '<i class="fas fa-chevron-up"></i> Hide Form';
+        });
+
+        modalCancel.addEventListener('click', closeModal);
+        modalSave.addEventListener('click', saveEdit);
+
+        modalOverlay.addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+
+        [modalDesc, modalDebit, modalCredit].forEach(field => {
+            field.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    saveEdit();
+                }
+                if (e.key === 'Escape') {
+                    closeModal();
+                }
+            });
+        });
+
+        // ============================================================
+        // INIT
+        // ============================================================
+        const now = new Date();
+        monthSelect.value = now.getMonth() + 1;
+        yearSelect.value = now.getFullYear();
+
+        listenToTransactions();
+
+        console.log('✅ P&L Tracker connected to Firestore');
+        console.log('📁 Collection: transactions');
+    </script>
+
+</body>
+</html>

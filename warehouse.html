@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>TriSmart · Inventory Manager</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'DM Sans',sans-serif; background:#f4f6fb; color:#1a1e2e; min-height:100vh; font-size:13px; }
+        .topbar { position:fixed; top:0; left:0; right:0; height:52px; background:rgba(255,255,255,0.95); backdrop-filter:blur(14px); border-bottom:1px solid #e2e6ef; display:flex; align-items:center; justify-content:space-between; padding:0 10px; z-index:1100; }
+        .topbar-left { display:flex; align-items:center; gap:8px; }
+        .menu-btn { width:32px; height:32px; background:#f1f3f5; border:1px solid #cdd3e0; border-radius:8px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+        .logo-mark { width:28px; height:28px; background:linear-gradient(135deg,#4361ee,#00b4d8); border-radius:8px; display:flex; align-items:center; justify-content:center; color:white; }
+        .logo-text { font-weight:800; font-size:0.85rem; } .logo-text span { color:#4361ee; }
+        .branch-badge { background:linear-gradient(135deg,#10b981,#059669); color:white; padding:2px 7px; border-radius:100px; font-size:0.55rem; font-weight:800; }
+        .time-badge { background:#f1f3f5; border:1px solid #cdd3e0; border-radius:100px; padding:3px 9px; font-family:monospace; font-size:0.6rem; }
+        .sidebar { position:fixed; top:52px; left:0; width:220px; height:calc(100vh - 52px); background:rgba(255,255,255,0.98); border-right:1px solid #e2e6ef; padding:10px 8px; z-index:1000; transition:transform 0.28s ease; overflow-y:auto; display:flex; flex-direction:column; }
+        .sidebar.hidden { transform:translateX(-100%); }
+        .sb-label { font-size:0.55rem; font-weight:700; color:#a0a8c0; text-transform:uppercase; padding:0 8px; margin:10px 0 4px; }
+        .sidebar a { display:flex; align-items:center; gap:8px; padding:8px 10px; color:#6b7490; text-decoration:none; font-size:0.76rem; font-weight:500; border-radius:10px; margin-bottom:2px; }
+        .sidebar a:hover { background:rgba(67,97,238,0.08); color:#4361ee; }
+        .sidebar a.active { background:rgba(67,97,238,0.12); color:#4361ee; font-weight:700; }
+        .logout-link { margin-top:auto; display:flex; align-items:center; gap:8px; padding:8px 10px; color:#ef4444; font-size:0.76rem; font-weight:700; border-radius:10px; border:1px solid rgba(239,68,68,0.15); background:rgba(239,68,68,0.04); cursor:pointer; }
+        .logout-link:hover { background:rgba(239,68,68,0.1); }
+        .sb-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:999; backdrop-filter:blur(3px); }
+        .sb-overlay.show { display:block; }
+        main { margin-top:52px; margin-left:220px; padding:12px 10px 28px; transition:margin-left 0.28s ease; }
+        .stats-row { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:12px; }
+        .stat-card { background:white; border:1px solid #e2e6ef; border-radius:16px; padding:12px 10px; }
+        .stat-label { font-size:0.58rem; font-weight:700; color:#6b7490; text-transform:uppercase; margin-bottom:3px; }
+        .stat-value { font-size:1.2rem; font-weight:800; color:#4361ee; font-family:monospace; }
+        .content-bar { background:white; border:1px solid #e2e6ef; border-radius:16px; padding:10px 12px; display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px; }
+        .inv-value-pill { font-family:monospace; font-weight:800; color:#10b981; font-size:0.85rem; }
+        .action-flex { display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
+        .search-wrap { flex:1; position:relative; min-width:140px; }
+        .search-wrap input { width:100%; padding:7px 7px 7px 26px; border:1px solid #e2e6ef; border-radius:10px; background:#f1f3f5; font-size:0.72rem; outline:none; }
+        .search-icon { position:absolute; left:8px; top:50%; transform:translateY(-50%); font-size:0.65rem; color:#a0a8c0; }
+        .btn { display:inline-flex; align-items:center; gap:5px; padding:6px 12px; border-radius:10px; font-weight:700; font-size:0.7rem; cursor:pointer; border:none; background:#f1f3f5; border:1px solid #e2e6ef; }
+        .btn-primary { background:#4361ee; color:white; border:none; }
+        .btn-danger { background:#ef4444; color:white; border:none; }
+        .btn-success { background:#10b981; color:white; border:none; }
+        .btn-warning { background:#f59e0b; color:white; border:none; }
+        .btn-sm { padding:4px 10px; background:#f1f3f5; border:1px solid #e2e6ef; }
+        .btn-group { display:flex; gap:4px; flex-wrap:wrap; }
+        .filter-btn { padding:4px 12px; border-radius:8px; font-weight:600; font-size:0.65rem; cursor:pointer; border:1px solid #e2e6ef; background:#f1f3f5; color:#6b7490; }
+        .filter-btn.active { background:#4361ee; color:white; border-color:#4361ee; }
+        .table-card { background:white; border-radius:16px; border:1px solid #e2e6ef; overflow:hidden; }
+        .table-scroll { overflow-x:auto; }
+        table { width:100%; border-collapse:collapse; min-width:650px; font-size:0.75rem; }
+        th { text-align:left; padding:10px 12px; background:#f8f9fc; font-size:0.55rem; text-transform:uppercase; color:#6b7490; border-bottom:2px solid #e2e6ef; font-weight:700; letter-spacing:0.5px; }
+        td { padding:9px 12px; border-bottom:1px solid #f0f2f8; vertical-align:middle; }
+        tr:last-child td { border-bottom:none; }
+        tr.inactive-row { opacity:0.5; background:#f9fafb; }
+        tr.inactive-row td { text-decoration:line-through; }
+        .code-chip { font-family:'DM Mono',monospace; background:#eef2ff; padding:2px 7px; border-radius:20px; font-size:0.6rem; font-weight:700; color:#4361ee; }
+        .stock-chip { padding:2px 8px; border-radius:40px; font-weight:800; display:inline-block; font-size:0.62rem; }
+        .status-badge { padding:2px 8px; border-radius:40px; font-weight:700; display:inline-block; font-size:0.55rem; text-transform:uppercase; }
+        .status-active { background:#d1fae5; color:#065f46; }
+        .status-inactive { background:#fee2e2; color:#991b1b; }
+        .empty-row td { text-align:center; padding:28px; color:#6b7490; }
+        .dots-wrap { position:relative; display:inline-block; }
+        .dots-btn { background:none; border:1px solid #cdd3e0; border-radius:7px; width:26px; height:26px; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; gap:2px; }
+        .dots-btn .dot { width:3px; height:3px; background:#6b7490; border-radius:50%; }
+        .dots-menu { position:absolute; right:0; top:calc(100% + 4px); background:white; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,0.13); min-width:160px; display:none; z-index:400; border:1px solid #e2e6ef; overflow:hidden; }
+        .dots-menu.open { display:block; }
+        .dots-item { display:flex; align-items:center; gap:8px; width:100%; padding:9px 13px; background:none; border:none; cursor:pointer; font-weight:600; font-size:0.7rem; }
+        .dots-item:hover { background:#f1f3f5; }
+        .dots-item.edit { color:#4361ee; }
+        .dots-item.delete { color:#ef4444; border-top:1px solid #e2e6ef; }
+        .dots-item.transfer { color:#0f6b3a; border-bottom:1px solid #eef2f0; background:rgba(16,185,129,0.05); }
+        .dots-item.toggle { color:#f59e0b; border-bottom:1px solid #eef2f0; }
+        .dots-item.toggle.disabled { color:#a0a8c0; cursor:not-allowed; opacity:0.6; }
+        .modal-bg { position:fixed; inset:0; background:rgba(0,0,0,0.45); display:flex; align-items:center; justify-content:center; z-index:2000; padding:12px; backdrop-filter:blur(3px); }
+        .modal-box { background:white; border-radius:18px; padding:18px; width:100%; max-width:400px; max-height:90vh; overflow-y:auto; }
+        .modal-box h3 { font-size:0.88rem; font-weight:800; margin-bottom:14px; }
+        .field-group { margin-bottom:10px; }
+        .field-group label { font-size:0.55rem; text-transform:uppercase; font-weight:800; display:block; margin-bottom:3px; color:#6b7490; }
+        .field-group input, .field-group select { width:100%; padding:7px 8px; border-radius:10px; border:1px solid #e2e6ef; font-size:0.72rem; background:#f1f3f5; outline:none; }
+        .form-actions { display:flex; gap:8px; margin-top:14px; }
+        .form-actions .btn { flex:1; justify-content:center; }
+        .toast-wrap { position:fixed; bottom:14px; right:10px; z-index:9999; display:flex; flex-direction:column; gap:5px; }
+        .toast { background:#1f2937; color:white; padding:7px 13px; border-radius:30px; font-size:0.67rem; font-weight:600; display:flex; align-items:center; gap:6px; box-shadow:0 4px 16px rgba(0,0,0,0.2); }
+        .toast.error { background:#ef4444; }
+        .toast.success { background:#10b981; }
+        .toast.warning { background:#f59e0b; }
+        .pw-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.55); display:flex; align-items:center; justify-content:center; z-index:3000; backdrop-filter:blur(6px); }
+        .pw-box { background:white; border-radius:20px; padding:24px; width:calc(100% - 32px); max-width:320px; text-align:center; }
+        .pw-box .lock-icon { font-size:2rem; margin-bottom:10px; color:#4361ee; }
+        .pw-box h3 { font-size:0.95rem; font-weight:800; margin-bottom:4px; }
+        .pw-box p { font-size:0.68rem; color:#6b7490; margin-bottom:14px; }
+        .pw-box input { width:100%; padding:9px; border:1px solid #e2e6ef; border-radius:10px; text-align:center; font-size:0.85rem; letter-spacing:0.2em; margin-bottom:10px; outline:none; font-family:monospace; }
+        .pw-box input:focus { border-color:#4361ee; }
+        .pw-error { color:#ef4444; font-size:0.65rem; margin-top:-6px; margin-bottom:8px; display:none; }
+        .category-badge { background:#eef2ff; padding:1px 8px; border-radius:12px; font-size:0.6rem; font-weight:600; color:#4361ee; }
+        .filter-section { display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+        .table-index { color:#6b7490; font-weight:600; font-size:0.65rem; }
+        @media (max-width:640px) { .sidebar { transform:translateX(-100%); } .sidebar.visible { transform:translateX(0) !important; } main { margin-left:0 !important; } }
+    </style>
+</head>
+<body>
+
+<header class="topbar">
+    <div class="topbar-left">
+        <div class="menu-btn" id="menuBtn"><i class="fas fa-bars"></i></div>
+        <div class="logo-mark"><i class="fas fa-warehouse"></i></div>
+        <div class="logo-text">Tri<span>smart</span></div>
+        <div class="branch-badge" id="branchBadge">BRANCH</div>
+    </div>
+    <div class="time-badge" id="timeBadge">--:--</div>
+</header>
+
+<nav class="sidebar" id="sidebar">
+    <div class="sb-label">Main</div>
+    <a href="Airtel.html"><i class="fas fa-mobile-alt"></i> Airtel Money</a>
+    <a href="warehouse.html" class="active"><i class="fas fa-warehouse"></i> Warehouse</a>
+    <a href="sale.html"><i class="fas fa-chart-line"></i> Sales</a>
+    <div class="sb-label">Tools</div>
+    <a href="Todo.html"><i class="fas fa-tasks"></i> To-Do</a>
+    <a href="lowstock.html"><i class="fas fa-exclamation-triangle"></i> Low Stock</a>
+    <a href="Report.html"><i class="fas fa-file-alt"></i> Daily Report</a>
+    <div class="logout-link" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Sign out</div>
+</nav>
+<div class="sb-overlay" id="sbOverlay"></div>
+
+<main id="mainContent">
+    <div class="stats-row" id="statsRow" style="display:none">
+        <div class="stat-card"><div class="stat-label">Products</div><div class="stat-value" id="statItems">0</div></div>
+        <div class="stat-card"><div class="stat-label">Total Stock</div><div class="stat-value" id="statStock">0</div></div>
+        <div class="stat-card"><div class="stat-label">Inv. Value</div><div class="stat-value" id="statValue">K0</div></div>
+    </div>
+
+    <div class="content-bar">
+        <div><i class="fas fa-archive" style="color:#4361ee"></i> <span id="branchNameDisplay">Warehouse</span></div>
+        <div class="filter-section">
+            <button class="filter-btn active" data-filter="active" id="filterActive">Active</button>
+            <button class="filter-btn" data-filter="inactive" id="filterInactive">Inactive</button>
+            <button class="filter-btn" data-filter="all" id="filterAll">All</button>
+        </div>
+        <div class="inv-value-pill" id="totalStockPill">K0.00</div>
+    </div>
+
+    <div class="action-flex">
+        <div class="search-wrap">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" id="searchInput" placeholder="Search by code, name, category...">
+        </div>
+        <button class="btn btn-primary" id="addProductBtn"><i class="fas fa-plus-circle"></i> Add Product</button>
+    </div>
+
+    <div class="table-card">
+        <div class="table-scroll">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:40px;">#</th>
+                        <th>Product ID</th>
+                        <th>Product Name</th>
+                        <th>Category</th>
+                        <th>Price</th>
+                        <th>Stock</th>
+                        <th>Status</th>
+                        <th id="actionsTh" style="display:none; width:60px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="inventoryTbody">
+                    <tr class="empty-row"><td colspan="8">Loading inventory...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+
+<div class="toast-wrap" id="toastContainer"></div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-app.js";
+    import { getFirestore, collection, query, where, updateDoc, deleteDoc, addDoc, doc, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyB-lm7Y3r1F6VvY8PKvY8glLabZDbJsHM1k",
+        authDomain: "trismartstores.firebaseapp.com",
+        projectId: "trismartstores",
+        storageBucket: "trismartstores.appspot.com",
+        messagingSenderId: "416692703333",
+        appId: "1:416692703333:web:d4b60292621435c748f68c"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // --- Categories with codes ---
+    const CATEGORIES = [
+        { name: 'Cables', code: 'CBL' },
+        { name: 'Screen Protector', code: 'SPR' },
+        { name: 'Ear Sets', code: 'EAR' },
+        { name: 'Chargers', code: 'CHG' },
+        { name: 'Pouches', code: 'PCH' },
+        { name: 'Phones', code: 'PHN' },
+        { name: 'General', code: 'GEN' }
+    ];
+
+    let branchId = localStorage.getItem('branchId');
+    const loggedInUserRaw = (localStorage.getItem('loggedInUser') || localStorage.getItem('userName') || '').toLowerCase().trim();
+    const loggedInUser = loggedInUserRaw;
+    
+    const branchMap = {
+        'kabanana': { id: 'kabanana', name: 'Kabanana Branch', display: '🏪 KABANANA' },
+        'makeni': { id: 'makeni', name: 'Makeni Branch', display: '🏪 MAKENI' }
+    };
+    
+    if (!branchId) { alert("Missing branch."); window.location.href = "dashboard.html"; }
+    if (!branchMap[branchId]) { localStorage.setItem('branchId','kabanana'); branchId = 'kabanana'; }
+    
+    const currentBranch = branchMap[branchId];
+    document.getElementById('branchNameDisplay').innerText = currentBranch.name;
+    document.getElementById('branchBadge').innerHTML = `<i class="fas fa-store"></i> ${currentBranch.display}`;
+    
+    const isAdmin = loggedInUser === 'chris';
+    const canEdit = isAdmin || loggedInUser === 'warehouseman';
+    
+    if (isAdmin) { document.getElementById('statsRow').style.display = 'grid'; }
+    if (canEdit) { document.getElementById('actionsTh').style.display = 'table-cell'; }
+
+    let editUnlocked = false;
+    const EDIT_PASSWORD = 'Abc12345';
+    let currentFilter = 'active';
+    
+    function showToast(msg, type = 'success') {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.innerHTML = `<i class="fas ${type === 'error' ? 'fa-exclamation-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-check-circle'}"></i> ${msg}`;
+        container.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+    
+    function promptPassword(callback) {
+        const overlay = document.createElement('div');
+        overlay.className = 'pw-overlay';
+        overlay.innerHTML = `
+            <div class="pw-box">
+                <div class="lock-icon"><i class="fas fa-lock"></i></div>
+                <h3>Authentication Required</h3>
+                <p>Enter password to edit, delete or transfer items</p>
+                <input type="password" id="pwInput" placeholder="••••••••" autocomplete="off">
+                <div class="pw-error" id="pwError">Incorrect password</div>
+                <button class="btn btn-primary" id="unlockBtn" style="width:100%;justify-content:center;margin-top:10px"><i class="fas fa-unlock-alt"></i> Unlock</button>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+        const input = overlay.querySelector('#pwInput');
+        const errorDiv = overlay.querySelector('#pwError');
+        const unlockBtn = overlay.querySelector('#unlockBtn');
+        errorDiv.style.display = 'none';
+        input.focus();
+        const verify = () => {
+            if (input.value === EDIT_PASSWORD) {
+                editUnlocked = true;
+                overlay.remove();
+                showToast("✓ Edit mode unlocked!", "success");
+                if (callback) callback();
+            } else {
+                errorDiv.style.display = 'block';
+                input.value = '';
+                input.focus();
+            }
+        };
+        unlockBtn.onclick = verify;
+        input.addEventListener('keypress', (e) => { if (e.key === 'Enter') verify(); });
+        overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+    }
+    
+    function withAuth(action) {
+        if (editUnlocked) { action(); } else { promptPassword(action); }
+    }
+
+    // --- Generate code with category letters ---
+    async function generateProductCode(categoryName) {
+        try {
+            const cat = CATEGORIES.find(c => c.name === categoryName);
+            const prefix = cat ? cat.code : 'GEN';
+            
+            const q = query(collection(db, 'inventory'), where('branchId', '==', branchId));
+            const snap = await getDocs(q);
+            let maxNum = 0;
+            snap.forEach(doc => {
+                const code = doc.data().code || '';
+                if (code.startsWith(prefix)) {
+                    const num = parseInt(code.replace(prefix, ''), 10);
+                    if (!isNaN(num) && num > maxNum) maxNum = num;
+                }
+            });
+            return `${prefix}${String(maxNum + 1).padStart(3, '0')}`;
+        } catch (e) {
+            const cat = CATEGORIES.find(c => c.name === categoryName);
+            const prefix = cat ? cat.code : 'GEN';
+            return `${prefix}${Date.now().toString().slice(-3)}`;
+        }
+    }
+
+    // --- ADD PRODUCT ---
+    async function openAddProductModal() {
+        withAuth(async () => {
+            const modal = document.createElement('div');
+            modal.className = 'modal-bg';
+            modal.innerHTML = `
+                <div class="modal-box">
+                    <h3><i class="fas fa-plus-circle" style="color:#4361ee"></i> Add Product</h3>
+                    <form id="addProductForm">
+                        <div class="field-group"><label>Category *</label>
+                            <select name="category" id="categorySelect" required>
+                                <option value="">-- select --</option>
+                                ${CATEGORIES.map(c => `<option value="${c.name}">${c.name}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="field-group"><label>Product Code (auto)</label><input type="text" name="code" id="codeInput" readonly style="background:#eef2ff;color:#1a1e2e;"></div>
+                        <div class="field-group"><label>Product Name *</label><input type="text" name="name" placeholder="e.g. USB-C Cable" required></div>
+                        <div class="field-group"><label>Price (K) *</label><input type="number" name="price" step="0.01" placeholder="0.00" required></div>
+                        <div class="field-group"><label>Stock Quantity *</label><input type="number" name="stock" placeholder="0" required min="0"></div>
+                        <div class="field-group"><label>Status</label>
+                            <select name="status">
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">Add Product</button>
+                            <button type="button" class="btn btn-sm" id="cancelAddBtn">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            
+            const form = modal.querySelector('#addProductForm');
+            const categorySelect = modal.querySelector('#categorySelect');
+            const codeInput = modal.querySelector('#codeInput');
+            
+            // Generate code when category changes
+            categorySelect.addEventListener('change', async () => {
+                const category = categorySelect.value;
+                if (category) {
+                    const code = await generateProductCode(category);
+                    codeInput.value = code;
+                } else {
+                    codeInput.value = '';
+                }
+            });
+            
+            // Generate initial code if category pre-selected
+            if (categorySelect.value) {
+                const code = await generateProductCode(categorySelect.value);
+                codeInput.value = code;
+            }
+            
+            form.onsubmit = async (e) => {
+                e.preventDefault();
+                const code = form.code.value.trim().toUpperCase();
+                const name = form.name.value.trim();
+                const category = form.category.value;
+                const price = parseFloat(form.price.value);
+                const stock = parseInt(form.stock.value);
+                const status = form.status.value;
+
+                if (!code || !name || !category || isNaN(price) || price < 0 || isNaN(stock) || stock < 0) {
+                    showToast("Please fill all required fields correctly", "error");
+                    return;
+                }
+                
+                // Check duplicate code
+                try {
+                    const q = query(collection(db, 'inventory'), where('branchId', '==', branchId), where('code', '==', code));
+                    const snap = await getDocs(q);
+                    if (!snap.empty) {
+                        showToast(`Code ${code} already exists`, "error");
+                        return;
+                    }
+                } catch (err) {
+                    showToast(`Error checking code: ${err.message}`, "error");
+                    return;
+                }
+                
+                const submitBtn = form.querySelector('button[type="submit"]');
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding...';
+                
+                try {
+                    await addDoc(collection(db, 'inventory'), {
+                        code, name, category, price, stock, status: status || 'active',
+                        branchId: branchId,
+                        createdAt: new Date().toISOString()
+                    });
+                    modal.remove();
+                    showToast(`✅ ${code} added successfully!`, "success");
+                } catch (err) {
+                    console.error('Add product error:', err);
+                    showToast(`Add failed: ${err.message}`, "error");
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = 'Add Product';
+                }
+            };
+            modal.querySelector('#cancelAddBtn').onclick = () => modal.remove();
+            modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+        });
+    }
+
+    // --- Toggle Status - Cannot deactivate if stock > 0 ---
+    window.toggleStatus = function(itemId) {
+        withAuth(async () => {
+            const item = inventory.find(i => i.id === itemId);
+            if (!item) return showToast("Item not found", "error");
+            
+            // Check if trying to deactivate with stock
+            if (item.status === 'active' && item.stock > 0) {
+                showToast(`❌ Cannot deactivate ${item.code} - has ${item.stock} items in stock`, "warning");
+                return;
+            }
+            
+            const newStatus = item.status === 'active' ? 'inactive' : 'active';
+            const action = newStatus === 'active' ? 'reactivate' : 'deactivate';
+            
+            const confirmModal = document.createElement('div');
+            confirmModal.className = 'modal-bg';
+            confirmModal.innerHTML = `
+                <div class="modal-box">
+                    <h3 style="color:#f59e0b;"><i class="fas fa-toggle-on"></i> ${newStatus === 'active' ? 'Reactivate' : 'Deactivate'} Product</h3>
+                    <p style="margin:15px 0;">${newStatus === 'active' ? 'Reactivate' : 'Deactivate'} <strong>${escapeHtml(item.name)}</strong> (${escapeHtml(item.code)})?</p>
+                    <p style="font-size:0.65rem;color:#6b7490;margin-bottom:10px;">
+                        ${newStatus === 'active' ? 'Product will appear in active listings.' : 'Product will be hidden but can be reactivated later.'}
+                    </p>
+                    <div class="form-actions">
+                        <button id="confirmToggle" class="btn ${newStatus === 'active' ? 'btn-success' : 'btn-warning'}">${newStatus === 'active' ? 'Reactivate' : 'Deactivate'}</button>
+                        <button id="cancelToggle" class="btn btn-sm">Cancel</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(confirmModal);
+            
+            const confirmBtn = confirmModal.querySelector('#confirmToggle');
+            confirmBtn.onclick = async () => {
+                confirmBtn.disabled = true;
+                confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                try {
+                    await updateDoc(doc(db, 'inventory', item.id), { status: newStatus });
+                    confirmModal.remove();
+                    showToast(`✅ ${item.code} ${newStatus === 'active' ? 'reactivated' : 'deactivated'}!`, "success");
+                } catch (err) {
+                    console.error('Toggle status error:', err);
+                    showToast(`Failed: ${err.message}`, "error");
+                    confirmBtn.disabled = false;
+                    confirmBtn.innerHTML = newStatus === 'active' ? 'Reactivate' : 'Deactivate';
+                }
+            };
+            confirmModal.querySelector('#cancelToggle').onclick = () => confirmModal.remove();
+            confirmModal.onclick = (e) => { if (e.target === confirmModal) confirmModal.remove(); };
+        });
+    };
+
+    // --- TRANSFER ---
+    window.transferItem = function(itemId) {
+        const item = inventory.find(i => i.id === itemId);
+        if (!item) return showToast("Item not found", "error");
+        if (!isAdmin) return showToast("Transfer only for Chris", "error");
+        withAuth(async () => {
+            const modalDiv = document.createElement('div');
+            modalDiv.className = 'modal-bg';
+            modalDiv.innerHTML = `
+                <div class="modal-box">
+                    <h3><i class="fas fa-exchange-alt" style="color:#0f6b3a"></i> Transfer Stock</h3>
+                    <p style="font-size:0.7rem; margin-bottom:12px;"><strong>${escapeHtml(item.name)} (${escapeHtml(item.code)})</strong><br>Current stock: ${item.stock}</p>
+                    <div class="field-group"><label>Target Branch</label>
+                        <select id="targetBranchSelect">
+                            ${Object.entries(branchMap).map(([key,val]) => `<option value="${key}" ${key===branchId?'disabled':''}>${val.name} ${key===branchId?'(current)':''}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="field-group"><label>Quantity</label>
+                        <input type="number" id="transferQty" min="1" max="${item.stock}" value="${Math.min(1,item.stock)}" step="1">
+                    </div>
+                    <div class="form-actions">
+                        <button id="confirmTransferBtn" class="btn btn-primary" style="background:#0f6b3a;">Confirm</button>
+                        <button id="cancelTransferBtn" class="btn btn-sm">Cancel</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modalDiv);
+            const qtyInput = modalDiv.querySelector('#transferQty');
+            const targetSelect = modalDiv.querySelector('#targetBranchSelect');
+            const confirmBtn = modalDiv.querySelector('#confirmTransferBtn');
+            const cancelBtn = modalDiv.querySelector('#cancelTransferBtn');
+            confirmBtn.onclick = async () => {
+                let qty = parseInt(qtyInput.value);
+                if (isNaN(qty) || qty <= 0) qty = 1;
+                if (qty > item.stock) { showToast(`Max ${item.stock}`, "error"); return; }
+                const targetBranchId = targetSelect.value;
+                if (targetBranchId === branchId) { showToast("Select different branch", "error"); return; }
+                confirmBtn.disabled = true; confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                try {
+                    await updateDoc(doc(db, 'inventory', item.id), { stock: item.stock - qty });
+                    const targetQuery = query(collection(db, 'inventory'), where('branchId','==',targetBranchId), where('code','==',item.code));
+                    const targetSnap = await getDocs(targetQuery);
+                    if (!targetSnap.empty) {
+                        const targetDoc = targetSnap.docs[0];
+                        const existingStock = targetDoc.data().stock || 0;
+                        await updateDoc(doc(db, 'inventory', targetDoc.id), { stock: existingStock + qty });
+                    } else {
+                        const newProduct = {
+                            code: item.code, name: item.name, category: item.category || 'General',
+                            price: item.price, stock: qty, status: item.status || 'active',
+                            branchId: targetBranchId, createdAt: new Date().toISOString()
+                        };
+                        await addDoc(collection(db, 'inventory'), newProduct);
+                    }
+                    modalDiv.remove();
+                    showToast(`✅ Transferred ${qty} x ${item.code}`, "success");
+                } catch (e) { 
+                    showToast(`Transfer failed: ${e.message}`, "error"); 
+                    confirmBtn.disabled = false; 
+                    confirmBtn.innerHTML = 'Confirm'; 
+                }
+            };
+            cancelBtn.onclick = () => modalDiv.remove();
+            modalDiv.onclick = (e) => { if (e.target === modalDiv) modalDiv.remove(); };
+        });
+    };
+
+    // --- EDIT ---
+    window.editItem = function(itemId) {
+        withAuth(async () => {
+            const item = inventory.find(i => i.id === itemId);
+            if (!item) return showToast("Item not found", "error");
+            const modal = document.createElement('div');
+            modal.className = 'modal-bg';
+            modal.innerHTML = `
+                <div class="modal-box">
+                    <h3><i class="fas fa-edit"></i> Edit Product</h3>
+                    <form id="editForm">
+                        <div class="field-group"><label>Code</label><input type="text" name="code" value="${escapeHtml(item.code)}" required></div>
+                        <div class="field-group"><label>Name</label><input type="text" name="name" value="${escapeHtml(item.name)}" required></div>
+                        <div class="field-group"><label>Category</label>
+                            <select name="category" required>
+                                ${CATEGORIES.map(c => `<option value="${c.name}" ${item.category === c.name ? 'selected' : ''}>${c.name}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="field-group"><label>Price (K)</label><input type="number" name="price" step="0.01" value="${item.price}" required></div>
+                        <div class="field-group"><label>Stock</label><input type="number" name="stock" value="${item.stock}" required></div>
+                        <div class="field-group"><label>Status</label>
+                            <select name="status">
+                                <option value="active" ${item.status === 'active' ? 'selected' : ''}>Active</option>
+                                <option value="inactive" ${item.status === 'inactive' ? 'selected' : ''}>Inactive</option>
+                            </select>
+                        </div>
+                        <div class="form-actions"><button type="submit" class="btn btn-primary">Save</button><button type="button" class="btn btn-sm" id="cancelEditBtn">Cancel</button></div>
+                    </form>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            
+            const form = modal.querySelector('#editForm');
+            form.onsubmit = async (e) => {
+                e.preventDefault();
+                const code = form.code.value.trim().toUpperCase();
+                const name = form.name.value.trim();
+                const category = form.category.value;
+                const price = parseFloat(form.price.value);
+                const stock = parseInt(form.stock.value);
+                const status = form.status.value;
+
+                if (!code || !name || !category || isNaN(price) || price < 0 || isNaN(stock) || stock < 0) {
+                    showToast("Invalid fields", "error"); return;
+                }
+                // check duplicate code
+                try {
+                    const q = query(collection(db,'inventory'), where('branchId','==',branchId), where('code','==',code));
+                    const snap = await getDocs(q);
+                    if (!snap.empty && snap.docs[0].id !== item.id) {
+                        showToast("Duplicate code", "error"); return;
+                    }
+                } catch (err) {
+                    showToast(`Error checking code: ${err.message}`, "error");
+                    return;
+                }
+                
+                const submitBtn = form.querySelector('button[type="submit"]');
+                submitBtn.disabled = true; 
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                
+                try {
+                    await updateDoc(doc(db,'inventory',item.id), {
+                        code, name, category, price, stock, status
+                    });
+                    modal.remove();
+                    showToast(`✅ ${item.code} updated successfully!`, "success");
+                } catch (err) {
+                    console.error('Update error:', err);
+                    showToast(`Update failed: ${err.message}`, "error");
+                    submitBtn.disabled = false; 
+                    submitBtn.innerHTML='Save';
+                }
+            };
+            modal.querySelector('#cancelEditBtn').onclick = () => modal.remove();
+            modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+        });
+    };
+
+    // --- DELETE ---
+    window.deleteItem = function(itemId) {
+        withAuth(async () => {
+            const item = inventory.find(i => i.id === itemId);
+            if (!item) return;
+            const confirmModal = document.createElement('div');
+            confirmModal.className = 'modal-bg';
+            confirmModal.innerHTML = `<div class="modal-box"><h3 style="color:#ef4444;"><i class="fas fa-exclamation-triangle"></i> Confirm Delete</h3><p style="margin:15px 0;">Delete <strong>${escapeHtml(item.name)}</strong> (${escapeHtml(item.code)})?</p><div class="form-actions"><button id="confirmDelete" class="btn btn-danger">Delete</button><button id="cancelDelete" class="btn btn-sm">Cancel</button></div></div>`;
+            document.body.appendChild(confirmModal);
+            const confirmBtn = confirmModal.querySelector('#confirmDelete');
+            confirmBtn.onclick = async () => {
+                confirmBtn.disabled = true; 
+                confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                try {
+                    await deleteDoc(doc(db,'inventory',item.id));
+                    confirmModal.remove();
+                    showToast(`✅ ${item.code} deleted successfully!`,"success");
+                } catch (err) {
+                    console.error('Delete error:', err);
+                    showToast(`Delete failed: ${err.message}`,"error");
+                    confirmBtn.disabled=false; 
+                    confirmBtn.innerHTML='Delete';
+                }
+            };
+            confirmModal.querySelector('#cancelDelete').onclick = () => confirmModal.remove();
+            confirmModal.onclick = (e) => { if (e.target === confirmModal) confirmModal.remove(); };
+        });
+    };
+
+    function escapeHtml(str) { if (!str) return ''; return String(str).replace(/[&<>]/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;' }[m] || m)); }
+
+    function closeAllMenus() { document.querySelectorAll('.dots-menu.open').forEach(m => m.classList.remove('open')); }
+    window.toggleMenu = function(e, id) { e.stopPropagation(); closeAllMenus(); const menu = document.getElementById(`menu-${id}`); if (menu) menu.classList.add('open'); };
+    window.closeAllMenus = closeAllMenus;
+    document.addEventListener('click', closeAllMenus);
+
+    // --- FILTER FUNCTIONS ---
+    function setFilter(filter) {
+        currentFilter = filter;
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.filter === filter);
+        });
+        renderTable();
+    }
+
+    // --- RENDER TABLE ---
+    let inventory = [];
+    let unsubscribe = null;
+
+    function renderTable() {
+        const tbody = document.getElementById('inventoryTbody');
+        const search = document.getElementById('searchInput').value.toLowerCase();
+        
+        let filtered = inventory.filter(i => {
+            const matchesSearch = i.name?.toLowerCase().includes(search) || 
+                                 i.code?.toLowerCase().includes(search) ||
+                                 (i.category || '').toLowerCase().includes(search);
+            
+            const matchesFilter = currentFilter === 'all' || 
+                                 (currentFilter === 'active' && i.status !== 'inactive') ||
+                                 (currentFilter === 'inactive' && i.status === 'inactive');
+            
+            return matchesSearch && matchesFilter;
+        });
+        
+        if (!filtered.length) {
+            const cols = canEdit ? 8 : 7;
+            tbody.innerHTML = `<tr class="empty-row"><td colspan="${cols}">📦 No products found</td></tr>`;
+            return;
+        }
+        tbody.innerHTML = '';
+        filtered.forEach((item, index) => {
+            const isInactive = item.status === 'inactive';
+            const bg = item.stock === 0 ? '#fee2e2' : item.stock < 5 ? '#fff3e0' : '#d1fae5';
+            const color = item.stock === 0 ? '#b91c1c' : item.stock < 5 ? '#b45309' : '#065f46';
+            const row = tbody.insertRow();
+            if (isInactive) row.className = 'inactive-row';
+            
+            let actionsHtml = '';
+            if (canEdit) {
+                const canDeactivate = !(item.status === 'active' && item.stock > 0);
+                actionsHtml = `
+                    <td>
+                        <div class="dots-wrap">
+                            <button class="dots-btn" onclick="toggleMenu(event, '${item.id}')"><span class="dot"></span><span class="dot"></span><span class="dot"></span></button>
+                            <div class="dots-menu" id="menu-${item.id}">
+                                <button class="dots-item edit" onclick="closeAllMenus(); editItem('${item.id}')"><i class="fas fa-edit"></i> Edit</button>
+                                <button class="dots-item toggle ${!canDeactivate ? 'disabled' : ''}" onclick="${canDeactivate ? `closeAllMenus(); toggleStatus('${item.id}')` : 'showToast(\"Cannot deactivate - has stock\", \"warning\")'}">
+                                    <i class="fas ${isInactive ? 'fa-toggle-on' : 'fa-toggle-off'}"></i> 
+                                    ${isInactive ? 'Reactivate' : 'Deactivate'}
+                                    ${!canDeactivate ? ' (has stock)' : ''}
+                                </button>
+                                ${isAdmin ? `<button class="dots-item transfer" onclick="closeAllMenus(); transferItem('${item.id}')"><i class="fas fa-exchange-alt"></i> Transfer</button>` : ''}
+                                <button class="dots-item delete" onclick="closeAllMenus(); deleteItem('${item.id}')"><i class="fas fa-trash-alt"></i> Delete</button>
+                            </div>
+                        </div>
+                    </td>
+                `;
+            }
+            row.innerHTML = `
+                <td><span class="table-index">${index + 1}</span></td>
+                <td><span class="code-chip">${escapeHtml(item.code)}</span></td>
+                <td><strong>${escapeHtml(item.name)}</strong></td>
+                <td><span class="category-badge">${escapeHtml(item.category || 'General')}</span></td>
+                <td>K${item.price.toFixed(2)}</td>
+                <td><span class="stock-chip" style="background:${bg};color:${color}">${item.stock}</span></td>
+                <td><span class="status-badge ${isInactive ? 'status-inactive' : 'status-active'}">${isInactive ? 'Inactive' : 'Active'}</span></td>
+                ${actionsHtml}
+            `;
+        });
+    }
+
+    function updateStats() {
+        const totalStock = inventory.reduce((s,i) => s + i.stock, 0);
+        const totalValue = inventory.reduce((s,i) => s + (i.price * i.stock), 0);
+        if (isAdmin) {
+            document.getElementById('statItems').innerText = inventory.length;
+            document.getElementById('statStock').innerText = totalStock;
+            document.getElementById('statValue').innerHTML = `K${totalValue.toFixed(0)}`;
+        }
+        document.getElementById('totalStockPill').innerHTML = `K${totalValue.toFixed(2)}`;
+    }
+
+    function startListener() {
+        if (unsubscribe) unsubscribe();
+        const q = query(collection(db, 'inventory'), where('branchId', '==', branchId));
+        unsubscribe = onSnapshot(q, (snap) => {
+            inventory = snap.docs.map(d => ({ 
+                id: d.id, 
+                ...d.data(), 
+                stock: Number(d.data().stock) || 0, 
+                price: Number(d.data().price) || 0,
+                status: d.data().status || 'active'
+            }));
+            inventory.sort((a, b) => (a.code || '').localeCompare(b.code || ''));
+            updateStats();
+            renderTable();
+        }, (error) => {
+            console.error('Firestore error:', error);
+            showToast('Firestore error: ' + error.message, 'error');
+        });
+    }
+
+    // --- EVENT LISTENERS ---
+    document.getElementById('searchInput').addEventListener('input', renderTable);
+    document.getElementById('addProductBtn').addEventListener('click', openAddProductModal);
+    
+    document.getElementById('filterActive').addEventListener('click', () => setFilter('active'));
+    document.getElementById('filterInactive').addEventListener('click', () => setFilter('inactive'));
+    document.getElementById('filterAll').addEventListener('click', () => setFilter('all'));
+
+    // --- SIDEBAR, CLOCK, LOGOUT ---
+    const sidebar = document.getElementById('sidebar'); 
+    const overlay = document.getElementById('sbOverlay'); 
+    const menuBtn = document.getElementById('menuBtn'); 
+    const mainEl = document.getElementById('mainContent');
+    
+    function isMobile() { return window.innerWidth <= 640; }
+    function initSidebar() { 
+        if (!isMobile()) { 
+            sidebar.classList.remove('hidden'); 
+            mainEl.style.marginLeft = '220px'; 
+        } else { 
+            sidebar.classList.remove('visible'); 
+            mainEl.style.marginLeft = '0'; 
+        } 
+    }
+    
+    menuBtn.addEventListener('click', () => { 
+        if (isMobile()) { 
+            sidebar.classList.toggle('visible'); 
+            overlay.classList.toggle('show'); 
+        } else { 
+            sidebar.classList.toggle('hidden'); 
+            mainEl.style.marginLeft = sidebar.classList.contains('hidden') ? '0' : '220px'; 
+        } 
+    });
+    
+    overlay.addEventListener('click', () => { 
+        sidebar.classList.remove('visible'); 
+        overlay.classList.remove('show'); 
+    });
+    
+    window.addEventListener('resize', initSidebar); 
+    initSidebar();
+    
+    function updateClock() { 
+        document.getElementById('timeBadge').innerText = new Date().toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' }); 
+    }
+    setInterval(updateClock, 1000); 
+    updateClock();
+    
+    document.getElementById('logoutBtn').addEventListener('click', () => { 
+        localStorage.clear(); 
+        window.location.href = 'index.html'; 
+    });
+    
+    startListener();
+    showToast(`Welcome ${loggedInUser === 'chris' ? 'Chris (Admin)' : loggedInUser} | ${currentBranch.name}`, 'success');
+    if (isAdmin) showToast("🔁 Transfer active in 3-dot menu", "success");
+</script>
+</body>
+</html>
