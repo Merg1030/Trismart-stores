@@ -419,6 +419,8 @@
     .status-badge.equity { background: #e8f5e9; color: #2e7d32; }
     .status-badge.income { background: #e0f7fa; color: #00838f; }
     .status-badge.expense { background: #fff3e0; color: #e65100; }
+    .status-badge.cash { background: #d1fae5; color: #065f46; }
+    .status-badge.bank { background: #dbeafe; color: #1e40af; }
 
     .clickable-row {
       cursor: pointer;
@@ -655,7 +657,6 @@
       color: var(--blue);
     }
 
-    /* Loading spinner */
     .spinner {
       display: inline-block;
       width: 16px;
@@ -700,6 +701,19 @@
     .toast.fade-out { animation: tOut 0.25s ease forwards; }
     @keyframes tIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes tOut { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(12px); } }
+
+    .bd-bf-row td {
+      background: #f8f9fc !important;
+      font-weight: 700;
+      border-top: 2px solid var(--border);
+      border-bottom: 2px solid var(--border);
+    }
+    .bd-bf-row .label-bd {
+      color: var(--blue);
+    }
+    .bd-bf-row .label-bf {
+      color: var(--purple);
+    }
 
     @media print {
       .no-print { display: none !important; }
@@ -929,7 +943,7 @@
           </div>
           <div class="filter-bar no-print">
             <label>Month:</label>
-            <select id="cashbookFilterMonth" onchange="renderCashbook()">
+            <select id="cashbookFilterMonth" onchange="applyCashbookFilter()">
               <option value="all">All</option>
               <option value="01">January</option>
               <option value="02">February</option>
@@ -945,7 +959,7 @@
               <option value="12">December</option>
             </select>
             <label>Year:</label>
-            <select id="cashbookFilterYear" onchange="renderCashbook()">
+            <select id="cashbookFilterYear" onchange="applyCashbookFilter()">
               <option value="all">All</option>
             </select>
             <button class="btn btn-outline btn-sm" onclick="resetCashbookFilter()"><i class="fas fa-undo"></i> Reset</button>
@@ -1073,7 +1087,7 @@
           </div>
           <div class="filter-bar no-print">
             <label>Month:</label>
-            <select id="expenseFilterMonth" onchange="renderExpenses()">
+            <select id="expenseFilterMonth" onchange="applyExpenseFilter()">
               <option value="all">All</option>
               <option value="01">January</option>
               <option value="02">February</option>
@@ -1089,7 +1103,7 @@
               <option value="12">December</option>
             </select>
             <label>Year:</label>
-            <select id="expenseFilterYear" onchange="renderExpenses()">
+            <select id="expenseFilterYear" onchange="applyExpenseFilter()">
               <option value="all">All</option>
             </select>
             <button class="btn btn-outline btn-sm" onclick="resetExpenseFilter()"><i class="fas fa-undo"></i> Reset</button>
@@ -1125,24 +1139,19 @@
           </div>
           
           <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
-            <!-- Trial Balance Report -->
             <div style="background:var(--bg3); border-radius:var(--radius-lg); padding:20px; border:1px solid var(--border);">
               <h3 style="font-size:0.85rem; margin-bottom:8px;"><i class="fas fa-scale-balanced" style="color:var(--blue);"></i> Trial Balance</h3>
-              <p style="font-size:0.7rem; color:var(--text-fade); margin-bottom:12px;">Complete list of all accounts with their balances. Summary of Assets, Liabilities, Equity, Income, and Expenses.</p>
+              <p style="font-size:0.7rem; color:var(--text-fade); margin-bottom:12px;">Complete list of all accounts with their balances.</p>
               <button class="btn btn-primary btn-sm" onclick="downloadTrialBalancePDF()"><i class="fas fa-file-pdf"></i> Download PDF</button>
             </div>
-
-            <!-- Dashboard Summary Report -->
             <div style="background:var(--bg3); border-radius:var(--radius-lg); padding:20px; border:1px solid var(--border);">
               <h3 style="font-size:0.85rem; margin-bottom:8px;"><i class="fas fa-chart-simple" style="color:var(--green);"></i> Financial Summary</h3>
-              <p style="font-size:0.7rem; color:var(--text-fade); margin-bottom:12px;">Summary of Cash Balance, Bank Balance, Total Expenses, and Inventory Value. Quick financial health overview.</p>
+              <p style="font-size:0.7rem; color:var(--text-fade); margin-bottom:12px;">Summary of Cash Balance, Bank Balance, Total Expenses, and Inventory Value.</p>
               <button class="btn btn-green btn-sm" onclick="downloadSummaryPDF()"><i class="fas fa-file-pdf"></i> Download PDF</button>
             </div>
-
-            <!-- Account Statement -->
             <div style="background:var(--bg3); border-radius:var(--radius-lg); padding:20px; border:1px solid var(--border);">
               <h3 style="font-size:0.85rem; margin-bottom:8px;"><i class="fas fa-book" style="color:var(--orange);"></i> Account Statement</h3>
-              <p style="font-size:0.7rem; color:var(--text-fade); margin-bottom:12px;">Select an account to generate a detailed statement with all transactions, running balance, and date filters.</p>
+              <p style="font-size:0.7rem; color:var(--text-fade); margin-bottom:12px;">Select an account to generate a detailed statement.</p>
               <div style="display:flex; gap:8px; flex-wrap:wrap;">
                 <select id="reportAccountSelect" style="flex:1; padding:6px 10px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:0.75rem;">
                   <option value="">Select Account...</option>
@@ -1150,11 +1159,9 @@
                 <button class="btn btn-primary btn-sm" onclick="downloadAccountStatementPDF()"><i class="fas fa-file-pdf"></i> Go</button>
               </div>
             </div>
-
-            <!-- Bank Statement -->
             <div style="background:var(--bg3); border-radius:var(--radius-lg); padding:20px; border:1px solid var(--border);">
               <h3 style="font-size:0.85rem; margin-bottom:8px;"><i class="fas fa-university" style="color:var(--purple);"></i> Bank Statement</h3>
-              <p style="font-size:0.7rem; color:var(--text-fade); margin-bottom:12px;">Select a bank account to generate a detailed bank statement with all transactions and running balance.</p>
+              <p style="font-size:0.7rem; color:var(--text-fade); margin-bottom:12px;">Select a bank account to generate a detailed bank statement.</p>
               <div style="display:flex; gap:8px; flex-wrap:wrap;">
                 <select id="reportBankSelect" style="flex:1; padding:6px 10px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:0.75rem;">
                   <option value="">Select Bank...</option>
@@ -1162,18 +1169,14 @@
                 <button class="btn btn-primary btn-sm" onclick="downloadBankStatementPDF()"><i class="fas fa-file-pdf"></i> Go</button>
               </div>
             </div>
-
-            <!-- Cashbook Report -->
             <div style="background:var(--bg3); border-radius:var(--radius-lg); padding:20px; border:1px solid var(--border);">
               <h3 style="font-size:0.85rem; margin-bottom:8px;"><i class="fas fa-money-bill-wave" style="color:var(--green);"></i> Cashbook Report</h3>
-              <p style="font-size:0.7rem; color:var(--text-fade); margin-bottom:12px;">Complete cashbook with all cash transactions, running balance, and date filters.</p>
+              <p style="font-size:0.7rem; color:var(--text-fade); margin-bottom:12px;">Complete cashbook with all cash transactions.</p>
               <button class="btn btn-green btn-sm" onclick="downloadCashbookPDF()"><i class="fas fa-file-pdf"></i> Download PDF</button>
             </div>
-
-            <!-- Expenses Report -->
             <div style="background:var(--bg3); border-radius:var(--radius-lg); padding:20px; border:1px solid var(--border);">
               <h3 style="font-size:0.85rem; margin-bottom:8px;"><i class="fas fa-file-invoice-dollar" style="color:var(--orange);"></i> Expenses Report</h3>
-              <p style="font-size:0.7rem; color:var(--text-fade); margin-bottom:12px;">All expense transactions categorized by type, with amounts and payment source.</p>
+              <p style="font-size:0.7rem; color:var(--text-fade); margin-bottom:12px;">All expense transactions categorized by type.</p>
               <button class="btn btn-orange btn-sm" onclick="downloadExpensesPDF()"><i class="fas fa-file-pdf"></i> Download PDF</button>
             </div>
           </div>
@@ -1348,7 +1351,7 @@
           <input type="number" id="expenseAmount" step="0.01" placeholder="0.00" required>
         </div>
         <div class="form-group">
-          <label>Paid From Account</label>
+          <label>Paid From</label>
           <select id="expenseAccount" required>
             <option value="">Select Account...</option>
           </select>
@@ -1448,18 +1451,50 @@ let banks = [];
 let expenses = [];
 let accountTransactions = {};
 let bankTransactions = {};
+let allPaymentSources = [];
 
 let currentLedgerId = null;
 let currentLedgerType = 'account';
 let currentBankId = null;
 let inventoryValue = 0;
 
+// Filter state - will be persisted to localStorage
 let filterState = {
   account: { month: 'all', year: 'all' },
   bank: { month: 'all', year: 'all' },
   cashbook: { month: 'all', year: 'all' },
   expense: { month: 'all', year: 'all' }
 };
+
+// Load filter state from localStorage
+function loadFilterState() {
+  const saved = localStorage.getItem('trismart_filters');
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      Object.keys(parsed).forEach(key => {
+        if (filterState[key]) {
+          filterState[key].month = parsed[key]?.month || 'all';
+          filterState[key].year = parsed[key]?.year || 'all';
+        }
+      });
+    } catch (e) {
+      console.warn('Could not load filter state:', e);
+    }
+  }
+}
+
+// Save filter state to localStorage
+function saveFilterState() {
+  try {
+    localStorage.setItem('trismart_filters', JSON.stringify(filterState));
+  } catch (e) {
+    console.warn('Could not save filter state:', e);
+  }
+}
+
+// Load filters on init
+loadFilterState();
 
 let pageState = {
   currentPage: 'dashboard',
@@ -1481,6 +1516,8 @@ let unsubBankTxns = {};
 // ============================================================
 function formatNumber(amount) { return parseFloat(amount || 0).toFixed(2); }
 function getToday() { return new Date().toISOString().split('T')[0]; }
+function getCurrentMonth() { return String(new Date().getMonth() + 1).padStart(2, '0'); }
+function getCurrentYear() { return String(new Date().getFullYear()); }
 
 function getYearOptions() {
   const currentYear = new Date().getFullYear();
@@ -1505,8 +1542,8 @@ function toast(message, type = 'success') {
   const container = document.getElementById('toastContainer');
   const toast = document.createElement('div');
   toast.className = `toast ${type}`;
-  const icons = { success: '✅', error: '❌', info: 'ℹ️' };
-  toast.innerHTML = `<span>${icons[type] || 'ℹ️'}</span> ${message}`;
+  const icons = { success: '✓', error: '✗', info: 'i' };
+  toast.innerHTML = `<span>${icons[type] || 'i'}</span> ${message}`;
   container.appendChild(toast);
   setTimeout(() => {
     toast.classList.add('fade-out');
@@ -1560,7 +1597,11 @@ function navigateTo(page, saveState = true) {
 
 function openModal(id) {
   document.getElementById(id).classList.add('show');
-  if (id === 'expenseModal') populateExpenseAccounts();
+  
+  if (id === 'expenseModal') {
+    populateExpenseAccounts();
+  }
+  
   const dateInput = document.getElementById(id.replace('Modal', 'Date'));
   if (dateInput && !dateInput.value) dateInput.value = getToday();
 }
@@ -1602,12 +1643,11 @@ function openPage(url) {
 }
 
 // ============================================================
-// ACCOUNTS - FIRESTORE (NO orderBy)
+// ACCOUNTS - FIRESTORE
 // ============================================================
 function setupAccountsListener() {
   if (unsubAccounts) unsubAccounts();
   
-  // Removed orderBy to avoid index requirement - sort client-side
   const q = query(
     collection(db, 'accounts'),
     where('branchId', '==', branchId)
@@ -1618,12 +1658,11 @@ function setupAccountsListener() {
       id: doc.id,
       ...doc.data()
     }));
-    // Sort client-side
     accounts.sort((a, b) => (a.code || '').localeCompare(b.code || ''));
     renderAccounts();
     updateStats();
     populateReportSelects();
-    populateExpenseAccounts();
+    updateAllPaymentSources();
   }, (error) => {
     console.error('Accounts listener error:', error);
     toast('Error loading accounts: ' + error.message, 'error');
@@ -1737,7 +1776,127 @@ async function deleteAccount(id) {
 }
 
 // ============================================================
-// ACCOUNT LEDGER - FIRESTORE (NO orderBy)
+// UPDATE ALL PAYMENT SOURCES
+// ============================================================
+function updateAllPaymentSources() {
+  allPaymentSources = [];
+  
+  accounts.forEach(a => {
+    allPaymentSources.push({
+      id: a.id,
+      type: 'account',
+      name: a.name,
+      code: a.code,
+      balance: a.balance || 0,
+      displayName: a.code + ' - ' + a.name + ' (' + formatNumber(a.balance) + ')',
+      sourceType: 'Account'
+    });
+  });
+  
+  let cashBalance = 0;
+  cashbook.forEach(e => {
+    if (e.type === 'debit') cashBalance += e.amount;
+    else cashBalance -= e.amount;
+  });
+  
+  allPaymentSources.push({
+    id: 'cashbook',
+    type: 'cashbook',
+    name: 'Cash in Hand',
+    code: 'CASH-001',
+    balance: cashBalance,
+    displayName: 'CASH - Cash in Hand (' + formatNumber(cashBalance) + ')',
+    sourceType: 'Cashbook'
+  });
+  
+  banks.forEach(b => {
+    allPaymentSources.push({
+      id: b.id,
+      type: 'bank',
+      name: b.name,
+      code: b.accountNo,
+      balance: b.balance || 0,
+      displayName: b.name + ' - ' + b.accountNo + ' (' + formatNumber(b.balance) + ')',
+      sourceType: 'Bank'
+    });
+  });
+  
+  populateExpenseAccounts();
+}
+
+// ============================================================
+// POPULATE EXPENSE ACCOUNTS
+// ============================================================
+function populateExpenseAccounts() {
+  const select = document.getElementById('expenseAccount');
+  if (!select) {
+    console.warn('Expense account select element not found');
+    return;
+  }
+  
+  select.innerHTML = '';
+  
+  const defaultOpt = document.createElement('option');
+  defaultOpt.value = '';
+  defaultOpt.textContent = 'Select Payment Source...';
+  select.appendChild(defaultOpt);
+  
+  if (!allPaymentSources || allPaymentSources.length === 0) {
+    const opt = document.createElement('option');
+    opt.value = '';
+    opt.textContent = 'No sources - create accounts or banks first';
+    opt.disabled = true;
+    opt.style.color = '#ef4444';
+    select.appendChild(opt);
+    return;
+  }
+  
+  const grouped = {
+    'Account': [],
+    'Cashbook': [],
+    'Bank': []
+  };
+  
+  allPaymentSources.forEach(source => {
+    if (grouped[source.sourceType]) {
+      grouped[source.sourceType].push(source);
+    }
+  });
+  
+  const typeLabels = {
+    'Account': 'Chart of Accounts',
+    'Cashbook': 'Cashbook',
+    'Bank': 'Bank Accounts'
+  };
+  
+  Object.keys(grouped).forEach(type => {
+    const sources = grouped[type];
+    if (sources.length === 0) return;
+    
+    const groupLabel = document.createElement('option');
+    groupLabel.value = '';
+    groupLabel.textContent = '-- ' + (typeLabels[type] || type) + ' --';
+    groupLabel.disabled = true;
+    groupLabel.style.fontWeight = '700';
+    groupLabel.style.color = '#4361ee';
+    select.appendChild(groupLabel);
+    
+    sources.forEach(source => {
+      const opt = document.createElement('option');
+      opt.value = source.id;
+      opt.textContent = source.displayName;
+      if (source.balance <= 0) {
+        opt.style.color = '#ef4444';
+      } else {
+        opt.style.color = '#1a1e2e';
+      }
+      select.appendChild(opt);
+    });
+  });
+}
+
+// ============================================================
+// ACCOUNT LEDGER WITH PROPER B/D LOGIC
 // ============================================================
 function setupAccountTransactionsListener(accountId) {
   if (unsubAccountTxns[accountId]) {
@@ -1745,7 +1904,6 @@ function setupAccountTransactionsListener(accountId) {
     delete unsubAccountTxns[accountId];
   }
   
-  // Removed orderBy to avoid index requirement
   const q = query(
     collection(db, 'accountTransactions'),
     where('accountId', '==', accountId)
@@ -1756,7 +1914,6 @@ function setupAccountTransactionsListener(accountId) {
       id: doc.id,
       ...doc.data()
     }));
-    // Sort client-side
     accountTransactions[accountId].sort((a, b) => new Date(a.date) - new Date(b.date));
     renderLedgerTransactions();
   }, (error) => {
@@ -1775,13 +1932,17 @@ async function openAccountLedger(accountId, saveState = true) {
   document.getElementById('accountLedger').classList.add('active');
   
   document.getElementById('ledgerAccountName').textContent = account.name;
-  document.getElementById('ledgerAccountInfo').textContent = `Code: ${account.code} | Type: ${account.type} | Balance: ${formatNumber(account.balance)}`;
+  document.getElementById('ledgerAccountInfo').textContent = 'Code: ' + account.code + ' | Type: ' + account.type + ' | Balance: ' + formatNumber(account.balance);
   
+  // Set filter values from state
   document.getElementById('accountFilterMonth').value = filterState.account.month;
   document.getElementById('accountFilterYear').value = filterState.account.year;
   
   setupAccountTransactionsListener(accountId);
   document.getElementById('ledgerTxnAccountId').value = accountId;
+  
+  // Trigger initial render with current filters
+  setTimeout(() => renderLedgerTransactions(), 100);
   
   if (saveState) {
     pageState.currentPage = 'accounts';
@@ -1798,73 +1959,182 @@ function renderLedgerTransactions() {
   const month = document.getElementById('accountFilterMonth').value;
   const year = document.getElementById('accountFilterYear').value;
   
-  let filtered = transactions;
-  if (month !== 'all') {
-    filtered = filtered.filter(t => {
-      const d = new Date(t.date);
-      return String(d.getMonth() + 1).padStart(2, '0') === month;
-    });
-  }
-  if (year !== 'all') {
-    filtered = filtered.filter(t => {
-      const d = new Date(t.date);
-      return String(d.getFullYear()) === year;
-    });
-  }
+  filterState.account.month = month;
+  filterState.account.year = year;
+  saveFilterState();
   
-  if (filtered.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted" style="padding:20px;">No transactions for this period.</td></tr>`;
+  console.log('Rendering Account Ledger - Month:', month, 'Year:', year, 'Total transactions:', transactions.length);
+  
+  const sortedTxns = [...transactions].sort((a, b) => new Date(a.date) - new Date(b.date));
+  
+  // Get account info
+  const account = accounts.find(a => a.id === currentLedgerId);
+  if (!account) {
+    tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted" style="padding:20px;">Account not found.</td></tr>`;
     return;
   }
   
-  let balance = 0;
-  const allTxns = transactions;
-  let startBalance = 0;
-  for (const t of allTxns) {
-    const d = new Date(t.date);
-    let match = true;
-    if (month !== 'all') match = match && String(d.getMonth() + 1).padStart(2, '0') === month;
-    if (year !== 'all') match = match && String(d.getFullYear()) === year;
-    if (match) break;
-    if (t.type === 'debit') startBalance += t.amount;
-    else startBalance -= t.amount;
+  // If no transactions at all
+  if (transactions.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted" style="padding:20px;">No transactions found for this account.</td></tr>`;
+    return;
   }
   
-  balance = startBalance;
-  tbody.innerHTML = filtered.map(txn => {
-    if (txn.type === 'debit') balance += txn.amount;
-    else balance -= txn.amount;
-    return `
-      <tr>
-        <td>${txn.date}</td>
-        <td>${txn.description}</td>
-        <td class="text-green fw-700 text-right">${txn.type === 'debit' ? formatNumber(txn.amount) : ''}</td>
-        <td class="text-red fw-700 text-right">${txn.type === 'credit' ? formatNumber(txn.amount) : ''}</td>
-        <td class="fw-700 text-right">${formatNumber(balance)}</td>
-        <td class="text-center no-print" onclick="event.stopPropagation();">
-          <div class="dropdown-container">
-            <button class="dropdown-trigger" onclick="toggleDropdown('ledgerTxnDropdown_${txn.id}')">
-              <i class="fas fa-ellipsis-v"></i>
-            </button>
-            <div class="dropdown-menu" id="ledgerTxnDropdown_${txn.id}">
-              <button class="dropdown-item danger" onclick="deleteLedgerTransaction('${txn.id}')"><i class="fas fa-trash"></i> Delete</button>
+  // Determine opening balance and entries in period
+  let openingBalance = 0;
+  let entriesInPeriod = [];
+  let previousEntries = [];
+  
+  if (month !== 'all' || year !== 'all') {
+    const filterYear = year !== 'all' ? parseInt(year) : null;
+    const filterMonth = month !== 'all' ? parseInt(month) : null;
+    
+    // Find entries before the filter period
+    previousEntries = sortedTxns.filter(t => {
+      const d = new Date(t.date);
+      const tYear = d.getFullYear();
+      const tMonth = d.getMonth() + 1;
+      
+      let isBefore = false;
+      
+      if (filterYear !== null && filterMonth !== null) {
+        if (tYear < filterYear) {
+          isBefore = true;
+        } else if (tYear === filterYear && tMonth < filterMonth) {
+          isBefore = true;
+        }
+      } else if (filterYear !== null && filterMonth === null) {
+        if (tYear < filterYear) {
+          isBefore = true;
+        }
+      } else if (filterYear === null && filterMonth !== null) {
+        if (sortedTxns.length > 0) {
+          const firstYear = new Date(sortedTxns[0].date).getFullYear();
+          if (tYear === firstYear && tMonth < filterMonth) {
+            isBefore = true;
+          } else if (tYear < firstYear) {
+            isBefore = true;
+          }
+        }
+      }
+      
+      return isBefore;
+    });
+    
+    // Calculate opening balance from previous entries
+    for (const t of previousEntries) {
+      if (t.type === 'debit') openingBalance += t.amount;
+      else openingBalance -= t.amount;
+    }
+    
+    // Get entries in the filter period
+    entriesInPeriod = sortedTxns.filter(t => {
+      const d = new Date(t.date);
+      const tYear = d.getFullYear();
+      const tMonth = d.getMonth() + 1;
+      
+      let match = true;
+      if (filterYear !== null) match = match && tYear === filterYear;
+      if (filterMonth !== null) match = match && tMonth === filterMonth;
+      return match;
+    });
+  } else {
+    // No filter - show all entries
+    entriesInPeriod = sortedTxns;
+    openingBalance = 0;
+  }
+  
+  // Build rows
+  let rows = '';
+  let balance = openingBalance;
+  
+  // Show B/D row (always show when filtered)
+  if (month !== 'all' || year !== 'all') {
+    if (previousEntries.length > 0 || openingBalance !== 0) {
+      rows += `
+        <tr class="bd-bf-row">
+          <td style="font-weight:700;color:#4361ee;">B/D</td>
+          <td class="label-bd" style="font-weight:700;color:#4361ee;">Balance Brought Down</td>
+          <td class="text-green fw-700 text-right">${openingBalance >= 0 ? formatNumber(Math.abs(openingBalance)) : ''}</td>
+          <td class="text-red fw-700 text-right">${openingBalance < 0 ? formatNumber(Math.abs(openingBalance)) : ''}</td>
+          <td class="fw-700 text-right">${formatNumber(openingBalance)}</td>
+          <td></td>
+        </tr>
+      `;
+    }
+  }
+  
+  // Show transactions in period
+  if (entriesInPeriod.length > 0) {
+    entriesInPeriod.forEach(txn => {
+      if (txn.type === 'debit') balance += txn.amount;
+      else balance -= txn.amount;
+      rows += `
+        <tr>
+          <td>${txn.date}</td>
+          <td>${txn.description}</td>
+          <td class="text-green fw-700 text-right">${txn.type === 'debit' ? formatNumber(txn.amount) : ''}</td>
+          <td class="text-red fw-700 text-right">${txn.type === 'credit' ? formatNumber(txn.amount) : ''}</td>
+          <td class="fw-700 text-right">${formatNumber(balance)}</td>
+          <td class="text-center no-print" onclick="event.stopPropagation();">
+            <div class="dropdown-container">
+              <button class="dropdown-trigger" onclick="toggleDropdown('ledgerTxnDropdown_${txn.id}')">
+                <i class="fas fa-ellipsis-v"></i>
+              </button>
+              <div class="dropdown-menu" id="ledgerTxnDropdown_${txn.id}">
+                <button class="dropdown-item danger" onclick="deleteLedgerTransaction('${txn.id}')"><i class="fas fa-trash"></i> Delete</button>
+              </div>
             </div>
-          </div>
+          </td>
+        </tr>
+      `;
+    });
+  } else if (month !== 'all' || year !== 'all') {
+    // No transactions in period - show carry forward message
+    rows += `
+      <tr>
+        <td colspan="6" style="padding:20px; text-align:center; color:#6b7490; font-style:italic;">
+          No transactions in this period. Balance carried forward: ${formatNumber(balance)}
         </td>
       </tr>
     `;
-  }).join('');
+  }
   
-  filterState.account.month = month;
-  filterState.account.year = year;
+  // Show B/F row (always show when filtered)
+  if (month !== 'all' || year !== 'all') {
+    if (previousEntries.length > 0 || openingBalance !== 0) {
+      rows += `
+        <tr class="bd-bf-row">
+          <td style="font-weight:700;color:#7c3aed;">B/F</td>
+          <td class="label-bf" style="font-weight:700;color:#7c3aed;">Balance Brought Forward</td>
+          <td class="text-green fw-700 text-right">${balance >= 0 ? formatNumber(Math.abs(balance)) : ''}</td>
+          <td class="text-red fw-700 text-right">${balance < 0 ? formatNumber(Math.abs(balance)) : ''}</td>
+          <td class="fw-700 text-right">${formatNumber(balance)}</td>
+          <td></td>
+        </tr>
+      `;
+    }
+  }
+  
+  // If no rows, show empty state
+  if (rows === '') {
+    tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted" style="padding:20px;">No transactions found.</td></tr>`;
+  } else {
+    tbody.innerHTML = rows;
+  }
 }
 
-function applyAccountFilter() { renderLedgerTransactions(); }
+function applyAccountFilter() { 
+  console.log('Applying account filter...');
+  renderLedgerTransactions(); 
+}
+
 function resetAccountFilter() {
   document.getElementById('accountFilterMonth').value = 'all';
   document.getElementById('accountFilterYear').value = 'all';
   filterState.account.month = 'all';
   filterState.account.year = 'all';
+  saveFilterState();
   renderLedgerTransactions();
 }
 
@@ -1936,12 +2206,11 @@ function closeLedger() {
 }
 
 // ============================================================
-// CASHBOOK - FIRESTORE (NO orderBy)
+// CASHBOOK WITH PROPER B/D LOGIC
 // ============================================================
 function setupCashbookListener() {
   if (unsubCashbook) unsubCashbook();
   
-  // Removed orderBy to avoid index requirement
   const q = query(
     collection(db, 'cashbook'),
     where('branchId', '==', branchId)
@@ -1952,10 +2221,10 @@ function setupCashbookListener() {
       id: doc.id,
       ...doc.data()
     }));
-    // Sort client-side
     cashbook.sort((a, b) => new Date(a.date) - new Date(b.date));
     renderCashbook();
     updateStats();
+    updateAllPaymentSources();
   }, (error) => {
     console.error('Cashbook listener error:', error);
     toast('Error loading cashbook: ' + error.message, 'error');
@@ -1964,69 +2233,195 @@ function setupCashbookListener() {
 
 function renderCashbook() {
   const tbody = document.getElementById('cashbookTableBody');
+  
   const month = document.getElementById('cashbookFilterMonth').value;
   const year = document.getElementById('cashbookFilterYear').value;
   
-  let filtered = cashbook;
-  if (month !== 'all') {
-    filtered = filtered.filter(e => {
-      const d = new Date(e.date);
-      return String(d.getMonth() + 1).padStart(2, '0') === month;
-    });
-  }
-  if (year !== 'all') {
-    filtered = filtered.filter(e => {
-      const d = new Date(e.date);
-      return String(d.getFullYear()) === year;
-    });
-  }
+  filterState.cashbook.month = month;
+  filterState.cashbook.year = year;
+  saveFilterState();
   
-  if (filtered.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted" style="padding:20px;">No entries for this period.</td></tr>`;
-    document.getElementById('cashbookCount').textContent = cashbook.length + ' entries';
-    document.getElementById('navCashCount').textContent = cashbook.length;
+  console.log('Rendering Cashbook - Month:', month, 'Year:', year, 'Total entries:', cashbook.length);
+  
+  const sortedEntries = [...cashbook].sort((a, b) => new Date(a.date) - new Date(b.date));
+  
+  // If no entries at all
+  if (cashbook.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted" style="padding:20px;">No entries found. Add one!</td></tr>`;
+    document.getElementById('cashbookCount').textContent = '0 entries';
+    document.getElementById('navCashCount').textContent = '0';
     return;
   }
   
-  let balance = 0;
-  const allBefore = cashbook.filter(e => {
-    const d = new Date(e.date);
-    let match = true;
-    if (month !== 'all') match = match && String(d.getMonth() + 1).padStart(2, '0') === month;
-    if (year !== 'all') match = match && String(d.getFullYear()) === year;
-    return !match && new Date(e.date) <= new Date(filtered[0]?.date || getToday());
-  });
-  for (const e of allBefore) {
-    if (e.type === 'debit') balance += e.amount;
-    else balance -= e.amount;
+  // Determine opening balance and entries in period
+  let openingBalance = 0;
+  let entriesInPeriod = [];
+  let previousEntries = [];
+  
+  if (month !== 'all' || year !== 'all') {
+    const filterYear = year !== 'all' ? parseInt(year) : null;
+    const filterMonth = month !== 'all' ? parseInt(month) : null;
+    
+    // Find entries before the filter period
+    previousEntries = sortedEntries.filter(e => {
+      const d = new Date(e.date);
+      const eYear = d.getFullYear();
+      const eMonth = d.getMonth() + 1;
+      
+      let isBefore = false;
+      
+      if (filterYear !== null && filterMonth !== null) {
+        if (eYear < filterYear) {
+          isBefore = true;
+        } else if (eYear === filterYear && eMonth < filterMonth) {
+          isBefore = true;
+        }
+      } else if (filterYear !== null && filterMonth === null) {
+        if (eYear < filterYear) {
+          isBefore = true;
+        }
+      } else if (filterYear === null && filterMonth !== null) {
+        if (sortedEntries.length > 0) {
+          const firstYear = new Date(sortedEntries[0].date).getFullYear();
+          if (eYear === firstYear && eMonth < filterMonth) {
+            isBefore = true;
+          } else if (eYear < firstYear) {
+            isBefore = true;
+          }
+        }
+      }
+      
+      return isBefore;
+    });
+    
+    // Calculate opening balance from previous entries
+    for (const e of previousEntries) {
+      if (e.type === 'debit') openingBalance += e.amount;
+      else openingBalance -= e.amount;
+    }
+    
+    // Get entries in the filter period
+    entriesInPeriod = sortedEntries.filter(e => {
+      const d = new Date(e.date);
+      const eYear = d.getFullYear();
+      const eMonth = d.getMonth() + 1;
+      
+      let match = true;
+      if (filterYear !== null) match = match && eYear === filterYear;
+      if (filterMonth !== null) match = match && eMonth === filterMonth;
+      return match;
+    });
+  } else {
+    // No filter - show all entries
+    entriesInPeriod = sortedEntries;
+    openingBalance = 0;
   }
   
-  tbody.innerHTML = filtered.map(entry => {
-    if (entry.type === 'debit') balance += entry.amount;
-    else balance -= entry.amount;
-    return `
-      <tr>
-        <td>${entry.date}</td>
-        <td>${entry.description}</td>
-        <td class="text-green fw-700 text-right">${entry.type === 'debit' ? formatNumber(entry.amount) : ''}</td>
-        <td class="text-red fw-700 text-right">${entry.type === 'credit' ? formatNumber(entry.amount) : ''}</td>
-        <td class="fw-700 text-right">${formatNumber(balance)}</td>
-        <td class="text-center no-print" onclick="event.stopPropagation();">
-          <div class="dropdown-container">
-            <button class="dropdown-trigger" onclick="toggleDropdown('cashbookDropdown_${entry.id}')">
-              <i class="fas fa-ellipsis-v"></i>
-            </button>
-            <div class="dropdown-menu" id="cashbookDropdown_${entry.id}">
-              <button class="dropdown-item danger" onclick="deleteCashbook('${entry.id}')"><i class="fas fa-trash"></i> Delete</button>
+  // Build rows
+  let rows = '';
+  let balance = openingBalance;
+  
+  // Show B/D row (always show when filtered)
+  if (month !== 'all' || year !== 'all') {
+    if (previousEntries.length > 0 || openingBalance !== 0) {
+      rows += `
+        <tr class="bd-bf-row">
+          <td style="font-weight:700;color:#4361ee;">B/D</td>
+          <td class="label-bd" style="font-weight:700;color:#4361ee;">Balance Brought Down</td>
+          <td class="text-green fw-700 text-right">${openingBalance >= 0 ? formatNumber(Math.abs(openingBalance)) : ''}</td>
+          <td class="text-red fw-700 text-right">${openingBalance < 0 ? formatNumber(Math.abs(openingBalance)) : ''}</td>
+          <td class="fw-700 text-right">${formatNumber(openingBalance)}</td>
+          <td></td>
+        </tr>
+      `;
+    }
+  }
+  
+  // Show entries in period
+  if (entriesInPeriod.length > 0) {
+    entriesInPeriod.forEach(entry => {
+      if (entry.type === 'debit') balance += entry.amount;
+      else balance -= entry.amount;
+      rows += `
+        <tr>
+          <td>${entry.date}</td>
+          <td>${entry.description}</td>
+          <td class="text-green fw-700 text-right">${entry.type === 'debit' ? formatNumber(entry.amount) : ''}</td>
+          <td class="text-red fw-700 text-right">${entry.type === 'credit' ? formatNumber(entry.amount) : ''}</td>
+          <td class="fw-700 text-right">${formatNumber(balance)}</td>
+          <td class="text-center no-print" onclick="event.stopPropagation();">
+            <div class="dropdown-container">
+              <button class="dropdown-trigger" onclick="toggleDropdown('cashbookDropdown_${entry.id}')">
+                <i class="fas fa-ellipsis-v"></i>
+              </button>
+              <div class="dropdown-menu" id="cashbookDropdown_${entry.id}">
+                <button class="dropdown-item danger" onclick="deleteCashbook('${entry.id}')"><i class="fas fa-trash"></i> Delete</button>
+              </div>
             </div>
-          </div>
+          </td>
+        </tr>
+      `;
+    });
+  } else if (month !== 'all' || year !== 'all') {
+    // No entries in period - show carry forward message
+    rows += `
+      <tr>
+        <td colspan="6" style="padding:20px; text-align:center; color:#6b7490; font-style:italic;">
+          No transactions in this period. Balance carried forward: ${formatNumber(balance)}
         </td>
       </tr>
     `;
-  }).join('');
+  }
+  
+  // Show B/F row (always show when filtered)
+  if (month !== 'all' || year !== 'all') {
+    if (previousEntries.length > 0 || openingBalance !== 0) {
+      rows += `
+        <tr class="bd-bf-row">
+          <td style="font-weight:700;color:#7c3aed;">B/F</td>
+          <td class="label-bf" style="font-weight:700;color:#7c3aed;">Balance Brought Forward</td>
+          <td class="text-green fw-700 text-right">${balance >= 0 ? formatNumber(Math.abs(balance)) : ''}</td>
+          <td class="text-red fw-700 text-right">${balance < 0 ? formatNumber(Math.abs(balance)) : ''}</td>
+          <td class="fw-700 text-right">${formatNumber(balance)}</td>
+          <td></td>
+        </tr>
+      `;
+    }
+  }
+  
+  // If no filter, show B/F at the end
+  if (month === 'all' && year === 'all' && cashbook.length > 0) {
+    let finalBalance = 0;
+    sortedEntries.forEach(e => {
+      if (e.type === 'debit') finalBalance += e.amount;
+      else finalBalance -= e.amount;
+    });
+    rows += `
+      <tr class="bd-bf-row">
+        <td style="font-weight:700;color:#7c3aed;">B/F</td>
+        <td class="label-bf" style="font-weight:700;color:#7c3aed;">Balance Brought Forward</td>
+        <td class="text-green fw-700 text-right">${finalBalance >= 0 ? formatNumber(Math.abs(finalBalance)) : ''}</td>
+        <td class="text-red fw-700 text-right">${finalBalance < 0 ? formatNumber(Math.abs(finalBalance)) : ''}</td>
+        <td class="fw-700 text-right">${formatNumber(finalBalance)}</td>
+        <td></td>
+      </tr>
+    `;
+  }
+  
+  if (rows === '') {
+    tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted" style="padding:20px;">No entries found.</td></tr>`;
+  } else {
+    tbody.innerHTML = rows;
+  }
   
   document.getElementById('cashbookCount').textContent = cashbook.length + ' entries';
   document.getElementById('navCashCount').textContent = cashbook.length;
+  console.log('Rendered cashbook with B/D logic - entries in period:', entriesInPeriod.length);
+}
+
+function applyCashbookFilter() {
+  console.log('Applying cashbook filter...');
+  renderCashbook();
 }
 
 function resetCashbookFilter() {
@@ -2034,6 +2429,7 @@ function resetCashbookFilter() {
   document.getElementById('cashbookFilterYear').value = 'all';
   filterState.cashbook.month = 'all';
   filterState.cashbook.year = 'all';
+  saveFilterState();
   renderCashbook();
 }
 
@@ -2071,7 +2467,7 @@ async function deleteCashbook(id) {
 }
 
 // ============================================================
-// BANK ACCOUNTS - FIRESTORE
+// BANK ACCOUNTS
 // ============================================================
 function setupBanksListener() {
   if (unsubBanks) unsubBanks();
@@ -2089,6 +2485,7 @@ function setupBanksListener() {
     renderBanks();
     updateStats();
     populateReportSelects();
+    updateAllPaymentSources();
   }, (error) => {
     console.error('Banks listener error:', error);
     toast('Error loading banks: ' + error.message, 'error');
@@ -2200,7 +2597,7 @@ async function deleteBank(id) {
 }
 
 // ============================================================
-// BANK LEDGER - FIRESTORE (NO orderBy)
+// BANK LEDGER WITH PROPER B/D LOGIC
 // ============================================================
 function setupBankTransactionsListener(bankId) {
   if (unsubBankTxns[bankId]) {
@@ -2208,7 +2605,6 @@ function setupBankTransactionsListener(bankId) {
     delete unsubBankTxns[bankId];
   }
   
-  // Removed orderBy to avoid index requirement
   const q = query(
     collection(db, 'bankTransactions'),
     where('bankId', '==', bankId)
@@ -2219,7 +2615,6 @@ function setupBankTransactionsListener(bankId) {
       id: doc.id,
       ...doc.data()
     }));
-    // Sort client-side
     bankTransactions[bankId].sort((a, b) => new Date(a.date) - new Date(b.date));
     renderBankLedgerTransactions();
   }, (error) => {
@@ -2238,13 +2633,15 @@ async function openBankLedger(bankId, saveState = true) {
   document.getElementById('bankLedger').classList.add('active');
   
   document.getElementById('bankLedgerName').textContent = bank.name;
-  document.getElementById('bankLedgerInfo').textContent = `Account #: ${bank.accountNo} | Balance: ${formatNumber(bank.balance)}`;
+  document.getElementById('bankLedgerInfo').textContent = 'Account #: ' + bank.accountNo + ' | Balance: ' + formatNumber(bank.balance);
   
   document.getElementById('bankFilterMonth').value = filterState.bank.month;
   document.getElementById('bankFilterYear').value = filterState.bank.year;
   
   setupBankTransactionsListener(bankId);
   document.getElementById('bankTxnBankId').value = bankId;
+  
+  setTimeout(() => renderBankLedgerTransactions(), 100);
   
   if (saveState) {
     pageState.currentPage = 'bank';
@@ -2261,73 +2658,187 @@ function renderBankLedgerTransactions() {
   const month = document.getElementById('bankFilterMonth').value;
   const year = document.getElementById('bankFilterYear').value;
   
-  let filtered = transactions;
-  if (month !== 'all') {
-    filtered = filtered.filter(t => {
-      const d = new Date(t.date);
-      return String(d.getMonth() + 1).padStart(2, '0') === month;
-    });
-  }
-  if (year !== 'all') {
-    filtered = filtered.filter(t => {
-      const d = new Date(t.date);
-      return String(d.getFullYear()) === year;
-    });
-  }
+  filterState.bank.month = month;
+  filterState.bank.year = year;
+  saveFilterState();
   
-  if (filtered.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted" style="padding:20px;">No transactions for this period.</td></tr>`;
+  console.log('Rendering Bank Ledger - Month:', month, 'Year:', year, 'Total transactions:', transactions.length);
+  
+  const sortedTxns = [...transactions].sort((a, b) => new Date(a.date) - new Date(b.date));
+  
+  const bank = banks.find(b => b.id === currentBankId);
+  if (!bank) {
+    tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted" style="padding:20px;">Bank not found.</td></tr>`;
     return;
   }
   
-  let balance = 0;
-  const allTxns = transactions;
-  let startBalance = 0;
-  for (const t of allTxns) {
-    const d = new Date(t.date);
-    let match = true;
-    if (month !== 'all') match = match && String(d.getMonth() + 1).padStart(2, '0') === month;
-    if (year !== 'all') match = match && String(d.getFullYear()) === year;
-    if (match) break;
-    if (t.type === 'debit') startBalance += t.amount;
-    else startBalance -= t.amount;
+  if (transactions.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted" style="padding:20px;">No transactions found for this bank account.</td></tr>`;
+    return;
   }
   
-  balance = startBalance;
-  tbody.innerHTML = filtered.map(txn => {
-    if (txn.type === 'debit') balance += txn.amount;
-    else balance -= txn.amount;
-    return `
-      <tr>
-        <td>${txn.date}</td>
-        <td>${txn.description}</td>
-        <td class="text-green fw-700 text-right">${txn.type === 'debit' ? formatNumber(txn.amount) : ''}</td>
-        <td class="text-red fw-700 text-right">${txn.type === 'credit' ? formatNumber(txn.amount) : ''}</td>
-        <td class="fw-700 text-right">${formatNumber(balance)}</td>
-        <td class="text-center no-print" onclick="event.stopPropagation();">
-          <div class="dropdown-container">
-            <button class="dropdown-trigger" onclick="toggleDropdown('bankTxnDropdown_${txn.id}')">
-              <i class="fas fa-ellipsis-v"></i>
-            </button>
-            <div class="dropdown-menu" id="bankTxnDropdown_${txn.id}">
-              <button class="dropdown-item danger" onclick="deleteBankTransaction('${txn.id}')"><i class="fas fa-trash"></i> Delete</button>
+  let openingBalance = 0;
+  let entriesInPeriod = [];
+  let previousEntries = [];
+  
+  if (month !== 'all' || year !== 'all') {
+    const filterYear = year !== 'all' ? parseInt(year) : null;
+    const filterMonth = month !== 'all' ? parseInt(month) : null;
+    
+    previousEntries = sortedTxns.filter(t => {
+      const d = new Date(t.date);
+      const tYear = d.getFullYear();
+      const tMonth = d.getMonth() + 1;
+      
+      let isBefore = false;
+      
+      if (filterYear !== null && filterMonth !== null) {
+        if (tYear < filterYear) {
+          isBefore = true;
+        } else if (tYear === filterYear && tMonth < filterMonth) {
+          isBefore = true;
+        }
+      } else if (filterYear !== null && filterMonth === null) {
+        if (tYear < filterYear) {
+          isBefore = true;
+        }
+      } else if (filterYear === null && filterMonth !== null) {
+        if (sortedTxns.length > 0) {
+          const firstYear = new Date(sortedTxns[0].date).getFullYear();
+          if (tYear === firstYear && tMonth < filterMonth) {
+            isBefore = true;
+          } else if (tYear < firstYear) {
+            isBefore = true;
+          }
+        }
+      }
+      
+      return isBefore;
+    });
+    
+    for (const t of previousEntries) {
+      if (t.type === 'debit') openingBalance += t.amount;
+      else openingBalance -= t.amount;
+    }
+    
+    entriesInPeriod = sortedTxns.filter(t => {
+      const d = new Date(t.date);
+      const tYear = d.getFullYear();
+      const tMonth = d.getMonth() + 1;
+      
+      let match = true;
+      if (filterYear !== null) match = match && tYear === filterYear;
+      if (filterMonth !== null) match = match && tMonth === filterMonth;
+      return match;
+    });
+  } else {
+    entriesInPeriod = sortedTxns;
+    openingBalance = 0;
+  }
+  
+  let rows = '';
+  let balance = openingBalance;
+  
+  if (month !== 'all' || year !== 'all') {
+    if (previousEntries.length > 0 || openingBalance !== 0) {
+      rows += `
+        <tr class="bd-bf-row">
+          <td style="font-weight:700;color:#4361ee;">B/D</td>
+          <td class="label-bd" style="font-weight:700;color:#4361ee;">Balance Brought Down</td>
+          <td class="text-green fw-700 text-right">${openingBalance >= 0 ? formatNumber(Math.abs(openingBalance)) : ''}</td>
+          <td class="text-red fw-700 text-right">${openingBalance < 0 ? formatNumber(Math.abs(openingBalance)) : ''}</td>
+          <td class="fw-700 text-right">${formatNumber(openingBalance)}</td>
+          <td></td>
+        </tr>
+      `;
+    }
+  }
+  
+  if (entriesInPeriod.length > 0) {
+    entriesInPeriod.forEach(txn => {
+      if (txn.type === 'debit') balance += txn.amount;
+      else balance -= txn.amount;
+      rows += `
+        <tr>
+          <td>${txn.date}</td>
+          <td>${txn.description}</td>
+          <td class="text-green fw-700 text-right">${txn.type === 'debit' ? formatNumber(txn.amount) : ''}</td>
+          <td class="text-red fw-700 text-right">${txn.type === 'credit' ? formatNumber(txn.amount) : ''}</td>
+          <td class="fw-700 text-right">${formatNumber(balance)}</td>
+          <td class="text-center no-print" onclick="event.stopPropagation();">
+            <div class="dropdown-container">
+              <button class="dropdown-trigger" onclick="toggleDropdown('bankTxnDropdown_${txn.id}')">
+                <i class="fas fa-ellipsis-v"></i>
+              </button>
+              <div class="dropdown-menu" id="bankTxnDropdown_${txn.id}">
+                <button class="dropdown-item danger" onclick="deleteBankTransaction('${txn.id}')"><i class="fas fa-trash"></i> Delete</button>
+              </div>
             </div>
-          </div>
+          </td>
+        </tr>
+      `;
+    });
+  } else if (month !== 'all' || year !== 'all') {
+    rows += `
+      <tr>
+        <td colspan="6" style="padding:20px; text-align:center; color:#6b7490; font-style:italic;">
+          No transactions in this period. Balance carried forward: ${formatNumber(balance)}
         </td>
       </tr>
     `;
-  }).join('');
+  }
   
-  filterState.bank.month = month;
-  filterState.bank.year = year;
+  if (month !== 'all' || year !== 'all') {
+    if (previousEntries.length > 0 || openingBalance !== 0) {
+      rows += `
+        <tr class="bd-bf-row">
+          <td style="font-weight:700;color:#7c3aed;">B/F</td>
+          <td class="label-bf" style="font-weight:700;color:#7c3aed;">Balance Brought Forward</td>
+          <td class="text-green fw-700 text-right">${balance >= 0 ? formatNumber(Math.abs(balance)) : ''}</td>
+          <td class="text-red fw-700 text-right">${balance < 0 ? formatNumber(Math.abs(balance)) : ''}</td>
+          <td class="fw-700 text-right">${formatNumber(balance)}</td>
+          <td></td>
+        </tr>
+      `;
+    }
+  }
+  
+  if (month === 'all' && year === 'all' && transactions.length > 0) {
+    let finalBalance = 0;
+    sortedTxns.forEach(t => {
+      if (t.type === 'debit') finalBalance += t.amount;
+      else finalBalance -= t.amount;
+    });
+    rows += `
+      <tr class="bd-bf-row">
+        <td style="font-weight:700;color:#7c3aed;">B/F</td>
+        <td class="label-bf" style="font-weight:700;color:#7c3aed;">Balance Brought Forward</td>
+        <td class="text-green fw-700 text-right">${finalBalance >= 0 ? formatNumber(Math.abs(finalBalance)) : ''}</td>
+        <td class="text-red fw-700 text-right">${finalBalance < 0 ? formatNumber(Math.abs(finalBalance)) : ''}</td>
+        <td class="fw-700 text-right">${formatNumber(finalBalance)}</td>
+        <td></td>
+      </tr>
+    `;
+  }
+  
+  if (rows === '') {
+    tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted" style="padding:20px;">No transactions found.</td></tr>`;
+  } else {
+    tbody.innerHTML = rows;
+  }
 }
 
-function applyBankFilter() { renderBankLedgerTransactions(); }
+function applyBankFilter() {
+  console.log('Applying bank filter...');
+  renderBankLedgerTransactions();
+}
+
 function resetBankFilter() {
   document.getElementById('bankFilterMonth').value = 'all';
   document.getElementById('bankFilterYear').value = 'all';
   filterState.bank.month = 'all';
   filterState.bank.year = 'all';
+  saveFilterState();
   renderBankLedgerTransactions();
 }
 
@@ -2399,12 +2910,11 @@ function closeBankLedger() {
 }
 
 // ============================================================
-// EXPENSES - FIRESTORE (NO orderBy)
+// EXPENSES WITH PROPER FILTERING
 // ============================================================
 function setupExpensesListener() {
   if (unsubExpenses) unsubExpenses();
   
-  // Removed orderBy to avoid index requirement
   const q = query(
     collection(db, 'expenses'),
     where('branchId', '==', branchId)
@@ -2415,7 +2925,6 @@ function setupExpensesListener() {
       id: doc.id,
       ...doc.data()
     }));
-    // Sort client-side (newest first)
     expenses.sort((a, b) => new Date(b.date) - new Date(a.date));
     renderExpenses();
     updateStats();
@@ -2425,21 +2934,16 @@ function setupExpensesListener() {
   });
 }
 
-function populateExpenseAccounts() {
-  const select = document.getElementById('expenseAccount');
-  select.innerHTML = '<option value="">Select Account...</option>';
-  accounts.forEach(a => {
-    const opt = document.createElement('option');
-    opt.value = a.id;
-    opt.textContent = `${a.code} - ${a.name} (${formatNumber(a.balance)})`;
-    select.appendChild(opt);
-  });
-}
-
 function renderExpenses() {
   const tbody = document.getElementById('expenseTableBody');
   const month = document.getElementById('expenseFilterMonth').value;
   const year = document.getElementById('expenseFilterYear').value;
+  
+  filterState.expense.month = month;
+  filterState.expense.year = year;
+  saveFilterState();
+  
+  console.log('Filtering Expenses - Month:', month, 'Year:', year, 'Total expenses:', expenses.length);
   
   let filtered = expenses;
   if (month !== 'all') {
@@ -2463,14 +2967,24 @@ function renderExpenses() {
   }
   
   tbody.innerHTML = filtered.map(e => {
-    const account = accounts.find(a => a.id === e.accountId);
+    let sourceName = 'Unknown';
+    if (e.accountId === 'cashbook') {
+      sourceName = 'Cash in Hand';
+    } else {
+      const account = accounts.find(a => a.id === e.accountId);
+      if (account) sourceName = account.name;
+      else {
+        const bank = banks.find(b => b.id === e.accountId);
+        if (bank) sourceName = bank.name;
+      }
+    }
     return `
       <tr>
         <td>${e.date}</td>
         <td><span class="status-badge pending">${e.category}</span></td>
         <td>${e.description}</td>
         <td class="text-red fw-700 text-right">${formatNumber(e.amount)}</td>
-        <td>${account ? account.name : 'Unknown'}</td>
+        <td>${sourceName}</td>
         <td class="text-center no-print" onclick="event.stopPropagation();">
           <div class="dropdown-container">
             <button class="dropdown-trigger" onclick="toggleDropdown('expenseDropdown_${e.id}')">
@@ -2487,6 +3001,12 @@ function renderExpenses() {
   
   document.getElementById('expenseCount').textContent = expenses.length + ' expenses';
   document.getElementById('navExpenseCount').textContent = expenses.length;
+  console.log('Rendered expenses with', filtered.length, 'entries');
+}
+
+function applyExpenseFilter() {
+  console.log('Applying expense filter...');
+  renderExpenses();
 }
 
 function resetExpenseFilter() {
@@ -2494,18 +3014,27 @@ function resetExpenseFilter() {
   document.getElementById('expenseFilterYear').value = 'all';
   filterState.expense.month = 'all';
   filterState.expense.year = 'all';
+  saveFilterState();
   renderExpenses();
 }
 
+// ============================================================
+// SAVE EXPENSE
+// ============================================================
 async function saveExpense(e) {
   e.preventDefault();
   const accountId = document.getElementById('expenseAccount').value;
   if (!accountId) {
-    toast('Please select an account to pay from.', 'error');
+    toast('Please select a payment source.', 'error');
     return;
   }
   
   const amount = parseFloat(document.getElementById('expenseAmount').value) || 0;
+  if (amount <= 0) {
+    toast('Please enter a valid amount greater than 0.', 'error');
+    return;
+  }
+  
   const data = {
     date: document.getElementById('expenseDate').value,
     category: document.getElementById('expenseCategory').value,
@@ -2519,32 +3048,72 @@ async function saveExpense(e) {
   try {
     await addDoc(collection(db, 'expenses'), data);
     
-    const accountRef = doc(db, 'accounts', accountId);
-    const accountSnap = await getDoc(accountRef);
-    if (accountSnap.exists()) {
-      const currentBalance = accountSnap.data().balance || 0;
-      await updateDoc(accountRef, { balance: currentBalance - amount });
+    let sourceName = '';
+    
+    if (accountId === 'cashbook') {
+      await addDoc(collection(db, 'cashbook'), {
+        date: data.date,
+        type: 'credit',
+        description: 'Expense: ' + data.category + ' - ' + data.description,
+        amount: amount,
+        branchId: branchId,
+        createdAt: serverTimestamp()
+      });
+      sourceName = 'Cash in Hand';
+      toast('Expense of ' + formatNumber(amount) + ' recorded from Cash in Hand!');
+    } else {
+      const account = accounts.find(a => a.id === accountId);
+      if (account) {
+        const accountRef = doc(db, 'accounts', accountId);
+        const currentBalance = account.balance || 0;
+        await updateDoc(accountRef, { balance: currentBalance - amount });
+        sourceName = account.name;
+        
+        await addDoc(collection(db, 'accountTransactions'), {
+          accountId: accountId,
+          date: data.date,
+          type: 'credit',
+          description: 'Expense: ' + data.category + ' - ' + data.description,
+          amount: amount,
+          branchId: branchId,
+          createdAt: serverTimestamp()
+        });
+        toast('Expense of ' + formatNumber(amount) + ' recorded from ' + account.name + '!');
+      } else {
+        const bank = banks.find(b => b.id === accountId);
+        if (bank) {
+          const bankRef = doc(db, 'bankAccounts', accountId);
+          const currentBalance = bank.balance || 0;
+          await updateDoc(bankRef, { balance: currentBalance - amount });
+          sourceName = bank.name;
+          
+          await addDoc(collection(db, 'bankTransactions'), {
+            bankId: accountId,
+            date: data.date,
+            type: 'credit',
+            description: 'Expense: ' + data.category + ' - ' + data.description,
+            amount: amount,
+            branchId: branchId,
+            createdAt: serverTimestamp()
+          });
+          toast('Expense of ' + formatNumber(amount) + ' recorded from ' + bank.name + '!');
+        }
+      }
     }
     
-    await addDoc(collection(db, 'accountTransactions'), {
-      accountId: accountId,
-      date: data.date,
-      type: 'credit',
-      description: `Expense: ${data.category} - ${data.description}`,
-      amount: amount,
-      branchId: branchId,
-      createdAt: serverTimestamp()
-    });
-    
-    toast('Expense added successfully!');
     closeModal('expenseModal');
     document.getElementById('expenseForm').reset();
+    updateAllPaymentSources();
+    
   } catch (error) {
     console.error('Save expense error:', error);
     toast('Error saving expense: ' + error.message, 'error');
   }
 }
 
+// ============================================================
+// DELETE EXPENSE
+// ============================================================
 async function deleteExpense(id) {
   if (!confirm('Delete this expense and reverse deduction?')) return;
   try {
@@ -2557,25 +3126,58 @@ async function deleteExpense(id) {
     
     await deleteDoc(expenseRef);
     
-    const accountRef = doc(db, 'accounts', accountId);
-    const accountSnap = await getDoc(accountRef);
-    if (accountSnap.exists()) {
-      const currentBalance = accountSnap.data().balance || 0;
-      await updateDoc(accountRef, { balance: currentBalance + expense.amount });
+    if (accountId === 'cashbook') {
+      const cashbookQuery = query(
+        collection(db, 'cashbook'),
+        where('description', '==', 'Expense: ' + expense.category + ' - ' + expense.description),
+        where('amount', '==', expense.amount)
+      );
+      const cashbookSnap = await getDocs(cashbookQuery);
+      const batch = writeBatch(db);
+      cashbookSnap.docs.forEach(d => batch.delete(doc(db, 'cashbook', d.id)));
+      await batch.commit();
+      toast('Expense deleted and cash restored!');
+    } else {
+      const account = accounts.find(a => a.id === accountId);
+      if (account) {
+        const accountRef = doc(db, 'accounts', accountId);
+        const currentBalance = account.balance || 0;
+        await updateDoc(accountRef, { balance: currentBalance + expense.amount });
+        
+        const txnQuery = query(
+          collection(db, 'accountTransactions'),
+          where('accountId', '==', accountId),
+          where('description', '==', 'Expense: ' + expense.category + ' - ' + expense.description),
+          where('amount', '==', expense.amount)
+        );
+        const txnSnap = await getDocs(txnQuery);
+        const batch = writeBatch(db);
+        txnSnap.docs.forEach(d => batch.delete(doc(db, 'accountTransactions', d.id)));
+        await batch.commit();
+        toast('Expense deleted and account balance restored!');
+      } else {
+        const bank = banks.find(b => b.id === accountId);
+        if (bank) {
+          const bankRef = doc(db, 'bankAccounts', accountId);
+          const currentBalance = bank.balance || 0;
+          await updateDoc(bankRef, { balance: currentBalance + expense.amount });
+          
+          const txnQuery = query(
+            collection(db, 'bankTransactions'),
+            where('bankId', '==', accountId),
+            where('description', '==', 'Expense: ' + expense.category + ' - ' + expense.description),
+            where('amount', '==', expense.amount)
+          );
+          const txnSnap = await getDocs(txnQuery);
+          const batch = writeBatch(db);
+          txnSnap.docs.forEach(d => batch.delete(doc(db, 'bankTransactions', d.id)));
+          await batch.commit();
+          toast('Expense deleted and bank balance restored!');
+        }
+      }
     }
     
-    const txnQuery = query(
-      collection(db, 'accountTransactions'),
-      where('accountId', '==', accountId),
-      where('description', '==', `Expense: ${expense.category} - ${expense.description}`),
-      where('amount', '==', expense.amount)
-    );
-    const txnSnap = await getDocs(txnQuery);
-    const batch = writeBatch(db);
-    txnSnap.docs.forEach(d => batch.delete(doc(db, 'accountTransactions', d.id)));
-    await batch.commit();
-    
-    toast('Expense deleted successfully!');
+    updateAllPaymentSources();
   } catch (error) {
     console.error('Delete expense error:', error);
     toast('Error deleting expense: ' + error.message, 'error');
@@ -2592,7 +3194,7 @@ function populateReportSelects() {
     accounts.forEach(a => {
       const opt = document.createElement('option');
       opt.value = a.id;
-      opt.textContent = `${a.code} - ${a.name} (${a.type})`;
+      opt.textContent = a.code + ' - ' + a.name + ' (' + a.type + ')';
       accountSelect.appendChild(opt);
     });
   }
@@ -2603,7 +3205,7 @@ function populateReportSelects() {
     banks.forEach(b => {
       const opt = document.createElement('option');
       opt.value = b.id;
-      opt.textContent = `${b.name} - ${b.accountNo}`;
+      opt.textContent = b.name + ' - ' + b.accountNo;
       bankSelect.appendChild(opt);
     });
   }
@@ -2668,7 +3270,7 @@ async function downloadAccountStatementPDF() {
     </div>
   `;
   
-  generatePDF(html, `${account.name}_Statement.pdf`);
+  generatePDF(html, account.name + '_Statement.pdf');
 }
 
 async function downloadBankStatementPDF() {
@@ -2730,7 +3332,7 @@ async function downloadBankStatementPDF() {
     </div>
   `;
   
-  generatePDF(html, `${bank.name}_Statement.pdf`);
+  generatePDF(html, bank.name + '_Statement.pdf');
 }
 
 async function downloadTrialBalancePDF() {
@@ -2938,7 +3540,7 @@ function downloadLedgerPDF(type) {
   
   const opt = {
     margin: [10, 10, 10, 10],
-    filename: `${title}_Statement.pdf`,
+    filename: title + '_Statement.pdf',
     image: { type: 'jpeg', quality: 0.98 },
     html2canvas: { scale: 2, useCORS: true },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
@@ -3028,11 +3630,7 @@ async function fetchInventoryValue() {
 function init() {
   populateYearDropdowns();
   
-  setupAccountsListener();
-  setupCashbookListener();
-  setupBanksListener();
-  setupExpensesListener();
-  
+  // Set filter values from loaded state
   document.getElementById('accountFilterMonth').value = filterState.account.month;
   document.getElementById('accountFilterYear').value = filterState.account.year;
   document.getElementById('bankFilterMonth').value = filterState.bank.month;
@@ -3042,6 +3640,11 @@ function init() {
   document.getElementById('expenseFilterMonth').value = filterState.expense.month;
   document.getElementById('expenseFilterYear').value = filterState.expense.year;
   
+  setupAccountsListener();
+  setupCashbookListener();
+  setupBanksListener();
+  setupExpensesListener();
+  
   document.getElementById('cashbookDate').value = getToday();
   document.getElementById('expenseDate').value = getToday();
   document.getElementById('ledgerTxnDate').value = getToday();
@@ -3049,10 +3652,14 @@ function init() {
   
   navigateTo('dashboard', false);
   
-  console.log('✅ Trismart Accounting System - Firestore Migration Complete (No indexes required!)');
-  console.log(`📊 Branch: ${branchId}`);
-  console.log('🔥 All sorting is done client-side, no Firestore indexes needed!');
+  console.log('Trismart Accounting System - Fully Functional');
+  console.log('Branch: ' + branchId);
+  console.log('Filters saved to localStorage and will persist after refresh');
 }
+
+setTimeout(() => {
+  updateAllPaymentSources();
+}, 1000);
 
 init();
 
@@ -3085,7 +3692,9 @@ window.applyAccountFilter = applyAccountFilter;
 window.resetAccountFilter = resetAccountFilter;
 window.applyBankFilter = applyBankFilter;
 window.resetBankFilter = resetBankFilter;
+window.applyCashbookFilter = applyCashbookFilter;
 window.resetCashbookFilter = resetCashbookFilter;
+window.applyExpenseFilter = applyExpenseFilter;
 window.resetExpenseFilter = resetExpenseFilter;
 window.downloadTrialBalancePDF = downloadTrialBalancePDF;
 window.downloadSummaryPDF = downloadSummaryPDF;
