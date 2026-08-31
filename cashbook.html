@@ -241,6 +241,12 @@
       box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);
     }
     .btn-purple:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4); }
+    .btn-teal {
+      background: linear-gradient(135deg, var(--teal), #0f766e);
+      color: white;
+      box-shadow: 0 2px 8px rgba(13, 148, 136, 0.3);
+    }
+    .btn-teal:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(13, 148, 136, 0.4); }
     .btn-outline {
       background: transparent;
       color: var(--text-fade);
@@ -403,6 +409,7 @@
     .text-blue { color: var(--blue); }
     .text-orange { color: var(--orange); }
     .text-purple { color: var(--purple); }
+    .text-teal { color: var(--teal); }
     .fw-700 { font-weight: 700; }
 
     .status-badge {
@@ -421,6 +428,7 @@
     .status-badge.expense { background: #fff3e0; color: #e65100; }
     .status-badge.cash { background: #d1fae5; color: #065f46; }
     .status-badge.bank { background: #dbeafe; color: #1e40af; }
+    .status-badge.inventory { background: #e0f2fe; color: #0369a1; }
 
     .clickable-row {
       cursor: pointer;
@@ -641,12 +649,6 @@
       color: var(--text);
     }
 
-    .report-buttons {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
     .sidebar-nav .nav-item.external {
       color: var(--text);
     }
@@ -715,6 +717,17 @@
       color: var(--purple);
     }
 
+    .total-row td {
+      background: #f0f4ff !important;
+      font-weight: 800;
+      border-top: 3px solid var(--blue);
+      border-bottom: 3px solid var(--blue);
+      font-size: 0.9rem;
+    }
+    .total-row .label-total {
+      color: var(--blue);
+    }
+
     @media print {
       .no-print { display: none !important; }
       .sidebar { display: none !important; }
@@ -756,13 +769,18 @@
         <i class="fas fa-university"></i> Bank Accounts
         <span class="badge" id="navBankCount">0</span>
       </a>
+      <a class="nav-item" data-page="inventory" onclick="navigateTo('inventory')">
+        <i class="fas fa-boxes"></i> Inventory
+      </a>
       <a class="nav-item" data-page="expenses" onclick="navigateTo('expenses')">
         <i class="fas fa-file-invoice-dollar"></i> Expenses
-        <span class="badge" id="navExpenseCount">0</span>
       </a>
       <a class="nav-item" data-page="reports" onclick="navigateTo('reports')">
         <i class="fas fa-file-alt"></i> Reports
         <span class="badge">PDF</span>
+      </a>
+      <a class="nav-item" data-page="transfer" onclick="navigateTo('transfer')">
+        <i class="fas fa-exchange-alt"></i> Transfer Funds
       </a>
 
       <div class="nav-label" style="margin-top:12px;">Business</div>
@@ -823,9 +841,9 @@
             <div class="label"><i class="fas fa-file-invoice-dollar icon" style="color:var(--red);"></i> Total Expenses</div>
             <div class="value text-red" id="dashExpenses">0.00</div>
           </div>
-          <div class="stat-item">
-            <div class="label"><i class="fas fa-boxes icon" style="color:var(--orange);"></i> Inventory Value</div>
-            <div class="value text-orange" id="dashInventory">0.00</div>
+          <div class="stat-item" onclick="navigateTo('inventory')">
+            <div class="label"><i class="fas fa-boxes icon" style="color:var(--teal);"></i> Inventory Spent</div>
+            <div class="value text-teal" id="dashInventorySpent">0.00</div>
           </div>
         </div>
         <div class="card">
@@ -835,8 +853,10 @@
           <div style="display:flex;gap:12px;flex-wrap:wrap;">
             <button class="btn btn-primary no-print" onclick="navigateTo('accounts');openModal('accountModal')"><i class="fas fa-plus"></i> Add Account</button>
             <button class="btn btn-green no-print" onclick="navigateTo('cashbook');openModal('cashbookModal')"><i class="fas fa-plus"></i> Cash Entry</button>
+            <button class="btn btn-teal no-print" onclick="navigateTo('inventory');openModal('inventoryModal')"><i class="fas fa-plus"></i> Inventory Order</button>
             <button class="btn btn-orange no-print" onclick="navigateTo('expenses');openModal('expenseModal')"><i class="fas fa-plus"></i> Add Expense</button>
-            <button class="btn btn-purple no-print" onclick="navigateTo('reports')"><i class="fas fa-file-pdf"></i> View Reports</button>
+            <button class="btn btn-purple no-print" onclick="navigateTo('transfer')"><i class="fas fa-exchange-alt"></i> Transfer Funds</button>
+            <button class="btn btn-primary no-print" onclick="navigateTo('reports')"><i class="fas fa-file-pdf"></i> View Reports</button>
           </div>
         </div>
       </div>
@@ -1074,11 +1094,66 @@
         </div>
       </div>
 
+      <!-- INVENTORY -->
+      <div class="page-section" id="page-inventory">
+        <div class="card">
+          <div class="card-header">
+            <h2><i class="fas fa-boxes" style="color:var(--teal);"></i> Inventory Orders</h2>
+            <div class="flex no-print">
+              <span class="badge" id="inventoryCount">0 orders</span>
+              <button class="btn btn-teal btn-sm" onclick="openModal('inventoryModal')"><i class="fas fa-plus"></i> Add Order</button>
+              <button class="btn btn-primary btn-sm" onclick="downloadInventoryPDF()"><i class="fas fa-file-pdf"></i> PDF</button>
+            </div>
+          </div>
+          <div class="filter-bar no-print">
+            <label>Month:</label>
+            <select id="inventoryFilterMonth" onchange="applyInventoryFilter()">
+              <option value="all">All</option>
+              <option value="01">January</option>
+              <option value="02">February</option>
+              <option value="03">March</option>
+              <option value="04">April</option>
+              <option value="05">May</option>
+              <option value="06">June</option>
+              <option value="07">July</option>
+              <option value="08">August</option>
+              <option value="09">September</option>
+              <option value="10">October</option>
+              <option value="11">November</option>
+              <option value="12">December</option>
+            </select>
+            <label>Year:</label>
+            <select id="inventoryFilterYear" onchange="applyInventoryFilter()">
+              <option value="all">All</option>
+            </select>
+            <button class="btn btn-outline btn-sm" onclick="resetInventoryFilter()"><i class="fas fa-undo"></i> Reset</button>
+          </div>
+          <div id="inventoryContent">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width:120px;">Date</th>
+                    <th>Description</th>
+                    <th style="width:140px;text-align:right;">Amount</th>
+                    <th style="width:150px;">Paid From</th>
+                    <th style="width:80px;text-align:center;" class="no-print">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="inventoryTableBody">
+                  <tr class="loading-row"><td colspan="5"><span class="spinner"></span> Loading inventory orders...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- EXPENSES -->
       <div class="page-section" id="page-expenses">
         <div class="card">
           <div class="card-header">
-            <h2><i class="fas fa-file-invoice-dollar" style="color:var(--orange);"></i> Expenses Journal</h2>
+            <h2><i class="fas fa-file-invoice-dollar" style="color:var(--orange);"></i> Expenses</h2>
             <div class="flex no-print">
               <span class="badge" id="expenseCount">0 expenses</span>
               <button class="btn btn-orange btn-sm" onclick="openModal('expenseModal')"><i class="fas fa-plus"></i> Add Expense</button>
@@ -1114,7 +1189,6 @@
                 <thead>
                   <tr>
                     <th style="width:120px;">Date</th>
-                    <th style="width:150px;">Category</th>
                     <th>Description</th>
                     <th style="width:140px;text-align:right;">Amount</th>
                     <th style="width:150px;">Paid From</th>
@@ -1122,7 +1196,68 @@
                   </tr>
                 </thead>
                 <tbody id="expenseTableBody">
-                  <tr class="loading-row"><td colspan="6"><span class="spinner"></span> Loading expenses...</td></tr>
+                  <tr class="loading-row"><td colspan="5"><span class="spinner"></span> Loading expenses...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TRANSFER FUNDS -->
+      <div class="page-section" id="page-transfer">
+        <div class="card">
+          <div class="card-header">
+            <h2><i class="fas fa-exchange-alt" style="color:var(--purple);"></i> Transfer Funds</h2>
+          </div>
+          <form id="transferForm" onsubmit="saveTransfer(event)">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Date</label>
+                <input type="date" id="transferDate" required>
+              </div>
+              <div class="form-group">
+                <label>Amount</label>
+                <input type="number" id="transferAmount" step="0.01" placeholder="0.00" required>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>From Account</label>
+                <select id="transferFrom" required>
+                  <option value="">Select Source...</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>To Account</label>
+                <select id="transferTo" required>
+                  <option value="">Select Destination...</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Description / Reference</label>
+              <input type="text" id="transferDesc" placeholder="e.g. Transfer to Inventory Fund" required>
+            </div>
+            <button type="submit" class="btn btn-purple"><i class="fas fa-exchange-alt"></i> Transfer Funds</button>
+          </form>
+          <hr style="margin:20px 0;">
+          <h3 style="font-size:0.85rem;margin-bottom:12px;"><i class="fas fa-history"></i> Transfer History</h3>
+          <div id="transferHistory">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width:120px;">Date</th>
+                    <th>Description</th>
+                    <th style="width:140px;">From</th>
+                    <th style="width:140px;">To</th>
+                    <th style="width:140px;text-align:right;">Amount</th>
+                    <th style="width:80px;text-align:center;" class="no-print">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="transferTableBody">
+                  <tr class="loading-row"><td colspan="6"><span class="spinner"></span> Loading transfers...</td></tr>
                 </tbody>
               </table>
             </div>
@@ -1146,7 +1281,7 @@
             </div>
             <div style="background:var(--bg3); border-radius:var(--radius-lg); padding:20px; border:1px solid var(--border);">
               <h3 style="font-size:0.85rem; margin-bottom:8px;"><i class="fas fa-chart-simple" style="color:var(--green);"></i> Financial Summary</h3>
-              <p style="font-size:0.7rem; color:var(--text-fade); margin-bottom:12px;">Summary of Cash Balance, Bank Balance, Total Expenses, and Inventory Value.</p>
+              <p style="font-size:0.7rem; color:var(--text-fade); margin-bottom:12px;">Summary of Cash Balance, Bank Balance, Total Expenses, and Inventory Spent.</p>
               <button class="btn btn-green btn-sm" onclick="downloadSummaryPDF()"><i class="fas fa-file-pdf"></i> Download PDF</button>
             </div>
             <div style="background:var(--bg3); border-radius:var(--radius-lg); padding:20px; border:1px solid var(--border);">
@@ -1176,8 +1311,13 @@
             </div>
             <div style="background:var(--bg3); border-radius:var(--radius-lg); padding:20px; border:1px solid var(--border);">
               <h3 style="font-size:0.85rem; margin-bottom:8px;"><i class="fas fa-file-invoice-dollar" style="color:var(--orange);"></i> Expenses Report</h3>
-              <p style="font-size:0.7rem; color:var(--text-fade); margin-bottom:12px;">All expense transactions categorized by type.</p>
+              <p style="font-size:0.7rem; color:var(--text-fade); margin-bottom:12px;">All expense transactions.</p>
               <button class="btn btn-orange btn-sm" onclick="downloadExpensesPDF()"><i class="fas fa-file-pdf"></i> Download PDF</button>
+            </div>
+            <div style="background:var(--bg3); border-radius:var(--radius-lg); padding:20px; border:1px solid var(--border);">
+              <h3 style="font-size:0.85rem; margin-bottom:8px;"><i class="fas fa-boxes" style="color:var(--teal);"></i> Inventory Report</h3>
+              <p style="font-size:0.7rem; color:var(--text-fade); margin-bottom:12px;">All inventory orders and purchases.</p>
+              <button class="btn btn-teal btn-sm" onclick="downloadInventoryPDF()"><i class="fas fa-file-pdf"></i> Download PDF</button>
             </div>
           </div>
         </div>
@@ -1315,6 +1455,38 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="inventoryModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Add Inventory Order</h3>
+      <button class="modal-close" onclick="closeModal('inventoryModal')">&times;</button>
+    </div>
+    <form id="inventoryForm" onsubmit="saveInventoryOrder(event)">
+      <div class="form-group">
+        <label>Date</label>
+        <input type="date" id="inventoryDate" required>
+      </div>
+      <div class="form-group">
+        <label>Description</label>
+        <input type="text" id="inventoryDesc" placeholder="e.g. Bought 100 units of product X" required>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Amount</label>
+          <input type="number" id="inventoryAmount" step="0.01" placeholder="0.00" required>
+        </div>
+        <div class="form-group">
+          <label>Paid From</label>
+          <select id="inventoryAccount" required>
+            <option value="">Select Account...</option>
+          </select>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-teal">Save Order</button>
+    </form>
+  </div>
+</div>
+
 <div class="modal-overlay" id="expenseModal">
   <div class="modal">
     <div class="modal-header">
@@ -1322,24 +1494,9 @@
       <button class="modal-close" onclick="closeModal('expenseModal')">&times;</button>
     </div>
     <form id="expenseForm" onsubmit="saveExpense(event)">
-      <div class="form-row">
-        <div class="form-group">
-          <label>Date</label>
-          <input type="date" id="expenseDate" required>
-        </div>
-        <div class="form-group">
-          <label>Category</label>
-          <select id="expenseCategory" required>
-            <option value="Office Supplies">Office Supplies</option>
-            <option value="Utilities">Utilities</option>
-            <option value="Rent">Rent</option>
-            <option value="Salaries">Salaries</option>
-            <option value="Marketing">Marketing</option>
-            <option value="Travel">Travel</option>
-            <option value="Maintenance">Maintenance</option>
-            <option value="Other">Other</option>
-          </select>
-        </div>
+      <div class="form-group">
+        <label>Date</label>
+        <input type="date" id="expenseDate" required>
       </div>
       <div class="form-group">
         <label>Description</label>
@@ -1449,6 +1606,8 @@ let accounts = [];
 let cashbook = [];
 let banks = [];
 let expenses = [];
+let inventoryOrders = [];
+let transfers = [];
 let accountTransactions = {};
 let bankTransactions = {};
 let allPaymentSources = [];
@@ -1463,7 +1622,8 @@ let filterState = {
   account: { month: 'all', year: 'all' },
   bank: { month: 'all', year: 'all' },
   cashbook: { month: 'all', year: 'all' },
-  expense: { month: 'all', year: 'all' }
+  expense: { month: 'all', year: 'all' },
+  inventory: { month: 'all', year: 'all' }
 };
 
 // Load filter state from localStorage
@@ -1496,20 +1656,24 @@ function saveFilterState() {
 // Load filters on init
 loadFilterState();
 
-let pageState = {
-  currentPage: 'dashboard',
-  currentLedger: null,
-  currentLedgerType: null,
-  currentBankId: null
-};
+// ============================================================
+// PAGE PERSISTENCE
+// ============================================================
+function saveCurrentPage(page) {
+  try {
+    localStorage.setItem('trismart_current_page', page);
+  } catch (e) {
+    console.warn('Could not save page state:', e);
+  }
+}
 
-// Unsubscribe functions
-let unsubAccounts = null;
-let unsubCashbook = null;
-let unsubBanks = null;
-let unsubExpenses = null;
-let unsubAccountTxns = {};
-let unsubBankTxns = {};
+function getSavedPage() {
+  try {
+    return localStorage.getItem('trismart_current_page') || 'dashboard';
+  } catch (e) {
+    return 'dashboard';
+  }
+}
 
 // ============================================================
 // UTILITY FUNCTIONS
@@ -1533,6 +1697,16 @@ function populateYearDropdowns() {
   document.querySelectorAll('select[id$="FilterYear"]').forEach(el => {
     el.innerHTML = yearOpts;
   });
+}
+
+function getSourceName(accountId) {
+  if (!accountId) return 'Unknown';
+  if (accountId === 'cashbook') return 'Cash in Hand';
+  const account = accounts.find(a => a.id === accountId);
+  if (account) return account.name;
+  const bank = banks.find(b => b.id === accountId);
+  if (bank) return bank.name;
+  return 'Unknown';
 }
 
 // ============================================================
@@ -1580,18 +1754,20 @@ function navigateTo(page, saveState = true) {
     accounts: 'Chart of Accounts',
     cashbook: 'Cashbook',
     bank: 'Bank Accounts',
-    expenses: 'Expenses Journal',
-    reports: 'Reports'
+    inventory: 'Inventory',
+    expenses: 'Expenses',
+    reports: 'Reports',
+    transfer: 'Transfer Funds'
   };
   document.getElementById('pageTitle').textContent = titles[page] || page;
   
   if (page === 'reports') populateReportSelects();
+  if (page === 'transfer') populateTransferSelects();
+  if (page === 'inventory') populateInventoryAccounts();
+  if (page === 'expenses') populateExpenseAccounts();
   
   if (saveState) {
-    pageState.currentPage = page;
-    pageState.currentLedger = null;
-    pageState.currentLedgerType = null;
-    pageState.currentBankId = null;
+    saveCurrentPage(page);
   }
 }
 
@@ -1600,6 +1776,9 @@ function openModal(id) {
   
   if (id === 'expenseModal') {
     populateExpenseAccounts();
+  }
+  if (id === 'inventoryModal') {
+    populateInventoryAccounts();
   }
   
   const dateInput = document.getElementById(id.replace('Modal', 'Date'));
@@ -1662,6 +1841,7 @@ function setupAccountsListener() {
     renderAccounts();
     updateStats();
     populateReportSelects();
+    populateTransferSelects();
     updateAllPaymentSources();
   }, (error) => {
     console.error('Accounts listener error:', error);
@@ -1822,6 +2002,8 @@ function updateAllPaymentSources() {
   });
   
   populateExpenseAccounts();
+  populateInventoryAccounts();
+  populateTransferSelects();
 }
 
 // ============================================================
@@ -1829,74 +2011,61 @@ function updateAllPaymentSources() {
 // ============================================================
 function populateExpenseAccounts() {
   const select = document.getElementById('expenseAccount');
-  if (!select) {
-    console.warn('Expense account select element not found');
-    return;
-  }
+  if (!select) return;
   
-  select.innerHTML = '';
-  
-  const defaultOpt = document.createElement('option');
-  defaultOpt.value = '';
-  defaultOpt.textContent = 'Select Payment Source...';
-  select.appendChild(defaultOpt);
-  
-  if (!allPaymentSources || allPaymentSources.length === 0) {
-    const opt = document.createElement('option');
-    opt.value = '';
-    opt.textContent = 'No sources - create accounts or banks first';
-    opt.disabled = true;
-    opt.style.color = '#ef4444';
-    select.appendChild(opt);
-    return;
-  }
-  
-  const grouped = {
-    'Account': [],
-    'Cashbook': [],
-    'Bank': []
-  };
+  select.innerHTML = '<option value="">Select Account...</option>';
   
   allPaymentSources.forEach(source => {
-    if (grouped[source.sourceType]) {
-      grouped[source.sourceType].push(source);
+    const opt = document.createElement('option');
+    opt.value = source.id;
+    opt.textContent = source.displayName;
+    if (source.balance <= 0 && source.type !== 'cashbook') {
+      opt.style.color = '#ef4444';
     }
-  });
-  
-  const typeLabels = {
-    'Account': 'Chart of Accounts',
-    'Cashbook': 'Cashbook',
-    'Bank': 'Bank Accounts'
-  };
-  
-  Object.keys(grouped).forEach(type => {
-    const sources = grouped[type];
-    if (sources.length === 0) return;
-    
-    const groupLabel = document.createElement('option');
-    groupLabel.value = '';
-    groupLabel.textContent = '-- ' + (typeLabels[type] || type) + ' --';
-    groupLabel.disabled = true;
-    groupLabel.style.fontWeight = '700';
-    groupLabel.style.color = '#4361ee';
-    select.appendChild(groupLabel);
-    
-    sources.forEach(source => {
-      const opt = document.createElement('option');
-      opt.value = source.id;
-      opt.textContent = source.displayName;
-      if (source.balance <= 0) {
-        opt.style.color = '#ef4444';
-      } else {
-        opt.style.color = '#1a1e2e';
-      }
-      select.appendChild(opt);
-    });
+    select.appendChild(opt);
   });
 }
 
 // ============================================================
-// ACCOUNT LEDGER WITH PROPER B/D LOGIC
+// POPULATE INVENTORY ACCOUNTS
+// ============================================================
+function populateInventoryAccounts() {
+  const select = document.getElementById('inventoryAccount');
+  if (!select) return;
+  
+  select.innerHTML = '<option value="">Select Account...</option>';
+  
+  allPaymentSources.forEach(source => {
+    const opt = document.createElement('option');
+    opt.value = source.id;
+    opt.textContent = source.displayName;
+    if (source.balance <= 0 && source.type !== 'cashbook') {
+      opt.style.color = '#ef4444';
+    }
+    select.appendChild(opt);
+  });
+}
+
+// ============================================================
+// POPULATE TRANSFER SELECTS
+// ============================================================
+function populateTransferSelects() {
+  const fromSelect = document.getElementById('transferFrom');
+  const toSelect = document.getElementById('transferTo');
+  
+  if (!fromSelect || !toSelect) return;
+  
+  const options = '<option value="">Select Account...</option>' + 
+    allPaymentSources.map(s => 
+      `<option value="${s.id}">${s.displayName}</option>`
+    ).join('');
+  
+  fromSelect.innerHTML = options;
+  toSelect.innerHTML = options;
+}
+
+// ============================================================
+// ACCOUNT LEDGER
 // ============================================================
 function setupAccountTransactionsListener(accountId) {
   if (unsubAccountTxns[accountId]) {
@@ -1934,21 +2103,16 @@ async function openAccountLedger(accountId, saveState = true) {
   document.getElementById('ledgerAccountName').textContent = account.name;
   document.getElementById('ledgerAccountInfo').textContent = 'Code: ' + account.code + ' | Type: ' + account.type + ' | Balance: ' + formatNumber(account.balance);
   
-  // Set filter values from state
   document.getElementById('accountFilterMonth').value = filterState.account.month;
   document.getElementById('accountFilterYear').value = filterState.account.year;
   
   setupAccountTransactionsListener(accountId);
   document.getElementById('ledgerTxnAccountId').value = accountId;
   
-  // Trigger initial render with current filters
   setTimeout(() => renderLedgerTransactions(), 100);
   
   if (saveState) {
-    pageState.currentPage = 'accounts';
-    pageState.currentLedger = accountId;
-    pageState.currentLedgerType = 'account';
-    pageState.currentBankId = null;
+    saveCurrentPage('accounts');
   }
 }
 
@@ -1963,24 +2127,19 @@ function renderLedgerTransactions() {
   filterState.account.year = year;
   saveFilterState();
   
-  console.log('Rendering Account Ledger - Month:', month, 'Year:', year, 'Total transactions:', transactions.length);
-  
   const sortedTxns = [...transactions].sort((a, b) => new Date(a.date) - new Date(b.date));
   
-  // Get account info
   const account = accounts.find(a => a.id === currentLedgerId);
   if (!account) {
     tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted" style="padding:20px;">Account not found.</td></tr>`;
     return;
   }
   
-  // If no transactions at all
   if (transactions.length === 0) {
     tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted" style="padding:20px;">No transactions found for this account.</td></tr>`;
     return;
   }
   
-  // Determine opening balance and entries in period
   let openingBalance = 0;
   let entriesInPeriod = [];
   let previousEntries = [];
@@ -1989,7 +2148,6 @@ function renderLedgerTransactions() {
     const filterYear = year !== 'all' ? parseInt(year) : null;
     const filterMonth = month !== 'all' ? parseInt(month) : null;
     
-    // Find entries before the filter period
     previousEntries = sortedTxns.filter(t => {
       const d = new Date(t.date);
       const tYear = d.getFullYear();
@@ -2021,13 +2179,11 @@ function renderLedgerTransactions() {
       return isBefore;
     });
     
-    // Calculate opening balance from previous entries
     for (const t of previousEntries) {
       if (t.type === 'debit') openingBalance += t.amount;
       else openingBalance -= t.amount;
     }
     
-    // Get entries in the filter period
     entriesInPeriod = sortedTxns.filter(t => {
       const d = new Date(t.date);
       const tYear = d.getFullYear();
@@ -2039,16 +2195,13 @@ function renderLedgerTransactions() {
       return match;
     });
   } else {
-    // No filter - show all entries
     entriesInPeriod = sortedTxns;
     openingBalance = 0;
   }
   
-  // Build rows
   let rows = '';
   let balance = openingBalance;
   
-  // Show B/D row (always show when filtered)
   if (month !== 'all' || year !== 'all') {
     if (previousEntries.length > 0 || openingBalance !== 0) {
       rows += `
@@ -2064,7 +2217,6 @@ function renderLedgerTransactions() {
     }
   }
   
-  // Show transactions in period
   if (entriesInPeriod.length > 0) {
     entriesInPeriod.forEach(txn => {
       if (txn.type === 'debit') balance += txn.amount;
@@ -2090,7 +2242,6 @@ function renderLedgerTransactions() {
       `;
     });
   } else if (month !== 'all' || year !== 'all') {
-    // No transactions in period - show carry forward message
     rows += `
       <tr>
         <td colspan="6" style="padding:20px; text-align:center; color:#6b7490; font-style:italic;">
@@ -2100,7 +2251,6 @@ function renderLedgerTransactions() {
     `;
   }
   
-  // Show B/F row (always show when filtered)
   if (month !== 'all' || year !== 'all') {
     if (previousEntries.length > 0 || openingBalance !== 0) {
       rows += `
@@ -2116,7 +2266,24 @@ function renderLedgerTransactions() {
     }
   }
   
-  // If no rows, show empty state
+  if (month === 'all' && year === 'all' && transactions.length > 0) {
+    let finalBalance = 0;
+    sortedTxns.forEach(t => {
+      if (t.type === 'debit') finalBalance += t.amount;
+      else finalBalance -= t.amount;
+    });
+    rows += `
+      <tr class="bd-bf-row">
+        <td style="font-weight:700;color:#7c3aed;">B/F</td>
+        <td class="label-bf" style="font-weight:700;color:#7c3aed;">Balance Brought Forward</td>
+        <td class="text-green fw-700 text-right">${finalBalance >= 0 ? formatNumber(Math.abs(finalBalance)) : ''}</td>
+        <td class="text-red fw-700 text-right">${finalBalance < 0 ? formatNumber(Math.abs(finalBalance)) : ''}</td>
+        <td class="fw-700 text-right">${formatNumber(finalBalance)}</td>
+        <td></td>
+      </tr>
+    `;
+  }
+  
   if (rows === '') {
     tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted" style="padding:20px;">No transactions found.</td></tr>`;
   } else {
@@ -2124,11 +2291,7 @@ function renderLedgerTransactions() {
   }
 }
 
-function applyAccountFilter() { 
-  console.log('Applying account filter...');
-  renderLedgerTransactions(); 
-}
-
+function applyAccountFilter() { renderLedgerTransactions(); }
 function resetAccountFilter() {
   document.getElementById('accountFilterMonth').value = 'all';
   document.getElementById('accountFilterYear').value = 'all';
@@ -2206,7 +2369,7 @@ function closeLedger() {
 }
 
 // ============================================================
-// CASHBOOK WITH PROPER B/D LOGIC
+// CASHBOOK
 // ============================================================
 function setupCashbookListener() {
   if (unsubCashbook) unsubCashbook();
@@ -2241,11 +2404,8 @@ function renderCashbook() {
   filterState.cashbook.year = year;
   saveFilterState();
   
-  console.log('Rendering Cashbook - Month:', month, 'Year:', year, 'Total entries:', cashbook.length);
-  
   const sortedEntries = [...cashbook].sort((a, b) => new Date(a.date) - new Date(b.date));
   
-  // If no entries at all
   if (cashbook.length === 0) {
     tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted" style="padding:20px;">No entries found. Add one!</td></tr>`;
     document.getElementById('cashbookCount').textContent = '0 entries';
@@ -2253,7 +2413,6 @@ function renderCashbook() {
     return;
   }
   
-  // Determine opening balance and entries in period
   let openingBalance = 0;
   let entriesInPeriod = [];
   let previousEntries = [];
@@ -2262,7 +2421,6 @@ function renderCashbook() {
     const filterYear = year !== 'all' ? parseInt(year) : null;
     const filterMonth = month !== 'all' ? parseInt(month) : null;
     
-    // Find entries before the filter period
     previousEntries = sortedEntries.filter(e => {
       const d = new Date(e.date);
       const eYear = d.getFullYear();
@@ -2294,13 +2452,11 @@ function renderCashbook() {
       return isBefore;
     });
     
-    // Calculate opening balance from previous entries
     for (const e of previousEntries) {
       if (e.type === 'debit') openingBalance += e.amount;
       else openingBalance -= e.amount;
     }
     
-    // Get entries in the filter period
     entriesInPeriod = sortedEntries.filter(e => {
       const d = new Date(e.date);
       const eYear = d.getFullYear();
@@ -2312,16 +2468,13 @@ function renderCashbook() {
       return match;
     });
   } else {
-    // No filter - show all entries
     entriesInPeriod = sortedEntries;
     openingBalance = 0;
   }
   
-  // Build rows
   let rows = '';
   let balance = openingBalance;
   
-  // Show B/D row (always show when filtered)
   if (month !== 'all' || year !== 'all') {
     if (previousEntries.length > 0 || openingBalance !== 0) {
       rows += `
@@ -2337,7 +2490,6 @@ function renderCashbook() {
     }
   }
   
-  // Show entries in period
   if (entriesInPeriod.length > 0) {
     entriesInPeriod.forEach(entry => {
       if (entry.type === 'debit') balance += entry.amount;
@@ -2363,7 +2515,6 @@ function renderCashbook() {
       `;
     });
   } else if (month !== 'all' || year !== 'all') {
-    // No entries in period - show carry forward message
     rows += `
       <tr>
         <td colspan="6" style="padding:20px; text-align:center; color:#6b7490; font-style:italic;">
@@ -2373,7 +2524,6 @@ function renderCashbook() {
     `;
   }
   
-  // Show B/F row (always show when filtered)
   if (month !== 'all' || year !== 'all') {
     if (previousEntries.length > 0 || openingBalance !== 0) {
       rows += `
@@ -2389,7 +2539,6 @@ function renderCashbook() {
     }
   }
   
-  // If no filter, show B/F at the end
   if (month === 'all' && year === 'all' && cashbook.length > 0) {
     let finalBalance = 0;
     sortedEntries.forEach(e => {
@@ -2416,14 +2565,9 @@ function renderCashbook() {
   
   document.getElementById('cashbookCount').textContent = cashbook.length + ' entries';
   document.getElementById('navCashCount').textContent = cashbook.length;
-  console.log('Rendered cashbook with B/D logic - entries in period:', entriesInPeriod.length);
 }
 
-function applyCashbookFilter() {
-  console.log('Applying cashbook filter...');
-  renderCashbook();
-}
-
+function applyCashbookFilter() { renderCashbook(); }
 function resetCashbookFilter() {
   document.getElementById('cashbookFilterMonth').value = 'all';
   document.getElementById('cashbookFilterYear').value = 'all';
@@ -2485,6 +2629,7 @@ function setupBanksListener() {
     renderBanks();
     updateStats();
     populateReportSelects();
+    populateTransferSelects();
     updateAllPaymentSources();
   }, (error) => {
     console.error('Banks listener error:', error);
@@ -2597,7 +2742,7 @@ async function deleteBank(id) {
 }
 
 // ============================================================
-// BANK LEDGER WITH PROPER B/D LOGIC
+// BANK LEDGER
 // ============================================================
 function setupBankTransactionsListener(bankId) {
   if (unsubBankTxns[bankId]) {
@@ -2644,10 +2789,7 @@ async function openBankLedger(bankId, saveState = true) {
   setTimeout(() => renderBankLedgerTransactions(), 100);
   
   if (saveState) {
-    pageState.currentPage = 'bank';
-    pageState.currentLedger = bankId;
-    pageState.currentLedgerType = 'bank';
-    pageState.currentBankId = bankId;
+    saveCurrentPage('bank');
   }
 }
 
@@ -2661,8 +2803,6 @@ function renderBankLedgerTransactions() {
   filterState.bank.month = month;
   filterState.bank.year = year;
   saveFilterState();
-  
-  console.log('Rendering Bank Ledger - Month:', month, 'Year:', year, 'Total transactions:', transactions.length);
   
   const sortedTxns = [...transactions].sort((a, b) => new Date(a.date) - new Date(b.date));
   
@@ -2828,11 +2968,7 @@ function renderBankLedgerTransactions() {
   }
 }
 
-function applyBankFilter() {
-  console.log('Applying bank filter...');
-  renderBankLedgerTransactions();
-}
-
+function applyBankFilter() { renderBankLedgerTransactions(); }
 function resetBankFilter() {
   document.getElementById('bankFilterMonth').value = 'all';
   document.getElementById('bankFilterYear').value = 'all';
@@ -2910,7 +3046,284 @@ function closeBankLedger() {
 }
 
 // ============================================================
-// EXPENSES WITH PROPER FILTERING
+// INVENTORY
+// ============================================================
+function setupInventoryListener() {
+  if (unsubInventory) unsubInventory();
+  
+  const q = query(
+    collection(db, 'inventoryOrders'),
+    where('branchId', '==', branchId)
+  );
+  
+  unsubInventory = onSnapshot(q, (snapshot) => {
+    inventoryOrders = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+    inventoryOrders.sort((a, b) => new Date(b.date) - new Date(a.date));
+    renderInventory();
+    updateStats();
+  }, (error) => {
+    console.error('Inventory listener error:', error);
+    toast('Error loading inventory orders: ' + error.message, 'error');
+  });
+}
+
+function renderInventory() {
+  const tbody = document.getElementById('inventoryTableBody');
+  const month = document.getElementById('inventoryFilterMonth').value;
+  const year = document.getElementById('inventoryFilterYear').value;
+  
+  filterState.inventory.month = month;
+  filterState.inventory.year = year;
+  saveFilterState();
+  
+  let filtered = inventoryOrders;
+  if (month !== 'all') {
+    filtered = filtered.filter(e => {
+      const d = new Date(e.date);
+      return String(d.getMonth() + 1).padStart(2, '0') === month;
+    });
+  }
+  if (year !== 'all') {
+    filtered = filtered.filter(e => {
+      const d = new Date(e.date);
+      return String(d.getFullYear()) === year;
+    });
+  }
+  
+  if (filtered.length === 0 && inventoryOrders.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted" style="padding:20px;">No inventory orders found.</td></tr>`;
+    document.getElementById('inventoryCount').textContent = '0 orders';
+    return;
+  }
+  
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted" style="padding:20px;">No orders for this period.</td></tr>`;
+    document.getElementById('inventoryCount').textContent = inventoryOrders.length + ' orders';
+    // Add total row at bottom
+    let total = 0;
+    filtered.forEach(e => total += e.amount);
+    if (total > 0) {
+      tbody.innerHTML += `
+        <tr class="total-row">
+          <td colspan="2" style="text-align:right;font-weight:800;color:var(--blue);">TOTAL</td>
+          <td style="text-align:right;font-weight:800;color:var(--teal);">${formatNumber(total)}</td>
+          <td></td>
+          <td></td>
+        </tr>
+      `;
+    }
+    return;
+  }
+  
+  let rows = '';
+  let total = 0;
+  
+  filtered.forEach(e => {
+    total += e.amount;
+    const sourceName = getSourceName(e.accountId);
+    rows += `
+      <tr>
+        <td>${e.date}</td>
+        <td>${e.description}</td>
+        <td class="text-teal fw-700 text-right">${formatNumber(e.amount)}</td>
+        <td>${sourceName}</td>
+        <td class="text-center no-print" onclick="event.stopPropagation();">
+          <div class="dropdown-container">
+            <button class="dropdown-trigger" onclick="toggleDropdown('inventoryDropdown_${e.id}')">
+              <i class="fas fa-ellipsis-v"></i>
+            </button>
+            <div class="dropdown-menu" id="inventoryDropdown_${e.id}">
+              <button class="dropdown-item danger" onclick="deleteInventoryOrder('${e.id}')"><i class="fas fa-trash"></i> Delete</button>
+            </div>
+          </div>
+        </td>
+      </tr>
+    `;
+  });
+  
+  // Add total row at bottom
+  rows += `
+    <tr class="total-row">
+      <td colspan="2" style="text-align:right;font-weight:800;color:var(--blue);">TOTAL</td>
+      <td style="text-align:right;font-weight:800;color:var(--teal);">${formatNumber(total)}</td>
+      <td></td>
+      <td></td>
+    </tr>
+  `;
+  
+  tbody.innerHTML = rows;
+  document.getElementById('inventoryCount').textContent = inventoryOrders.length + ' orders';
+}
+
+function applyInventoryFilter() { renderInventory(); }
+function resetInventoryFilter() {
+  document.getElementById('inventoryFilterMonth').value = 'all';
+  document.getElementById('inventoryFilterYear').value = 'all';
+  filterState.inventory.month = 'all';
+  filterState.inventory.year = 'all';
+  saveFilterState();
+  renderInventory();
+}
+
+async function saveInventoryOrder(e) {
+  e.preventDefault();
+  const accountId = document.getElementById('inventoryAccount').value;
+  if (!accountId) {
+    toast('Please select a payment source.', 'error');
+    return;
+  }
+  
+  const amount = parseFloat(document.getElementById('inventoryAmount').value) || 0;
+  if (amount <= 0) {
+    toast('Please enter a valid amount greater than 0.', 'error');
+    return;
+  }
+  
+  const data = {
+    date: document.getElementById('inventoryDate').value,
+    description: document.getElementById('inventoryDesc').value.trim(),
+    amount: amount,
+    accountId: accountId,
+    branchId: branchId,
+    createdAt: serverTimestamp()
+  };
+  
+  try {
+    await addDoc(collection(db, 'inventoryOrders'), data);
+    
+    if (accountId === 'cashbook') {
+      await addDoc(collection(db, 'cashbook'), {
+        date: data.date,
+        type: 'credit',
+        description: 'Inventory: ' + data.description,
+        amount: amount,
+        branchId: branchId,
+        createdAt: serverTimestamp()
+      });
+      toast('Inventory order of ' + formatNumber(amount) + ' recorded from Cash in Hand!');
+    } else {
+      const account = accounts.find(a => a.id === accountId);
+      if (account) {
+        const accountRef = doc(db, 'accounts', accountId);
+        const currentBalance = account.balance || 0;
+        await updateDoc(accountRef, { balance: currentBalance - amount });
+        
+        await addDoc(collection(db, 'accountTransactions'), {
+          accountId: accountId,
+          date: data.date,
+          type: 'credit',
+          description: 'Inventory: ' + data.description,
+          amount: amount,
+          branchId: branchId,
+          createdAt: serverTimestamp()
+        });
+        toast('Inventory order of ' + formatNumber(amount) + ' recorded from ' + account.name + '!');
+      } else {
+        const bank = banks.find(b => b.id === accountId);
+        if (bank) {
+          const bankRef = doc(db, 'bankAccounts', accountId);
+          const currentBalance = bank.balance || 0;
+          await updateDoc(bankRef, { balance: currentBalance - amount });
+          
+          await addDoc(collection(db, 'bankTransactions'), {
+            bankId: accountId,
+            date: data.date,
+            type: 'credit',
+            description: 'Inventory: ' + data.description,
+            amount: amount,
+            branchId: branchId,
+            createdAt: serverTimestamp()
+          });
+          toast('Inventory order of ' + formatNumber(amount) + ' recorded from ' + bank.name + '!');
+        }
+      }
+    }
+    
+    closeModal('inventoryModal');
+    document.getElementById('inventoryForm').reset();
+    updateAllPaymentSources();
+    
+  } catch (error) {
+    console.error('Save inventory error:', error);
+    toast('Error saving inventory order: ' + error.message, 'error');
+  }
+}
+
+async function deleteInventoryOrder(id) {
+  if (!confirm('Delete this inventory order and reverse deduction?')) return;
+  try {
+    const orderRef = doc(db, 'inventoryOrders', id);
+    const orderSnap = await getDoc(orderRef);
+    if (!orderSnap.exists()) return;
+    
+    const order = orderSnap.data();
+    const accountId = order.accountId;
+    
+    await deleteDoc(orderRef);
+    
+    if (accountId === 'cashbook') {
+      const cashbookQuery = query(
+        collection(db, 'cashbook'),
+        where('description', '==', 'Inventory: ' + order.description),
+        where('amount', '==', order.amount)
+      );
+      const cashbookSnap = await getDocs(cashbookQuery);
+      const batch = writeBatch(db);
+      cashbookSnap.docs.forEach(d => batch.delete(doc(db, 'cashbook', d.id)));
+      await batch.commit();
+      toast('Inventory order deleted and cash restored!');
+    } else {
+      const account = accounts.find(a => a.id === accountId);
+      if (account) {
+        const accountRef = doc(db, 'accounts', accountId);
+        const currentBalance = account.balance || 0;
+        await updateDoc(accountRef, { balance: currentBalance + order.amount });
+        
+        const txnQuery = query(
+          collection(db, 'accountTransactions'),
+          where('accountId', '==', accountId),
+          where('description', '==', 'Inventory: ' + order.description),
+          where('amount', '==', order.amount)
+        );
+        const txnSnap = await getDocs(txnQuery);
+        const batch = writeBatch(db);
+        txnSnap.docs.forEach(d => batch.delete(doc(db, 'accountTransactions', d.id)));
+        await batch.commit();
+        toast('Inventory order deleted and account balance restored!');
+      } else {
+        const bank = banks.find(b => b.id === accountId);
+        if (bank) {
+          const bankRef = doc(db, 'bankAccounts', accountId);
+          const currentBalance = bank.balance || 0;
+          await updateDoc(bankRef, { balance: currentBalance + order.amount });
+          
+          const txnQuery = query(
+            collection(db, 'bankTransactions'),
+            where('bankId', '==', accountId),
+            where('description', '==', 'Inventory: ' + order.description),
+            where('amount', '==', order.amount)
+          );
+          const txnSnap = await getDocs(txnQuery);
+          const batch = writeBatch(db);
+          txnSnap.docs.forEach(d => batch.delete(doc(db, 'bankTransactions', d.id)));
+          await batch.commit();
+          toast('Inventory order deleted and bank balance restored!');
+        }
+      }
+    }
+    
+    updateAllPaymentSources();
+  } catch (error) {
+    console.error('Delete inventory error:', error);
+    toast('Error deleting inventory order: ' + error.message, 'error');
+  }
+}
+
+// ============================================================
+// EXPENSES
 // ============================================================
 function setupExpensesListener() {
   if (unsubExpenses) unsubExpenses();
@@ -2943,8 +3356,6 @@ function renderExpenses() {
   filterState.expense.year = year;
   saveFilterState();
   
-  console.log('Filtering Expenses - Month:', month, 'Year:', year, 'Total expenses:', expenses.length);
-  
   let filtered = expenses;
   if (month !== 'all') {
     filtered = filtered.filter(e => {
@@ -2959,29 +3370,39 @@ function renderExpenses() {
     });
   }
   
-  if (filtered.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted" style="padding:20px;">No expenses for this period.</td></tr>`;
-    document.getElementById('expenseCount').textContent = expenses.length + ' expenses';
-    document.getElementById('navExpenseCount').textContent = expenses.length;
+  if (filtered.length === 0 && expenses.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted" style="padding:20px;">No expenses found.</td></tr>`;
+    document.getElementById('expenseCount').textContent = '0 expenses';
     return;
   }
   
-  tbody.innerHTML = filtered.map(e => {
-    let sourceName = 'Unknown';
-    if (e.accountId === 'cashbook') {
-      sourceName = 'Cash in Hand';
-    } else {
-      const account = accounts.find(a => a.id === e.accountId);
-      if (account) sourceName = account.name;
-      else {
-        const bank = banks.find(b => b.id === e.accountId);
-        if (bank) sourceName = bank.name;
-      }
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted" style="padding:20px;">No expenses for this period.</td></tr>`;
+    document.getElementById('expenseCount').textContent = expenses.length + ' expenses';
+    let total = 0;
+    filtered.forEach(e => total += e.amount);
+    if (total > 0) {
+      tbody.innerHTML += `
+        <tr class="total-row">
+          <td colspan="2" style="text-align:right;font-weight:800;color:var(--blue);">TOTAL</td>
+          <td style="text-align:right;font-weight:800;color:var(--red);">${formatNumber(total)}</td>
+          <td></td>
+          <td></td>
+        </tr>
+      `;
     }
-    return `
+    return;
+  }
+  
+  let rows = '';
+  let total = 0;
+  
+  filtered.forEach(e => {
+    total += e.amount;
+    const sourceName = getSourceName(e.accountId);
+    rows += `
       <tr>
         <td>${e.date}</td>
-        <td><span class="status-badge pending">${e.category}</span></td>
         <td>${e.description}</td>
         <td class="text-red fw-700 text-right">${formatNumber(e.amount)}</td>
         <td>${sourceName}</td>
@@ -2997,18 +3418,23 @@ function renderExpenses() {
         </td>
       </tr>
     `;
-  }).join('');
+  });
   
+  // Add total row at bottom
+  rows += `
+    <tr class="total-row">
+      <td colspan="2" style="text-align:right;font-weight:800;color:var(--blue);">TOTAL</td>
+      <td style="text-align:right;font-weight:800;color:var(--red);">${formatNumber(total)}</td>
+      <td></td>
+      <td></td>
+    </tr>
+  `;
+  
+  tbody.innerHTML = rows;
   document.getElementById('expenseCount').textContent = expenses.length + ' expenses';
-  document.getElementById('navExpenseCount').textContent = expenses.length;
-  console.log('Rendered expenses with', filtered.length, 'entries');
 }
 
-function applyExpenseFilter() {
-  console.log('Applying expense filter...');
-  renderExpenses();
-}
-
+function applyExpenseFilter() { renderExpenses(); }
 function resetExpenseFilter() {
   document.getElementById('expenseFilterMonth').value = 'all';
   document.getElementById('expenseFilterYear').value = 'all';
@@ -3018,9 +3444,6 @@ function resetExpenseFilter() {
   renderExpenses();
 }
 
-// ============================================================
-// SAVE EXPENSE
-// ============================================================
 async function saveExpense(e) {
   e.preventDefault();
   const accountId = document.getElementById('expenseAccount').value;
@@ -3037,7 +3460,6 @@ async function saveExpense(e) {
   
   const data = {
     date: document.getElementById('expenseDate').value,
-    category: document.getElementById('expenseCategory').value,
     description: document.getElementById('expenseDesc').value.trim(),
     amount: amount,
     accountId: accountId,
@@ -3048,18 +3470,15 @@ async function saveExpense(e) {
   try {
     await addDoc(collection(db, 'expenses'), data);
     
-    let sourceName = '';
-    
     if (accountId === 'cashbook') {
       await addDoc(collection(db, 'cashbook'), {
         date: data.date,
         type: 'credit',
-        description: 'Expense: ' + data.category + ' - ' + data.description,
+        description: 'Expense: ' + data.description,
         amount: amount,
         branchId: branchId,
         createdAt: serverTimestamp()
       });
-      sourceName = 'Cash in Hand';
       toast('Expense of ' + formatNumber(amount) + ' recorded from Cash in Hand!');
     } else {
       const account = accounts.find(a => a.id === accountId);
@@ -3067,13 +3486,12 @@ async function saveExpense(e) {
         const accountRef = doc(db, 'accounts', accountId);
         const currentBalance = account.balance || 0;
         await updateDoc(accountRef, { balance: currentBalance - amount });
-        sourceName = account.name;
         
         await addDoc(collection(db, 'accountTransactions'), {
           accountId: accountId,
           date: data.date,
           type: 'credit',
-          description: 'Expense: ' + data.category + ' - ' + data.description,
+          description: 'Expense: ' + data.description,
           amount: amount,
           branchId: branchId,
           createdAt: serverTimestamp()
@@ -3085,13 +3503,12 @@ async function saveExpense(e) {
           const bankRef = doc(db, 'bankAccounts', accountId);
           const currentBalance = bank.balance || 0;
           await updateDoc(bankRef, { balance: currentBalance - amount });
-          sourceName = bank.name;
           
           await addDoc(collection(db, 'bankTransactions'), {
             bankId: accountId,
             date: data.date,
             type: 'credit',
-            description: 'Expense: ' + data.category + ' - ' + data.description,
+            description: 'Expense: ' + data.description,
             amount: amount,
             branchId: branchId,
             createdAt: serverTimestamp()
@@ -3111,9 +3528,6 @@ async function saveExpense(e) {
   }
 }
 
-// ============================================================
-// DELETE EXPENSE
-// ============================================================
 async function deleteExpense(id) {
   if (!confirm('Delete this expense and reverse deduction?')) return;
   try {
@@ -3129,7 +3543,7 @@ async function deleteExpense(id) {
     if (accountId === 'cashbook') {
       const cashbookQuery = query(
         collection(db, 'cashbook'),
-        where('description', '==', 'Expense: ' + expense.category + ' - ' + expense.description),
+        where('description', '==', 'Expense: ' + expense.description),
         where('amount', '==', expense.amount)
       );
       const cashbookSnap = await getDocs(cashbookQuery);
@@ -3147,7 +3561,7 @@ async function deleteExpense(id) {
         const txnQuery = query(
           collection(db, 'accountTransactions'),
           where('accountId', '==', accountId),
-          where('description', '==', 'Expense: ' + expense.category + ' - ' + expense.description),
+          where('description', '==', 'Expense: ' + expense.description),
           where('amount', '==', expense.amount)
         );
         const txnSnap = await getDocs(txnQuery);
@@ -3165,7 +3579,7 @@ async function deleteExpense(id) {
           const txnQuery = query(
             collection(db, 'bankTransactions'),
             where('bankId', '==', accountId),
-            where('description', '==', 'Expense: ' + expense.category + ' - ' + expense.description),
+            where('description', '==', 'Expense: ' + expense.description),
             where('amount', '==', expense.amount)
           );
           const txnSnap = await getDocs(txnQuery);
@@ -3181,6 +3595,285 @@ async function deleteExpense(id) {
   } catch (error) {
     console.error('Delete expense error:', error);
     toast('Error deleting expense: ' + error.message, 'error');
+  }
+}
+
+// ============================================================
+// TRANSFER FUNDS
+// ============================================================
+function setupTransfersListener() {
+  if (unsubTransfers) unsubTransfers();
+  
+  const q = query(
+    collection(db, 'transfers'),
+    where('branchId', '==', branchId)
+  );
+  
+  unsubTransfers = onSnapshot(q, (snapshot) => {
+    transfers = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+    transfers.sort((a, b) => new Date(b.date) - new Date(a.date));
+    renderTransfers();
+  }, (error) => {
+    console.error('Transfers listener error:', error);
+    toast('Error loading transfers: ' + error.message, 'error');
+  });
+}
+
+function renderTransfers() {
+  const tbody = document.getElementById('transferTableBody');
+  if (transfers.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted" style="padding:20px;">No transfers yet.</td></tr>`;
+    return;
+  }
+  
+  tbody.innerHTML = transfers.map(t => `
+    <tr>
+      <td>${t.date}</td>
+      <td>${t.description}</td>
+      <td>${getSourceName(t.fromAccount)}</td>
+      <td>${getSourceName(t.toAccount)}</td>
+      <td class="fw-700 text-right text-purple">${formatNumber(t.amount)}</td>
+      <td class="text-center no-print" onclick="event.stopPropagation();">
+        <div class="dropdown-container">
+          <button class="dropdown-trigger" onclick="toggleDropdown('transferDropdown_${t.id}')">
+            <i class="fas fa-ellipsis-v"></i>
+          </button>
+          <div class="dropdown-menu" id="transferDropdown_${t.id}">
+            <button class="dropdown-item danger" onclick="deleteTransfer('${t.id}')"><i class="fas fa-trash"></i> Delete</button>
+          </div>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+async function saveTransfer(e) {
+  e.preventDefault();
+  
+  const fromAccount = document.getElementById('transferFrom').value;
+  const toAccount = document.getElementById('transferTo').value;
+  const amount = parseFloat(document.getElementById('transferAmount').value) || 0;
+  const date = document.getElementById('transferDate').value;
+  const description = document.getElementById('transferDesc').value.trim();
+  
+  if (!fromAccount || !toAccount) {
+    toast('Please select both source and destination accounts.', 'error');
+    return;
+  }
+  
+  if (fromAccount === toAccount) {
+    toast('Source and destination accounts must be different.', 'error');
+    return;
+  }
+  
+  if (amount <= 0) {
+    toast('Please enter a valid amount greater than 0.', 'error');
+    return;
+  }
+  
+  // Check if source has enough balance
+  let sourceBalance = 0;
+  const source = allPaymentSources.find(s => s.id === fromAccount);
+  if (source) {
+    sourceBalance = source.balance || 0;
+  }
+  
+  if (sourceBalance < amount) {
+    toast('Insufficient balance in source account. Available: ' + formatNumber(sourceBalance), 'error');
+    return;
+  }
+  
+  const data = {
+    fromAccount: fromAccount,
+    toAccount: toAccount,
+    amount: amount,
+    date: date,
+    description: description,
+    branchId: branchId,
+    createdAt: serverTimestamp()
+  };
+  
+  try {
+    await addDoc(collection(db, 'transfers'), data);
+    
+    // Process the transfer - debit from source, credit to destination
+    await processTransfer(fromAccount, toAccount, amount, date, description);
+    
+    toast('Transfer of ' + formatNumber(amount) + ' completed successfully!');
+    closeModal(null);
+    document.getElementById('transferForm').reset();
+    updateAllPaymentSources();
+    
+  } catch (error) {
+    console.error('Transfer error:', error);
+    toast('Error processing transfer: ' + error.message, 'error');
+  }
+}
+
+async function processTransfer(fromAccount, toAccount, amount, date, description) {
+  // Debit from source (credit the source)
+  if (fromAccount === 'cashbook') {
+    await addDoc(collection(db, 'cashbook'), {
+      date: date,
+      type: 'credit',
+      description: 'Transfer to ' + getSourceName(toAccount) + ': ' + description,
+      amount: amount,
+      branchId: branchId,
+      createdAt: serverTimestamp()
+    });
+  } else {
+    const account = accounts.find(a => a.id === fromAccount);
+    if (account) {
+      const accountRef = doc(db, 'accounts', fromAccount);
+      const currentBalance = account.balance || 0;
+      await updateDoc(accountRef, { balance: currentBalance - amount });
+      await addDoc(collection(db, 'accountTransactions'), {
+        accountId: fromAccount,
+        date: date,
+        type: 'credit',
+        description: 'Transfer to ' + getSourceName(toAccount) + ': ' + description,
+        amount: amount,
+        branchId: branchId,
+        createdAt: serverTimestamp()
+      });
+    } else {
+      const bank = banks.find(b => b.id === fromAccount);
+      if (bank) {
+        const bankRef = doc(db, 'bankAccounts', fromAccount);
+        const currentBalance = bank.balance || 0;
+        await updateDoc(bankRef, { balance: currentBalance - amount });
+        await addDoc(collection(db, 'bankTransactions'), {
+          bankId: fromAccount,
+          date: date,
+          type: 'credit',
+          description: 'Transfer to ' + getSourceName(toAccount) + ': ' + description,
+          amount: amount,
+          branchId: branchId,
+          createdAt: serverTimestamp()
+        });
+      }
+    }
+  }
+  
+  // Credit to destination (debit the destination)
+  if (toAccount === 'cashbook') {
+    await addDoc(collection(db, 'cashbook'), {
+      date: date,
+      type: 'debit',
+      description: 'Transfer from ' + getSourceName(fromAccount) + ': ' + description,
+      amount: amount,
+      branchId: branchId,
+      createdAt: serverTimestamp()
+    });
+  } else {
+    const account = accounts.find(a => a.id === toAccount);
+    if (account) {
+      const accountRef = doc(db, 'accounts', toAccount);
+      const currentBalance = account.balance || 0;
+      await updateDoc(accountRef, { balance: currentBalance + amount });
+      await addDoc(collection(db, 'accountTransactions'), {
+        accountId: toAccount,
+        date: date,
+        type: 'debit',
+        description: 'Transfer from ' + getSourceName(fromAccount) + ': ' + description,
+        amount: amount,
+        branchId: branchId,
+        createdAt: serverTimestamp()
+      });
+    } else {
+      const bank = banks.find(b => b.id === toAccount);
+      if (bank) {
+        const bankRef = doc(db, 'bankAccounts', toAccount);
+        const currentBalance = bank.balance || 0;
+        await updateDoc(bankRef, { balance: currentBalance + amount });
+        await addDoc(collection(db, 'bankTransactions'), {
+          bankId: toAccount,
+          date: date,
+          type: 'debit',
+          description: 'Transfer from ' + getSourceName(fromAccount) + ': ' + description,
+          amount: amount,
+          branchId: branchId,
+          createdAt: serverTimestamp()
+        });
+      }
+    }
+  }
+}
+
+async function deleteTransfer(id) {
+  if (!confirm('Delete this transfer? This will reverse the transaction.')) return;
+  try {
+    const transferRef = doc(db, 'transfers', id);
+    const transferSnap = await getDoc(transferRef);
+    if (!transferSnap.exists()) return;
+    
+    const transfer = transferSnap.data();
+    const { fromAccount, toAccount, amount, date, description } = transfer;
+    
+    await deleteDoc(transferRef);
+    
+    // Reverse the transfer - debit the source, credit the destination
+    // Reverse source (add back the amount)
+    if (fromAccount === 'cashbook') {
+      await addDoc(collection(db, 'cashbook'), {
+        date: date,
+        type: 'debit',
+        description: 'Reversed transfer: ' + description,
+        amount: amount,
+        branchId: branchId,
+        createdAt: serverTimestamp()
+      });
+    } else {
+      const account = accounts.find(a => a.id === fromAccount);
+      if (account) {
+        const accountRef = doc(db, 'accounts', fromAccount);
+        const currentBalance = account.balance || 0;
+        await updateDoc(accountRef, { balance: currentBalance + amount });
+      } else {
+        const bank = banks.find(b => b.id === fromAccount);
+        if (bank) {
+          const bankRef = doc(db, 'bankAccounts', fromAccount);
+          const currentBalance = bank.balance || 0;
+          await updateDoc(bankRef, { balance: currentBalance + amount });
+        }
+      }
+    }
+    
+    // Reverse destination (remove the amount)
+    if (toAccount === 'cashbook') {
+      await addDoc(collection(db, 'cashbook'), {
+        date: date,
+        type: 'credit',
+        description: 'Reversed transfer: ' + description,
+        amount: amount,
+        branchId: branchId,
+        createdAt: serverTimestamp()
+      });
+    } else {
+      const account = accounts.find(a => a.id === toAccount);
+      if (account) {
+        const accountRef = doc(db, 'accounts', toAccount);
+        const currentBalance = account.balance || 0;
+        await updateDoc(accountRef, { balance: currentBalance - amount });
+      } else {
+        const bank = banks.find(b => b.id === toAccount);
+        if (bank) {
+          const bankRef = doc(db, 'bankAccounts', toAccount);
+          const currentBalance = bank.balance || 0;
+          await updateDoc(bankRef, { balance: currentBalance - amount });
+        }
+      }
+    }
+    
+    toast('Transfer deleted and reversed successfully!');
+    updateAllPaymentSources();
+    
+  } catch (error) {
+    console.error('Delete transfer error:', error);
+    toast('Error deleting transfer: ' + error.message, 'error');
   }
 }
 
@@ -3413,21 +4106,10 @@ async function downloadSummaryPDF() {
   
   const bankBalance = banks.reduce((sum, b) => sum + b.balance, 0);
   const totalExp = expenses.reduce((sum, e) => sum + e.amount, 0);
+  const totalInv = inventoryOrders.reduce((sum, e) => sum + e.amount, 0);
   const totalAssets = accounts.filter(a => a.type === 'Asset').reduce((s, a) => s + a.balance, 0);
   const totalLiabilities = accounts.filter(a => a.type === 'Liability').reduce((s, a) => s + a.balance, 0);
   const totalEquity = accounts.filter(a => a.type === 'Equity').reduce((s, a) => s + a.balance, 0);
-  
-  let invValue = 0;
-  try {
-    const invQuery = query(collection(db, 'inventory'), where('branchId', '==', branchId));
-    const invSnap = await getDocs(invQuery);
-    invSnap.docs.forEach(d => {
-      const data = d.data();
-      invValue += (data.price || 0) * (data.stock || 0);
-    });
-  } catch (e) {
-    console.warn('Could not fetch inventory:', e);
-  }
   
   const html = `
     <div style="padding:30px; font-family: 'DM Sans', sans-serif;">
@@ -3450,8 +4132,8 @@ async function downloadSummaryPDF() {
           <p style="font-size:1.2rem; font-weight:800; color:#ef4444;">${formatNumber(totalExp)}</p>
         </div>
         <div style="background:#f8fafc; padding:16px; border-radius:8px; border:1px solid #e4e8f0;">
-          <h3 style="font-size:0.75rem; color:#6b7490; text-transform:uppercase; margin-bottom:4px;">Inventory Value</h3>
-          <p style="font-size:1.2rem; font-weight:800; color:#f59e0b;">${formatNumber(invValue)}</p>
+          <h3 style="font-size:0.75rem; color:#6b7490; text-transform:uppercase; margin-bottom:4px;">Inventory Spent</h3>
+          <p style="font-size:1.2rem; font-weight:800; color:#0d9488;">${formatNumber(totalInv)}</p>
         </div>
       </div>
       
@@ -3520,9 +4202,37 @@ function downloadExpensesPDF() {
   wrapper.style.padding = '20px';
   wrapper.style.fontFamily = 'DM Sans, sans-serif';
   wrapper.innerHTML = `
-    <h2 style="margin-bottom:4px;">Expenses Journal</h2>
+    <h2 style="margin-bottom:4px;">Expenses Statement</h2>
     <p style="color:#6b7490;margin-bottom:4px;">Branch: ${branchId}</p>
     <p style="color:#6b7490;margin-bottom:16px;">All Expense Transactions</p>
+    ${clone.innerHTML}
+    <p style="margin-top:16px;color:#6b7490;font-size:0.7rem;">Generated: ${new Date().toLocaleString()}</p>
+  `;
+  
+  document.body.appendChild(wrapper);
+  html2pdf().set(opt).from(wrapper).save().then(() => {
+    document.body.removeChild(wrapper);
+  });
+}
+
+function downloadInventoryPDF() {
+  const element = document.getElementById('inventoryContent');
+  const opt = {
+    margin: [10, 10, 10, 10],
+    filename: 'Inventory_Statement.pdf',
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+  };
+  
+  const clone = element.cloneNode(true);
+  const wrapper = document.createElement('div');
+  wrapper.style.padding = '20px';
+  wrapper.style.fontFamily = 'DM Sans, sans-serif';
+  wrapper.innerHTML = `
+    <h2 style="margin-bottom:4px;">Inventory Orders</h2>
+    <p style="color:#6b7490;margin-bottom:4px;">Branch: ${branchId}</p>
+    <p style="color:#6b7490;margin-bottom:16px;">All Inventory Orders</p>
     ${clone.innerHTML}
     <p style="margin-top:16px;color:#6b7490;font-size:0.7rem;">Generated: ${new Date().toLocaleString()}</p>
   `;
@@ -3604,25 +4314,21 @@ function updateStats() {
   let totalExp = expenses.reduce((sum, e) => sum + e.amount, 0);
   document.getElementById('dashExpenses').textContent = formatNumber(totalExp);
   
-  fetchInventoryValue();
+  let totalInv = inventoryOrders.reduce((sum, e) => sum + e.amount, 0);
+  document.getElementById('dashInventorySpent').textContent = formatNumber(totalInv);
 }
 
-async function fetchInventoryValue() {
-  try {
-    const invQuery = query(collection(db, 'inventory'), where('branchId', '==', branchId));
-    const snap = await getDocs(invQuery);
-    let total = 0;
-    snap.docs.forEach(doc => {
-      const data = doc.data();
-      total += (data.price || 0) * (data.stock || 0);
-    });
-    inventoryValue = total;
-    document.getElementById('dashInventory').textContent = formatNumber(inventoryValue);
-  } catch (e) {
-    console.warn('Could not fetch inventory value:', e);
-    document.getElementById('dashInventory').textContent = formatNumber(0);
-  }
-}
+// ============================================================
+// UNSUBSCRIBERS
+// ============================================================
+let unsubAccounts = null;
+let unsubCashbook = null;
+let unsubBanks = null;
+let unsubExpenses = null;
+let unsubInventory = null;
+let unsubTransfers = null;
+let unsubAccountTxns = {};
+let unsubBankTxns = {};
 
 // ============================================================
 // INITIALIZATION
@@ -3639,22 +4345,37 @@ function init() {
   document.getElementById('cashbookFilterYear').value = filterState.cashbook.year;
   document.getElementById('expenseFilterMonth').value = filterState.expense.month;
   document.getElementById('expenseFilterYear').value = filterState.expense.year;
+  document.getElementById('inventoryFilterMonth').value = filterState.inventory.month;
+  document.getElementById('inventoryFilterYear').value = filterState.inventory.year;
   
+  // Setup listeners
   setupAccountsListener();
   setupCashbookListener();
   setupBanksListener();
   setupExpensesListener();
+  setupInventoryListener();
+  setupTransfersListener();
   
+  // Set default dates
   document.getElementById('cashbookDate').value = getToday();
   document.getElementById('expenseDate').value = getToday();
+  document.getElementById('inventoryDate').value = getToday();
   document.getElementById('ledgerTxnDate').value = getToday();
   document.getElementById('bankTxnDate').value = getToday();
+  document.getElementById('transferDate').value = getToday();
   
-  navigateTo('dashboard', false);
+  // Restore last page
+  const savedPage = getSavedPage();
+  const validPages = ['dashboard', 'accounts', 'cashbook', 'bank', 'inventory', 'expenses', 'reports', 'transfer'];
+  if (validPages.includes(savedPage)) {
+    setTimeout(() => navigateTo(savedPage, false), 100);
+  } else {
+    navigateTo('dashboard', false);
+  }
   
   console.log('Trismart Accounting System - Fully Functional');
   console.log('Branch: ' + branchId);
-  console.log('Filters saved to localStorage and will persist after refresh');
+  console.log('Page persistence enabled - stays on current page after refresh');
 }
 
 setTimeout(() => {
@@ -3672,6 +4393,8 @@ window.toggleDropdown = toggleDropdown;
 window.openPage = openPage;
 window.openAccountLedger = openAccountLedger;
 window.closeLedger = closeLedger;
+window.openBankLedger = openBankLedger;
+window.closeBankLedger = closeBankLedger;
 window.saveAccount = saveAccount;
 window.editAccount = editAccount;
 window.deleteAccount = deleteAccount;
@@ -3680,20 +4403,24 @@ window.deleteCashbook = deleteCashbook;
 window.saveBank = saveBank;
 window.editBank = editBank;
 window.deleteBank = deleteBank;
-window.openBankLedger = openBankLedger;
-window.closeBankLedger = closeBankLedger;
 window.saveBankTransaction = saveBankTransaction;
 window.deleteBankTransaction = deleteBankTransaction;
+window.saveInventoryOrder = saveInventoryOrder;
+window.deleteInventoryOrder = deleteInventoryOrder;
 window.saveExpense = saveExpense;
 window.deleteExpense = deleteExpense;
 window.saveLedgerTransaction = saveLedgerTransaction;
 window.deleteLedgerTransaction = deleteLedgerTransaction;
+window.saveTransfer = saveTransfer;
+window.deleteTransfer = deleteTransfer;
 window.applyAccountFilter = applyAccountFilter;
 window.resetAccountFilter = resetAccountFilter;
 window.applyBankFilter = applyBankFilter;
 window.resetBankFilter = resetBankFilter;
 window.applyCashbookFilter = applyCashbookFilter;
 window.resetCashbookFilter = resetCashbookFilter;
+window.applyInventoryFilter = applyInventoryFilter;
+window.resetInventoryFilter = resetInventoryFilter;
 window.applyExpenseFilter = applyExpenseFilter;
 window.resetExpenseFilter = resetExpenseFilter;
 window.downloadTrialBalancePDF = downloadTrialBalancePDF;
@@ -3702,8 +4429,10 @@ window.downloadAccountStatementPDF = downloadAccountStatementPDF;
 window.downloadBankStatementPDF = downloadBankStatementPDF;
 window.downloadCashbookPDF = downloadCashbookPDF;
 window.downloadExpensesPDF = downloadExpensesPDF;
+window.downloadInventoryPDF = downloadInventoryPDF;
 window.downloadLedgerPDF = downloadLedgerPDF;
 window.populateExpenseAccounts = populateExpenseAccounts;
+window.populateInventoryAccounts = populateInventoryAccounts;
 </script>
 </body>
 </html>
