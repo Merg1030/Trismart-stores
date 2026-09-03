@@ -234,7 +234,7 @@
         tbody tr:last-child td { border-bottom: none; }
         tbody tr:hover td { background: #f8f9ff; }
 
-        /* Inputs in table - FIXED for continuous input */
+        /* Inputs in table */
         .td-input {
             border: none;
             background: transparent;
@@ -301,7 +301,7 @@
             color: white;
         }
 
-        /* Totals Row */
+        /* Totals Row - FIXED with proper columns */
         .totals-row td {
             background: #eef2ff !important;
             font-weight: 800;
@@ -671,7 +671,7 @@
     let isSaving = false;
     let currentDocId = null;
     let saveTimeout = null;
-    let isUpdating = false; // Prevent re-render loops
+    let isUpdating = false;
 
     // Sample data
     const sampleItems = [
@@ -755,7 +755,7 @@
         };
     }
 
-    // ==================== UPDATE ITEM (NO RE-RENDER) ====================
+    // ==================== UPDATE ITEM ====================
     function updateItem(index, field, value) {
         if (isUpdating) return;
         if (index >= 0 && index < items.length) {
@@ -767,7 +767,6 @@
                 items[index][field] = value;
             }
             
-            // Update only the calculated fields without full re-render
             updateCalculatedFields(index);
             updateTotals();
             autoSave();
@@ -781,77 +780,96 @@
         const row = document.querySelector(`tr[data-index="${index}"]`);
         if (!row) return;
 
-        // Update Order Price (K) - column 7 (index 6)
-        const orderPriceCell = row.querySelectorAll('td')[6];
-        if (orderPriceCell) {
-            orderPriceCell.innerHTML = `K${calc.orderPriceK.toFixed(2)}`;
-            orderPriceCell.style.cssText = 'text-align:center;font-family:DM Mono,monospace;font-weight:600;color:#4361ee;background:#f8f9ff;border-radius:4px;padding:4px 6px;';
+        const cells = row.querySelectorAll('td');
+        
+        // Order Price (K) - column 7 (index 6)
+        if (cells[6]) {
+            cells[6].innerHTML = `K${calc.orderPriceK.toFixed(2)}`;
+            cells[6].style.cssText = 'text-align:center;font-family:DM Mono,monospace;font-weight:600;color:#4361ee;background:#f8f9ff;border-radius:4px;padding:4px 6px;';
         }
 
-        // Update Total Price (K) - column 8 (index 7)
-        const totalPriceCell = row.querySelectorAll('td')[7];
-        if (totalPriceCell) {
-            totalPriceCell.innerHTML = `K${calc.totalPriceK.toFixed(2)}`;
-            totalPriceCell.style.cssText = 'text-align:center;font-family:DM Mono,monospace;font-weight:700;color:#4361ee;background:#eef2ff;border-radius:4px;padding:4px 6px;';
+        // Total Price (K) - column 8 (index 7)
+        if (cells[7]) {
+            cells[7].innerHTML = `K${calc.totalPriceK.toFixed(2)}`;
+            cells[7].style.cssText = 'text-align:center;font-family:DM Mono,monospace;font-weight:700;color:#4361ee;background:#eef2ff;border-radius:4px;padding:4px 6px;';
         }
 
-        // Update Profit/Unit (K) - column 11 (index 10)
-        const profitUnitCell = row.querySelectorAll('td')[10];
-        if (profitUnitCell) {
+        // Profit/Unit (K) - column 11 (index 10)
+        if (cells[10]) {
             const profitClass = calc.profitPerUnit >= 0 ? 'profit-pos' : 'profit-neg';
-            profitUnitCell.className = profitClass;
-            profitUnitCell.style.cssText = 'text-align:center;font-family:DM Mono,monospace;font-weight:700;font-size:0.75rem;';
-            profitUnitCell.textContent = `${calc.profitPerUnit >= 0 ? '+' : ''}K${calc.profitPerUnit.toFixed(2)}`;
+            cells[10].className = profitClass;
+            cells[10].style.cssText = 'text-align:center;font-family:DM Mono,monospace;font-weight:700;font-size:0.75rem;';
+            cells[10].textContent = `${calc.profitPerUnit >= 0 ? '+' : ''}K${calc.profitPerUnit.toFixed(2)}`;
         }
 
-        // Update Profit/Total (K) - column 12 (index 11)
-        const profitTotalCell = row.querySelectorAll('td')[11];
-        if (profitTotalCell) {
+        // Profit/Total (K) - column 12 (index 11)
+        if (cells[11]) {
             const profitClass = calc.profitTotal >= 0 ? 'profit-pos' : 'profit-neg';
-            profitTotalCell.className = profitClass;
-            profitTotalCell.style.cssText = 'text-align:center;font-family:DM Mono,monospace;font-weight:700;font-size:0.75rem;';
-            profitTotalCell.textContent = `${calc.profitTotal >= 0 ? '+' : ''}K${calc.profitTotal.toFixed(2)}`;
+            cells[11].className = profitClass;
+            cells[11].style.cssText = 'text-align:center;font-family:DM Mono,monospace;font-weight:700;font-size:0.75rem;';
+            cells[11].textContent = `${calc.profitTotal >= 0 ? '+' : ''}K${calc.profitTotal.toFixed(2)}`;
         }
     }
 
     // ==================== UPDATE TOTALS ONLY ====================
     function updateTotals() {
-        let totalOrderValue = 0;
-        let totalProfit = 0;
+        let totalUnitPriceFC = 0;
+        let totalOrderPriceK = 0;
+        let totalPriceK = 0;
+        let totalProfitUnit = 0;
+        let totalProfitTotal = 0;
         let totalItems = 0;
         let totalQty = 0;
 
         items.forEach(item => {
             const calc = calculateItem(item);
-            totalOrderValue += calc.totalPriceK;
-            totalProfit += calc.profitTotal;
+            totalUnitPriceFC += item.unitPriceFC;
+            totalOrderPriceK += calc.orderPriceK;
+            totalPriceK += calc.totalPriceK;
+            totalProfitUnit += calc.profitPerUnit;
+            totalProfitTotal += calc.profitTotal;
             totalItems += 1;
             totalQty += item.qty;
         });
 
-        const margin = totalOrderValue > 0 ? (totalProfit / totalOrderValue * 100) : 0;
+        const margin = totalPriceK > 0 ? (totalProfitTotal / totalPriceK * 100) : 0;
 
-        document.getElementById('totalOrderValue').textContent = `K${totalOrderValue.toFixed(2)}`;
-        document.getElementById('totalProfit').textContent = `K${totalProfit.toFixed(2)}`;
+        // Update summary cards
+        document.getElementById('totalOrderValue').textContent = `K${totalPriceK.toFixed(2)}`;
+        document.getElementById('totalProfit').textContent = `K${totalProfitTotal.toFixed(2)}`;
         document.getElementById('avgMargin').textContent = `${margin.toFixed(1)}%`;
         document.getElementById('totalItems').textContent = totalItems;
         document.getElementById('totalQty').textContent = totalQty;
 
-        // Update totals row in table footer
+        // Update table footer - proper totals for each column
         const tfoot = document.getElementById('tableFoot');
         if (items.length > 0) {
             tfoot.style.display = 'table-footer-group';
             const tds = tfoot.querySelectorAll('td');
             if (tds.length >= 12) {
-                tds[4].textContent = items.length;
-                tds[6].textContent = `K${totalOrderValue.toFixed(2)}`;
-                tds[10].textContent = `+K${totalProfit.toFixed(2)}`;
-                tds[11].textContent = `${margin.toFixed(1)}%`;
+                // Column 0: # - leave blank
+                // Column 1-3: leave blank
+                // Column 4: Total Items (index 4)
+                tds[4].textContent = totalItems;
+                // Column 5: Unit Price (FC) TOTAL (index 5)
+                tds[5].textContent = totalUnitPriceFC.toFixed(2);
+                // Column 6: Order Price (K) TOTAL (index 6)
+                tds[6].textContent = `K${totalOrderPriceK.toFixed(2)}`;
+                // Column 7: Total Price (K) TOTAL (index 7)
+                tds[7].textContent = `K${totalPriceK.toFixed(2)}`;
+                // Column 8-9: leave blank
+                // Column 10: Profit/Unit (K) TOTAL (index 10)
+                tds[10].textContent = `+K${totalProfitUnit.toFixed(2)}`;
+                // Column 11: Profit/Total (K) TOTAL (index 11)
+                tds[11].textContent = `+K${totalProfitTotal.toFixed(2)}`;
+                // Column 12-13: leave blank
             }
+        } else {
+            tfoot.style.display = 'none';
         }
     }
 
-    // ==================== FULL RENDER (for initial load and major changes) ====================
+    // ==================== FULL RENDER ====================
     function renderTable() {
         const tbody = document.getElementById('tableBody');
         const tfoot = document.getElementById('tableFoot');
@@ -872,15 +890,21 @@
         }
 
         let html = '';
-        let totalOrderValue = 0;
-        let totalProfit = 0;
+        let totalUnitPriceFC = 0;
+        let totalOrderPriceK = 0;
+        let totalPriceK = 0;
+        let totalProfitUnit = 0;
+        let totalProfitTotal = 0;
         let totalQty = 0;
 
         items.forEach((item, index) => {
             const calc = calculateItem(item);
             
-            totalOrderValue += calc.totalPriceK;
-            totalProfit += calc.profitTotal;
+            totalUnitPriceFC += item.unitPriceFC;
+            totalOrderPriceK += calc.orderPriceK;
+            totalPriceK += calc.totalPriceK;
+            totalProfitUnit += calc.profitPerUnit;
+            totalProfitTotal += calc.profitTotal;
             totalQty += item.qty;
 
             const profitClass = calc.profitPerUnit >= 0 ? 'profit-pos' : 'profit-neg';
@@ -943,25 +967,34 @@
 
         tbody.innerHTML = html;
         
-        // Totals row
-        const margin = totalOrderValue > 0 ? (totalProfit / totalOrderValue * 100) : 0;
+        // Totals row with ALL column totals
+        const margin = totalPriceK > 0 ? (totalProfitTotal / totalPriceK * 100) : 0;
         tfoot.innerHTML = `
             <tr class="totals-row">
-                <td colspan="4" style="font-weight:700;font-size:0.65rem;text-transform:uppercase;letter-spacing:0.05em;color:#4361ee;">
+                <td style="font-weight:700;font-size:0.65rem;text-transform:uppercase;letter-spacing:0.05em;color:#4361ee;text-align:center;" colspan="4">
                     <i class="fas fa-calculator"></i> TOTALS
                 </td>
-                <td style="text-align:center;font-weight:600;font-size:0.65rem;">${items.length}</td>
-                <td colspan="2" style="text-align:center;font-family:'DM Mono',monospace;font-size:0.85rem;color:#4361ee;">
-                    K${totalOrderValue.toFixed(2)}
+                <td style="text-align:center;font-weight:800;font-size:0.7rem;color:#4361ee;">${items.length}</td>
+                <td style="text-align:center;font-family:'DM Mono',monospace;font-weight:700;font-size:0.8rem;color:#4361ee;">
+                    ${totalUnitPriceFC.toFixed(2)}
+                </td>
+                <td style="text-align:center;font-family:'DM Mono',monospace;font-weight:700;font-size:0.8rem;color:#4361ee;background:#dce3ff;border-radius:4px;padding:4px 6px;">
+                    K${totalOrderPriceK.toFixed(2)}
+                </td>
+                <td style="text-align:center;font-family:'DM Mono',monospace;font-weight:800;font-size:0.9rem;color:#4361ee;background:#c7d2fe;border-radius:4px;padding:4px 6px;">
+                    K${totalPriceK.toFixed(2)}
                 </td>
                 <td colspan="2"></td>
-                <td style="text-align:center;font-family:'DM Mono',monospace;font-size:0.85rem;color:#10b981;">
-                    +K${totalProfit.toFixed(2)}
+                <td style="text-align:center;font-family:'DM Mono',monospace;font-weight:700;font-size:0.8rem;color:#10b981;">
+                    +K${totalProfitUnit.toFixed(2)}
                 </td>
-                <td style="text-align:center;font-family:'DM Mono',monospace;font-size:0.85rem;color:#f59e0b;">
+                <td style="text-align:center;font-family:'DM Mono',monospace;font-weight:800;font-size:0.9rem;color:#059669;background:#d1fae5;border-radius:4px;padding:4px 6px;">
+                    +K${totalProfitTotal.toFixed(2)}
+                </td>
+                <td style="text-align:center;font-family:'DM Mono',monospace;font-weight:700;font-size:0.8rem;color:#f59e0b;">
                     ${margin.toFixed(1)}%
                 </td>
-                <td colspan="2"></td>
+                <td></td>
             </tr>
         `;
         tfoot.style.display = 'table-footer-group';
@@ -985,7 +1018,6 @@
         items.push(newItem);
         renderTable();
         toast('Item added!', 'success');
-        // Focus the new row's first input after render
         setTimeout(() => {
             const inputs = document.querySelectorAll('#tableBody tr:last-child .td-input');
             if (inputs.length) inputs[0].focus();
@@ -1019,7 +1051,7 @@
         renderTable();
     }
 
-    // ==================== AUTO-SAVE TO FIRESTORE ====================
+    // ==================== AUTO-SAVE ====================
     function autoSave() {
         clearTimeout(saveTimeout);
         saveTimeout = setTimeout(() => {
@@ -1175,8 +1207,6 @@
 
             renderTable();
             toast('Consignment loaded!', 'success');
-            
-            // Switch to calculator tab
             switchTab('calculator');
             
         } catch (error) {
@@ -1263,21 +1293,28 @@
             ];
         });
 
-        let totalOrderValue = 0;
-        let totalProfit = 0;
-        let totalQty = 0;
+        // Totals row for PDF
+        let totalUnitPriceFC = 0, totalOrderPriceK = 0, totalPriceK = 0, totalProfitUnit = 0, totalProfitTotal = 0, totalQty = 0;
         items.forEach(item => {
             const calc = calculateItem(item);
-            totalOrderValue += calc.totalPriceK;
-            totalProfit += calc.profitTotal;
+            totalUnitPriceFC += item.unitPriceFC;
+            totalOrderPriceK += calc.orderPriceK;
+            totalPriceK += calc.totalPriceK;
+            totalProfitUnit += calc.profitPerUnit;
+            totalProfitTotal += calc.profitTotal;
             totalQty += item.qty;
         });
 
         tableData.push(['', '', '', '', '', '', '', '', '', '', '', '', '']);
         tableData.push([
-            'TOTALS', '', '', totalQty, '', '', 
-            totalOrderValue.toFixed(2), '', '', 
-            totalProfit.toFixed(2), '', '', ''
+            'TOTALS', '', '', totalQty, '', 
+            totalUnitPriceFC.toFixed(2),
+            totalOrderPriceK.toFixed(2),
+            totalPriceK.toFixed(2),
+            '', '',
+            totalProfitUnit.toFixed(2),
+            totalProfitTotal.toFixed(2),
+            ''
         ]);
 
         doc.autoTable({
@@ -1331,29 +1368,31 @@
             };
         });
 
-        let totalOrderValue = 0;
-        let totalProfit = 0;
-        let totalQty = 0;
+        // Totals
+        let totalUnitPriceFC = 0, totalOrderPriceK = 0, totalPriceK = 0, totalProfitUnit = 0, totalProfitTotal = 0, totalQty = 0;
         items.forEach(item => {
             const calc = calculateItem(item);
-            totalOrderValue += calc.totalPriceK;
-            totalProfit += calc.profitTotal;
+            totalUnitPriceFC += item.unitPriceFC;
+            totalOrderPriceK += calc.orderPriceK;
+            totalPriceK += calc.totalPriceK;
+            totalProfitUnit += calc.profitPerUnit;
+            totalProfitTotal += calc.profitTotal;
             totalQty += item.qty;
         });
 
         data.push({
-            '#': '',
-            'Item Name': 'TOTALS',
+            '#': 'TOTALS',
+            'Item Name': '',
             'Supplier': '',
             'Qty': totalQty,
             'Currency': '',
-            'Unit Price (FC)': '',
-            'Order Price (K)': '',
-            'Total Price (K)': totalOrderValue,
+            'Unit Price (FC)': totalUnitPriceFC,
+            'Order Price (K)': totalOrderPriceK,
+            'Total Price (K)': totalPriceK,
             'Market Price (K)': '',
             'Selling Price (K)': '',
-            'Profit/Unit (K)': '',
-            'Profit/Total (K)': totalProfit,
+            'Profit/Unit (K)': totalProfitUnit,
+            'Profit/Total (K)': totalProfitTotal,
             'Lead Period': ''
         });
 
@@ -1362,10 +1401,10 @@
         XLSX.utils.book_append_sheet(wb, ws, 'Order Calculator');
         
         ws['!cols'] = [
-            { wch: 5 }, { wch: 18 }, { wch: 16 }, { wch: 6 },
-            { wch: 8 }, { wch: 14 }, { wch: 14 }, { wch: 14 },
-            { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 14 },
-            { wch: 12 }
+            { wch: 10 }, { wch: 20 }, { wch: 18 }, { wch: 6 },
+            { wch: 8 }, { wch: 14 }, { wch: 16 }, { wch: 16 },
+            { wch: 16 }, { wch: 16 }, { wch: 16 }, { wch: 16 },
+            { wch: 14 }
         ];
 
         XLSX.writeFile(wb, `Order_Calculator_${new Date().toISOString().split('T')[0]}.xlsx`);
@@ -1426,7 +1465,6 @@
             }
         });
 
-        // Keyboard shortcut: Ctrl+Enter to add row
         document.addEventListener('keydown', function(e) {
             if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
                 e.preventDefault();
