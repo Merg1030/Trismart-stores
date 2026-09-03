@@ -25,6 +25,7 @@
             --pink:      #f72585;
             --purple:    #7c3aed;
             --danger:    #ef4444;
+            --marketing: #7c3aed;
             --radius:    10px;
             --radius-lg: 14px;
             --shadow:    0 2px 12px rgba(67,97,238,0.08);
@@ -277,6 +278,16 @@
             background: rgba(67,97,238,0.07); color: var(--blue);
             border: 1px solid rgba(67,97,238,0.14); border-radius: 4px; padding: 1px 5px;
         }
+        .branch-tag {
+            font-size: 0.6rem; font-weight: 700;
+            padding: 1px 6px; border-radius: 4px;
+        }
+        .branch-tag.marketing {
+            background: #f3e5f5; color: var(--marketing);
+        }
+        .branch-tag.branch {
+            background: #eef2ff; color: var(--blue);
+        }
 
         /* RIGHT PANEL */
         .right-panel {
@@ -446,7 +457,6 @@
                     <button class="filter-type-btn active" data-filter="day" onclick="setFilterType('day')"><i class="fas fa-calendar-day"></i> Day</button>
                     <button class="filter-type-btn" data-filter="week" onclick="setFilterType('week')"><i class="fas fa-calendar-week"></i> Week</button>
                     <button class="filter-type-btn" data-filter="month" onclick="setFilterType('month')"><i class="fas fa-calendar-alt"></i> Month</button>
-                    <!-- NEW YEARLY FILTER -->
                     <button class="filter-type-btn" data-filter="year" onclick="setFilterType('year')"><i class="fas fa-calendar"></i> Year</button>
                 </div>
 
@@ -466,7 +476,6 @@
                     <input type="month" id="monthFilter" title="Filter by month">
                 </div>
 
-                <!-- NEW Yearly picker -->
                 <div class="date-filter-group" id="yearPicker" style="display:none;">
                     <i class="fas fa-calendar"></i>
                     <input type="number" id="yearFilter" min="2020" max="2030" step="1" value="2026" style="width:80px;" title="Enter year">
@@ -474,6 +483,7 @@
 
                 <select class="ctrl-select" id="branchSelect">
                     <option value="">All Branches</option>
+                    <option value="marketing">📢 Marketing Department</option>
                 </select>
 
                 <div class="search-wrap">
@@ -574,7 +584,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-app.js";
-    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyB-lm7Y3r1F6VvY8PKvY8glLabZDbJsHM1k",
@@ -598,6 +608,9 @@
     let salesChart, branchChart, fsChartInstance;
     let currentFilterType = 'day';
     let currentWeekOffset = 0;
+    let unsubSales = null, unsubMarketing = null;
+    let restockHistory = [];
+    let isLoaded = false;
     const PALETTE = [
         'rgba(67,97,238,0.75)', 'rgba(0,180,216,0.75)', 'rgba(16,185,129,0.75)',
         'rgba(245,158,11,0.75)', 'rgba(124,58,237,0.75)', 'rgba(247,37,133,0.75)',
@@ -639,8 +652,6 @@
         const formatOptions = { day: 'numeric', month: 'short' };
         document.getElementById('weekRangeDisplay').textContent = 
             `${startDate.toLocaleDateString('en-GB', formatOptions)} - ${endDate.toLocaleDateString('en-GB', formatOptions)}`;
-        document.getElementById('weekStart').value = range.start;
-        document.getElementById('weekEnd').value = range.end;
     }
 
     window.changeWeek = function(delta) {
@@ -673,65 +684,128 @@
         return matches.length ? parseFloat(matches[0].price) : null;
     }
 
-    async function loadData() {
-        try {
-            const [salesSnap, restockSnap] = await Promise.all([
-                getDocs(collection(db, 'sales')),
-                getDocs(collection(db, 'restockHistory'))
-            ]);
-            const history = restockSnap.docs.map(d => ({ id:d.id, ...d.data() }));
-            const rows = [];
-            const branchSet = new Set();
+    function loadData() {
+        // Load restock history first
+        getDocs(collection(db, 'restockHistory')).then(snap => {
+            restockHistory = snap.docs.map(d => ({ id:d.id, ...d.data() }));
+            isLoaded = true;
+        }).catch(err => console.error('Restock error:', err));
 
-            salesSnap.forEach(doc => {
+        // Listen to sales
+        if (unsubSales) unsubSales();
+        unsubSales = onSnapshot(collection(db, 'sales'), (snap) => {
+            const branchSales = [];
+            snap.forEach(doc => {
                 const s = doc.data();
-                const cost = findOrderPrice(s.date, s.code, history);
-                if (cost !== null) {
-                    const discount = s.discount || 0;
-                    const grossSales = s.price * s.quantity;
-                    const netSales = grossSales - discount;
-                    const totalCost = cost * s.quantity;
-                    const profit = netSales - totalCost;
-                    
-                    rows.push({
-                        date:       s.date || '',
-                        branch:     s.branchId || 'Unknown',
-                        code:       s.code || '',
-                        name:       s.name || '',
-                        unitPrice:  s.price,
-                        quantity:   s.quantity || 0,
-                        discount:   discount,
-                        grossSales: grossSales,
-                        netSales:   netSales,
-                        totalCost:  totalCost,
-                        profit:     profit,
-                        costPrice:  cost
-                    });
-                    branchSet.add(s.branchId || 'Unknown');
-                }
+                branchSales.push({ ...s, source: 'branch', id: doc.id });
             });
+            // Merge with marketing
+            if (unsubMarketing) {
+                // We'll combine in the marketing listener
+            }
+            combineAndProcess(branchSales);
+        }, err => console.error('Sales error:', err));
 
-            allData = rows.sort((a,b) => new Date(a.date) - new Date(b.date));
-            buildBranchFilter(branchSet);
-            
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('dayFilter').value = today;
-            document.getElementById('monthFilter').value = new Date().toISOString().substring(0,7);
-            document.getElementById('yearFilter').value = new Date().getFullYear();
-            
-            apply();
-        } catch(err) {
-            console.error(err);
-            document.querySelector('#profitTable tbody').innerHTML =
-                `<tr><td colspan="10" class="no-data"><i class="fas fa-exclamation-circle" style="color:var(--danger);"></i> Error loading. Please refresh.</td></tr>`;
+        // Listen to marketing sales
+        if (unsubMarketing) unsubMarketing();
+        unsubMarketing = onSnapshot(collection(db, 'marketing_sales'), (snap) => {
+            const marketingSales = [];
+            snap.forEach(doc => {
+                const s = doc.data();
+                marketingSales.push({ 
+                    ...s, 
+                    source: 'marketing', 
+                    id: doc.id,
+                    branchId: s.sourceWarehouse || 'marketing',
+                    branchDisplay: '📢 Marketing'
+                });
+            });
+            combineAndProcess(marketingSales, true);
+        }, err => console.error('Marketing error:', err));
+    }
+
+    let pendingBranchSales = [];
+    let pendingMarketingSales = [];
+
+    function combineAndProcess(newData, isMarketing = false) {
+        if (isMarketing) {
+            pendingMarketingSales = newData;
+        } else {
+            pendingBranchSales = newData;
         }
+
+        // Only process when both are loaded
+        if (!pendingBranchSales.length && !pendingMarketingSales.length) {
+            // Still loading
+            return;
+        }
+
+        // Combine
+        const allSales = [...pendingBranchSales, ...pendingMarketingSales];
+        
+        const rows = [];
+        const branchSet = new Set();
+
+        allSales.forEach(s => {
+            const cost = findOrderPrice(s.date, s.code, restockHistory);
+            if (cost !== null) {
+                const discount = s.discount || 0;
+                const grossSales = s.price * s.quantity;
+                const netSales = grossSales - discount;
+                const totalCost = cost * s.quantity;
+                const profit = netSales - totalCost;
+                
+                const branchDisplay = s.source === 'marketing' ? '📢 Marketing' : (s.branchId || 'Unknown');
+                
+                rows.push({
+                    date:       s.date || '',
+                    branch:     s.source === 'marketing' ? '📢 Marketing' : (s.branchId || 'Unknown'),
+                    branchId:   s.source === 'marketing' ? 'marketing' : (s.branchId || 'Unknown'),
+                    source:     s.source || 'branch',
+                    code:       s.code || '',
+                    name:       s.name || '',
+                    unitPrice:  s.price,
+                    quantity:   s.quantity || 0,
+                    discount:   discount,
+                    grossSales: grossSales,
+                    netSales:   netSales,
+                    totalCost:  totalCost,
+                    profit:     profit,
+                    costPrice:  cost
+                });
+                branchSet.add(s.source === 'marketing' ? '📢 Marketing' : (s.branchId || 'Unknown'));
+            }
+        });
+
+        allData = rows.sort((a,b) => new Date(a.date) - new Date(b.date));
+        buildBranchFilter(branchSet);
+        
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('dayFilter').value = today;
+        document.getElementById('monthFilter').value = new Date().toISOString().substring(0,7);
+        document.getElementById('yearFilter').value = new Date().getFullYear();
+        
+        apply();
     }
 
     function buildBranchFilter(set) {
         const sel = document.getElementById('branchSelect');
         sel.innerHTML = '<option value="">All Branches</option>';
+        // Add Marketing first
+        const hasMarketing = [...set].some(b => b === '📢 Marketing');
+        if (hasMarketing) {
+            const o = document.createElement('option'); 
+            o.value = 'marketing'; 
+            o.textContent = '📢 Marketing Department';
+            sel.appendChild(o);
+        }
         set.forEach(b => {
-            const o = document.createElement('option'); o.value = b; o.textContent = b; sel.appendChild(o);
+            if (b !== '📢 Marketing') {
+                const o = document.createElement('option'); 
+                o.value = b; 
+                o.textContent = b; 
+                sel.appendChild(o);
+            }
         });
     }
 
@@ -754,7 +828,13 @@
         }
         
         const branch = document.getElementById('branchSelect').value;
-        if (branch) filtered = filtered.filter(r => r.branch === branch);
+        if (branch) {
+            if (branch === 'marketing') {
+                filtered = filtered.filter(r => r.source === 'marketing');
+            } else {
+                filtered = filtered.filter(r => r.branchId === branch && r.source !== 'marketing');
+            }
+        }
         
         const search = document.getElementById('searchInput').value.trim().toLowerCase();
         if (search) {
@@ -791,10 +871,12 @@
             totalProfit += d.profit;
             totalDiscount += d.discount;
             const profitClass = d.profit >= 0 ? 'profit-pos' : 'profit-neg';
+            const branchClass = d.source === 'marketing' ? 'branch-tag marketing' : 'branch-tag branch';
             const tr = document.createElement('tr');
+            if (d.source === 'marketing') tr.style.background = '#faf5ff';
             tr.innerHTML = `
                 <td class="mono">${d.date}</td>
-                <td>${d.branch}</td>
+                <td><span class="${branchClass}">${d.branch}</span></td>
                 <td><span class="code-chip">${d.code}</span></td>
                 <td style="font-weight:600;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${d.name}</td>
                 <td class="mono">${fmt(d.unitPrice)}</td>
@@ -917,6 +999,20 @@
             filterLabel = year ? `year ${year}` : 'selected year';
         }
 
+        // Marketing specific comment
+        const marketingSales = data.filter(d => d.source === 'marketing');
+        if (marketingSales.length > 0) {
+            const mProfit = marketingSales.reduce((s, d) => s + d.profit, 0);
+            const mSales = marketingSales.reduce((s, d) => s + d.netSales, 0);
+            const mMargin = mSales > 0 ? (mProfit / mSales * 100).toFixed(1) : 0;
+            comments.push({ 
+                icon: 'ci-info', 
+                tag: 'tag-info', 
+                tagText: '📢 Marketing', 
+                text: `Marketing sales: <strong>${marketingSales.length} transactions</strong> | Profit: <strong>${fmt(mProfit)}</strong> | Margin: <strong>${mMargin}%</strong>` 
+            });
+        }
+
         if (margin >= 30) {
             comments.push({ icon:'ci-great', tag:'tag-great', tagText:'🏆 Excellent', text:`Profit margin is <strong>${margin.toFixed(1)}%</strong> for ${filterLabel} — outstanding performance! Keep it up.` });
         } else if (margin >= 15) {
@@ -938,19 +1034,6 @@
             comments.push({ icon:'ci-info', tag:'tag-info', tagText:'⭐ Top Product', text:`<strong>${topName}</strong> is your best performer with <strong>${fmt(topData.profit)}</strong> profit and <strong>${topData.qty}</strong> units sold.` });
         }
 
-        const negProds = prodArr.filter(([,v]) => v.profit < 0);
-        if (negProds.length) {
-            const [worstName, worstData] = negProds[negProds.length - 1];
-            comments.push({ icon:'ci-bad', tag:'tag-bad', tagText:'📉 Losing Product', text:`<strong>${worstName}</strong> is losing money — <strong>${fmt(worstData.profit)}</strong> loss. Consider removing or repricing this product.` });
-        }
-
-        const branchArr = Object.entries(byBranch).sort((a,b) => b[1].profit - a[1].profit);
-        if (branchArr.length > 1) {
-            const [topBranch] = branchArr[0];
-            const [lowBranch] = branchArr[branchArr.length - 1];
-            comments.push({ icon:'ci-info', tag:'tag-info', tagText:'🏬 Branch Comparison', text:`<strong>${topBranch}</strong> leads in profit. <strong>${lowBranch}</strong> is behind — investigate what's driving the gap.` });
-        }
-
         wrap.innerHTML = comments.map(c => `
             <div class="comment-card">
                 <div class="comment-icon ${c.icon}"><i class="fas fa-${c.icon === 'ci-good' ? 'check' : c.icon === 'ci-great' ? 'trophy' : c.icon === 'ci-warn' ? 'triangle-exclamation' : c.icon === 'ci-bad' ? 'circle-exclamation' : 'circle-info'}"></i></div>
@@ -969,7 +1052,6 @@
         const ctx = fsCanvas.getContext('2d');
         const title = document.getElementById('fsTitle');
 
-        // Determine which chart to clone
         let sourceChart, label;
         if (chartId === 'salesChart') {
             sourceChart = salesChart;
@@ -984,19 +1066,16 @@
         if (!sourceChart) return;
         title.textContent = label;
 
-        // Destroy previous fullscreen chart if exists
         if (fsChartInstance) {
             fsChartInstance.destroy();
             fsChartInstance = null;
         }
 
-        // Clone data and options
         const data = JSON.parse(JSON.stringify(sourceChart.data));
         const options = JSON.parse(JSON.stringify(sourceChart.options));
         options.responsive = true;
         options.maintainAspectRatio = false;
-        // Enhance for fullscreen
-        options.plugins.legend = { ...options.plugins.legend, labels: { ...options.plugins.legend?.labels, font: { size: 12 } } };
+        if (options.plugins) options.plugins.legend = { ...options.plugins.legend, labels: { ...options.plugins.legend?.labels, font: { size: 12 } } };
         if (options.scales) {
             if (options.scales.x) options.scales.x.ticks.font = { size: 11 };
             if (options.scales.y) options.scales.y.ticks.font = { size: 11 };
