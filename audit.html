@@ -460,6 +460,14 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; }
 
+        .btn-save {
+            background: #10b981;
+            color: white;
+        }
+        .btn-save:hover {
+            background: #059669;
+        }
+
         @media (max-width: 640px) {
             body { padding: 10px; }
             .header { padding: 14px 16px; }
@@ -519,12 +527,13 @@
         </div>
 
         <button class="btn btn-primary" onclick="addRow()"><i class="fas fa-plus"></i> Add Item</button>
+        <button class="btn btn-success btn-save" onclick="saveConsignment()"><i class="fas fa-save"></i> Save Consignment</button>
         <button class="btn btn-warning" onclick="exportPDF()"><i class="fas fa-file-pdf"></i> PDF</button>
         <button class="btn btn-warning" onclick="exportExcel()"><i class="fas fa-file-excel"></i> Excel</button>
         <button class="btn btn-danger btn-sm" onclick="clearAll()"><i class="fas fa-trash"></i> Clear</button>
         
         <span class="save-status" id="saveStatus">
-            <i class="fas fa-circle saved"></i> <span id="statusText">Auto-saving</span>
+            <i class="fas fa-circle saved"></i> <span id="statusText">Ready</span>
         </span>
     </div>
 
@@ -637,7 +646,7 @@
     let items = [];
     let isSaving = false;
     let currentDocId = null;
-    let saveTimeout = null;
+    let isInitialLoad = true; // Prevent auto-save on load
 
     // ==================== TOAST ====================
     function toast(message, type = 'success') {
@@ -720,7 +729,9 @@
             
             updateCalculatedFields(index);
             updateTotals();
-            autoSave();
+            
+            // Save to localStorage (not Firebase) on every change
+            saveToLocalStorage();
         }
     }
 
@@ -817,7 +828,6 @@
             `;
             tfoot.style.display = 'none';
             updateTotals();
-            autoSave();
             return;
         }
 
@@ -926,7 +936,6 @@
         tfoot.style.display = 'table-footer-group';
 
         updateTotals();
-        autoSave();
     }
 
     // ==================== ADD ROW ====================
@@ -943,6 +952,7 @@
         };
         items.push(newItem);
         renderTable();
+        saveToLocalStorage();
         toast('Item added!', 'success');
         setTimeout(() => {
             const inputs = document.querySelectorAll('#tableBody tr:last-child .td-input');
@@ -956,6 +966,7 @@
             const name = items[index].name || 'Item';
             items.splice(index, 1);
             renderTable();
+            saveToLocalStorage();
             toast(`Removed "${name}"`, 'warning');
         }
     }
@@ -975,87 +986,20 @@
         }
         
         renderTable();
+        saveToLocalStorage();
     }
 
-    // ==================== AUTO-SAVE ====================
-    function autoSave() {
-        clearTimeout(saveTimeout);
-        saveTimeout = setTimeout(() => {
-            if (items.length === 0) {
-                if (currentDocId) {
-                    db.collection('orders').doc(currentDocId).delete().catch(() => {});
-                    currentDocId = null;
-                }
-                updateSaveStatus('Ready', 'saved');
-                // Also clear localStorage
-                localStorage.removeItem('order_items');
-                return;
-            }
-            // Save to localStorage for persistence
-            try {
-                localStorage.setItem('order_items', JSON.stringify(items));
-                localStorage.setItem('order_usdRate', document.getElementById('usdRate').value);
-                localStorage.setItem('order_eurRate', document.getElementById('eurRate').value);
-            } catch (e) {}
-            performSave();
-        }, 2000);
-    }
-
-    function performSave() {
-        if (isSaving) return;
-        isSaving = true;
-        updateSaveStatus('Saving...', 'saving');
-
+    // ==================== LOCAL STORAGE (for page refresh) ====================
+    function saveToLocalStorage() {
         try {
-            const data = {
-                items: items.map(item => ({ ...item })),
-                usdRate: parseFloat(document.getElementById('usdRate').value) || usdRate,
-                eurRate: parseFloat(document.getElementById('eurRate').value) || eurRate,
-                totalOrderValue: parseFloat(document.getElementById('totalOrderValue').textContent.replace('K', '')) || 0,
-                totalProfit: parseFloat(document.getElementById('totalProfit').textContent.replace('K', '')) || 0,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                updatedAt: new Date().toISOString()
-            };
-
-            if (currentDocId) {
-                db.collection('orders').doc(currentDocId).update(data)
-                    .then(() => {
-                        isSaving = false;
-                        updateSaveStatus('Saved ✓', 'saved');
-                    })
-                    .catch(err => {
-                        console.error('Update error:', err);
-                        isSaving = false;
-                        updateSaveStatus('Error!', 'error');
-                    });
-            } else {
-                db.collection('orders').add(data)
-                    .then(docRef => {
-                        currentDocId = docRef.id;
-                        isSaving = false;
-                        updateSaveStatus('Saved ✓', 'saved');
-                    })
-                    .catch(err => {
-                        console.error('Add error:', err);
-                        isSaving = false;
-                        updateSaveStatus('Error!', 'error');
-                    });
-            }
-        } catch (err) {
-            console.error('Save error:', err);
-            isSaving = false;
-            updateSaveStatus('Error!', 'error');
+            localStorage.setItem('order_items', JSON.stringify(items));
+            localStorage.setItem('order_usdRate', document.getElementById('usdRate').value);
+            localStorage.setItem('order_eurRate', document.getElementById('eurRate').value);
+        } catch (e) {
+            console.log('Could not save to localStorage');
         }
     }
 
-    function updateSaveStatus(text, type) {
-        const statusText = document.getElementById('statusText');
-        const icon = document.querySelector('#saveStatus i');
-        statusText.textContent = text;
-        icon.className = `fas fa-circle ${type}`;
-    }
-
-    // ==================== LOAD FROM LOCALSTORAGE ====================
     function loadFromLocalStorage() {
         try {
             const savedItems = localStorage.getItem('order_items');
@@ -1083,6 +1027,55 @@
         }
     }
 
+    // ==================== SAVE CONSIGNMENT (Manual Save to Firebase) ====================
+    async function saveConsignment() {
+        if (items.length === 0) {
+            toast('No items to save! Add some items first.', 'warning');
+            return;
+        }
+
+        if (isSaving) return;
+        isSaving = true;
+        updateSaveStatus('Saving...', 'saving');
+
+        try {
+            const data = {
+                items: items.map(item => ({ ...item })),
+                usdRate: parseFloat(document.getElementById('usdRate').value) || usdRate,
+                eurRate: parseFloat(document.getElementById('eurRate').value) || eurRate,
+                totalOrderValue: parseFloat(document.getElementById('totalOrderValue').textContent.replace('K', '')) || 0,
+                totalProfit: parseFloat(document.getElementById('totalProfit').textContent.replace('K', '')) || 0,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                updatedAt: new Date().toISOString()
+            };
+
+            const docRef = await db.collection('orders').add(data);
+            currentDocId = docRef.id;
+            
+            isSaving = false;
+            updateSaveStatus('Saved ✓', 'saved');
+            toast(`Consignment saved! ID: ${docRef.id.substring(0, 8)}`, 'success');
+            
+            // Refresh the consignments list if we're on that tab
+            if (document.getElementById('tab-consignments').classList.contains('active')) {
+                loadConsignments();
+            }
+            
+        } catch (err) {
+            console.error('Save error:', err);
+            isSaving = false;
+            updateSaveStatus('Error!', 'error');
+            toast('Error saving: ' + err.message, 'error');
+        }
+    }
+
+    function updateSaveStatus(text, type) {
+        const statusText = document.getElementById('statusText');
+        const icon = document.querySelector('#saveStatus i');
+        statusText.textContent = text;
+        icon.className = `fas fa-circle ${type}`;
+    }
+
     // ==================== LOAD CONSIGNMENTS ====================
     async function loadConsignments() {
         const list = document.getElementById('consignmentsList');
@@ -1098,7 +1091,7 @@
                     <div class="empty-consignments">
                         <i class="fas fa-inbox"></i>
                         <p>No saved consignments found.</p>
-                        <p style="font-size:0.7rem;color:#6b7490;">Create an order in the Calculator tab and it will auto-save.</p>
+                        <p style="font-size:0.7rem;color:#6b7490;">Create an order and click "Save Consignment".</p>
                     </div>
                 `;
                 return;
@@ -1129,7 +1122,6 @@
             });
 
             list.innerHTML = html;
-            toast('Consignments loaded!', 'success');
 
         } catch (error) {
             console.error('Load error:', error);
@@ -1168,9 +1160,7 @@
             }
 
             // Save to localStorage
-            localStorage.setItem('order_items', JSON.stringify(items));
-            localStorage.setItem('order_usdRate', data.usdRate);
-            localStorage.setItem('order_eurRate', data.eurRate);
+            saveToLocalStorage();
 
             renderTable();
             toast('Consignment loaded!', 'success');
@@ -1190,9 +1180,6 @@
             await db.collection('orders').doc(docId).delete();
             if (currentDocId === docId) {
                 currentDocId = null;
-                items = [];
-                localStorage.removeItem('order_items');
-                renderTable();
             }
             toast('Consignment deleted!', 'success');
             loadConsignments();
@@ -1402,11 +1389,11 @@
 
     // ==================== INIT ====================
     document.addEventListener('DOMContentLoaded', function() {
-        // Load saved data from localStorage first
+        // Load from localStorage first (for page refresh)
         loadFromLocalStorage();
         
-        // If no saved data, start empty
-        if (items.length === 0) {
+        // If no items, start empty
+        if (!items || items.length === 0) {
             items = [];
         }
         
@@ -1436,10 +1423,15 @@
                 e.preventDefault();
                 addRow();
             }
+            // Ctrl+S to save
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                e.preventDefault();
+                saveConsignment();
+            }
         });
 
         setTimeout(fetchRates, 1000);
-        toast('📊 Order calculator ready! Data auto-saves.', 'info');
+        toast('📊 Order calculator ready! Click "Save Consignment" to save.', 'info');
     });
 </script>
 </body>
