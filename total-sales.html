@@ -23,6 +23,7 @@
       --border:    #dee2e6;
       --text:      #212529;
       --text-fade: #6c757d;
+      --marketing: #7c3aed;
       --radius:    10px;
       --radius-lg: 16px;
       --shadow:    0 2px 12px rgba(67,97,238,0.08);
@@ -88,6 +89,8 @@
     .btn-ghost:hover { border-color: var(--primary); color: var(--primary); }
     .btn-success { background: linear-gradient(135deg, var(--success), #27ae60); color: white; }
     .btn-success:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(46,204,113,.3); }
+    .btn-marketing { background: linear-gradient(135deg, var(--marketing), #6d28d9); color: white; }
+    .btn-marketing:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(124,58,237,.3); }
 
     .main { flex: 1; padding: 16px 18px; display: flex; flex-direction: column; gap: 12px; }
 
@@ -127,6 +130,14 @@
       background: var(--bg-lighter);
       padding: 3px 10px;
       border-radius: 100px;
+    }
+    .branch-filter .marketing-badge {
+      background: #f3e5f5;
+      color: var(--marketing);
+      padding: 2px 8px;
+      border-radius: 100px;
+      font-size: .6rem;
+      font-weight: 700;
     }
     .filter-toggle-group {
       display: flex;
@@ -229,7 +240,13 @@
     }
     .grand-total-row td:last-child { color: var(--success); font-size: 1.1rem; }
 
-    /* Day count badge */
+    .marketing-row td {
+      background: #f3e5f5 !important;
+    }
+    .marketing-row td:first-child::before {
+      content: '📢 ';
+    }
+
     .day-count {
       font-size: .6rem;
       color: var(--text-fade);
@@ -281,19 +298,16 @@
     <span class="page-title">Daily Sales & Tax</span>
   </div>
   <div class="topbar-right">
-    <!-- Filter Toggle: Month / Year -->
     <div class="filter-toggle-group" id="filterToggleGroup">
       <button class="filter-toggle-btn active" data-filter="month" onclick="setFilterMode('month')">Month</button>
       <button class="filter-toggle-btn" data-filter="year" onclick="setFilterMode('year')">Year</button>
     </div>
 
-    <!-- Month Picker -->
     <div class="month-pick" id="monthPickerContainer">
       <i class="fas fa-calendar-alt" style="font-size:.72rem"></i>
       <input type="month" id="monthPicker" value="">
     </div>
 
-    <!-- Year Picker (hidden by default) -->
     <div class="year-pick" id="yearPickerContainer" style="display:none;">
       <i class="fas fa-calendar" style="font-size:.72rem"></i>
       <input type="number" id="yearPicker" min="2020" max="2030" value="2026">
@@ -307,7 +321,7 @@
 <!-- Main -->
 <div class="main">
 
-  <!-- Branch Filter -->
+  <!-- Branch Filter - UPDATED with Marketing -->
   <div class="branch-filter">
     <label><i class="fas fa-store"></i> Branch:</label>
     <select id="branchFilter" onchange="onBranchChange()">
@@ -317,8 +331,10 @@
       <option value="kabanana">📍 Kabanana Branch</option>
       <option value="kabana">📍 Kabana Branch</option>
       <option value="dealer_sale">📦 Dealer Sales</option>
+      <option value="marketing">📢 Marketing Department</option>
     </select>
     <span class="badge" id="branchCount">0 sales</span>
+    <span class="marketing-badge" id="marketingBadge" style="display:none;">📢 Marketing</span>
   </div>
 
   <!-- Summary Cards -->
@@ -401,7 +417,8 @@
   let allSales = [];
   let filteredSales = [];
   let unsubscribeListener = null;
-  let filterMode = 'month'; // 'month' or 'year'
+  let unsubscribeMarketing = null;
+  let filterMode = 'month';
 
   // Month picker setup
   const monthPicker = document.getElementById('monthPicker');
@@ -409,11 +426,9 @@
   const currentMonth = today.toISOString().substring(0,7);
   monthPicker.value = localStorage.getItem('sales_month_filter') || currentMonth;
 
-  // Year picker setup
   const yearPicker = document.getElementById('yearPicker');
   yearPicker.value = localStorage.getItem('sales_year_filter') || today.getFullYear().toString();
 
-  // Branch filter
   const branchFilter = document.getElementById('branchFilter');
   const savedBranch = localStorage.getItem('sales_branch_filter') || 'all';
   branchFilter.value = savedBranch;
@@ -459,18 +474,80 @@
   // ==================== FILTER MODE TOGGLE ====================
   window.setFilterMode = function(mode) {
     filterMode = mode;
-    // Update toggle buttons
     document.querySelectorAll('.filter-toggle-btn').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.filter === mode);
     });
-    // Show/hide pickers
     document.getElementById('monthPickerContainer').style.display = mode === 'month' ? 'flex' : 'none';
     document.getElementById('yearPickerContainer').style.display = mode === 'year' ? 'flex' : 'none';
     
-    // Store preference
     localStorage.setItem('sales_filter_mode', mode);
     applyFilters();
   };
+
+  // ==================== LOAD BOTH SALES & MARKETING ====================
+  function setupListener() {
+    document.getElementById('salesTbody').innerHTML = 
+      '<tr class="empty-row"><td colspan="6"><i class="fas fa-spinner fa-spin"></i> Loading…</td></tr>';
+    
+    if (unsubscribeListener) unsubscribeListener();
+    if (unsubscribeMarketing) unsubscribeMarketing();
+
+    // Listen to regular sales
+    unsubscribeListener = db.collection('sales')
+      .onSnapshot(snapshot => {
+        const branchSales = [];
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          branchSales.push({
+            id: doc.id,
+            ...data,
+            source: 'branch',
+            price: Number(data.price) || 0,
+            quantity: Number(data.quantity) || 1,
+            discount: Number(data.discount) || 0,
+            total: Number(data.total) || 0,
+            branchId: data.branchId || 'unknown'
+          });
+        });
+        allSales = [...branchSales];
+        combineAndApply();
+      }, error => {
+        console.error('Sales error:', error);
+        toast('Sales error: ' + error.message, 'error');
+      });
+
+    // Listen to marketing sales
+    unsubscribeMarketing = db.collection('marketing_sales')
+      .onSnapshot(snapshot => {
+        const marketingSales = [];
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          marketingSales.push({
+            id: doc.id,
+            ...data,
+            source: 'marketing',
+            price: Number(data.price) || 0,
+            quantity: Number(data.quantity) || 1,
+            discount: Number(data.discount) || 0,
+            total: Number(data.total) || 0,
+            // Use sourceWarehouse as branchId for filtering
+            branchId: data.sourceWarehouse || 'marketing',
+            branchDisplay: '📢 Marketing'
+          });
+        });
+        // Remove existing marketing sales from allSales and add fresh ones
+        allSales = allSales.filter(s => s.source !== 'marketing');
+        allSales = [...allSales, ...marketingSales];
+        combineAndApply();
+      }, error => {
+        console.error('Marketing error:', error);
+        toast('Marketing error: ' + error.message, 'error');
+      });
+  }
+
+  function combineAndApply() {
+    applyFilters();
+  }
 
   // ==================== APPLY FILTERS & GROUP BY DAY ====================
   function applyFilters() {
@@ -480,9 +557,13 @@
     
     let filtered = [...allSales];
     
-    // Filter by branch
+    // Filter by branch (including marketing)
     if (selectedBranch !== 'all') {
-      filtered = filtered.filter(t => t.branchId === selectedBranch);
+      if (selectedBranch === 'marketing') {
+        filtered = filtered.filter(t => t.source === 'marketing');
+      } else {
+        filtered = filtered.filter(t => t.branchId === selectedBranch && t.source !== 'marketing');
+      }
     }
     
     // Filter by month or year
@@ -511,12 +592,11 @@
           date: date,
           gross: 0,
           count: 0,
-          transactions: []
+          isMarketing: t.source === 'marketing'
         };
       }
       dailyTotals[date].gross += total;
       dailyTotals[date].count += 1;
-      dailyTotals[date].transactions.push(t);
     });
     
     // Convert to array and sort by date
@@ -530,9 +610,17 @@
     // Update branch count
     const totalInBranch = selectedBranch === 'all' 
       ? allSales.length 
-      : allSales.filter(t => t.branchId === selectedBranch).length;
+      : allSales.filter(t => {
+          if (selectedBranch === 'marketing') return t.source === 'marketing';
+          return t.branchId === selectedBranch && t.source !== 'marketing';
+        }).length;
+    
     document.getElementById('branchCount').textContent = 
       `${filtered.length} of ${totalInBranch} sales | ${dailyArray.length} days`;
+    
+    // Show marketing badge if marketing filter is selected
+    document.getElementById('marketingBadge').style.display = 
+      selectedBranch === 'marketing' ? 'inline-block' : 'none';
     
     renderDailyTable(dailyArray);
     updateSummary(dailyArray);
@@ -577,7 +665,8 @@
       const label = filterMode === 'month' 
         ? (monthPicker.value || 'this month') 
         : (yearPicker.value || 'this year');
-      const branchLabel = branchFilter.value === 'all' ? 'all branches' : branchFilter.value;
+      const branchLabel = branchFilter.value === 'all' ? 'all branches' : 
+                         branchFilter.value === 'marketing' ? 'Marketing Department' : branchFilter.value;
       tbody.innerHTML = `<tr class="empty-row"><td colspan="6">
         <i class="fas fa-inbox"></i> No sales for ${label} in ${branchLabel}
       </td></tr>`;
@@ -585,16 +674,15 @@
     }
 
     let rows = '';
-    let runningGross = 0;
 
     dailyArray.forEach(day => {
       const tax = day.gross * 0.04;
       const net = day.gross - tax;
-      runningGross += day.gross;
+      const rowClass = day.isMarketing ? 'marketing-row' : '';
 
       rows += `
-        <tr>
-          <td><strong>${formatDate(day.date)}</strong></td>
+        <tr class="${rowClass}">
+          <td><strong>${formatDate(day.date)}</strong>${day.isMarketing ? ' 📢' : ''}</td>
           <td class="num">${getDayOfMonth(day.date)}</td>
           <td class="num">${day.count}</td>
           <td class="num amount-bal">ZMW ${formatNumber(day.gross)}</td>
@@ -617,72 +705,10 @@
   window.onBranchChange = function() {
     localStorage.setItem('sales_branch_filter', branchFilter.value);
     applyFilters();
-    toast(`Switched to ${branchFilter.value === 'all' ? 'All Branches' : branchFilter.value}`, 'info');
+    const label = branchFilter.value === 'all' ? 'All Branches' : 
+                  branchFilter.value === 'marketing' ? 'Marketing Department' : branchFilter.value;
+    toast(`Switched to ${label}`, 'info');
   };
-
-  // ==================== SETUP FIREBASE LISTENER ====================
-  function setupListener() {
-    document.getElementById('salesTbody').innerHTML = 
-      '<tr class="empty-row"><td colspan="6"><i class="fas fa-spinner fa-spin"></i> Loading…</td></tr>';
-    
-    if (unsubscribeListener) {
-      unsubscribeListener();
-    }
-    
-    unsubscribeListener = db.collection('sales')
-      .onSnapshot(snapshot => {
-        
-        allSales = [];
-        let branchCounts = {};
-        
-        snapshot.forEach(doc => {
-          const data = doc.data();
-          const branch = data.branchId || 'unknown';
-          branchCounts[branch] = (branchCounts[branch] || 0) + 1;
-          
-          allSales.push({
-            id: doc.id,
-            ...data,
-            price: Number(data.price) || 0,
-            quantity: Number(data.quantity) || 1,
-            discount: Number(data.discount) || 0,
-            total: Number(data.total) || 0,
-            branchId: branch
-          });
-        });
-        
-        console.log(`📊 Loaded ${allSales.length} sales from branches:`, branchCounts);
-        
-        // Auto-select branch if only one branch has sales
-        const branchesWithSales = Object.keys(branchCounts);
-        if (branchesWithSales.length === 1 && branchFilter.value === 'all') {
-          const onlyBranch = branchesWithSales[0];
-          toast(`💡 Only "${onlyBranch}" has sales. Auto-switching.`, 'info');
-          branchFilter.value = onlyBranch;
-          localStorage.setItem('sales_branch_filter', onlyBranch);
-        }
-        
-        applyFilters();
-        
-        if (allSales.length > 0) {
-          const branchInfo = branchFilter.value === 'all' 
-            ? `${allSales.length} total sales across ${Object.keys(branchCounts).length} branches`
-            : `${allSales.filter(t => t.branchId === branchFilter.value).length} sales in ${branchFilter.value}`;
-          toast(`✅ ${branchInfo}`, 'success');
-        } else {
-          toast('No sales records found. Start making sales!', 'info');
-        }
-        
-      }, error => {
-        console.error('Listener error:', error);
-        document.getElementById('salesTbody').innerHTML = 
-          `<tr class="empty-row"><td colspan="6">
-            <i class="fas fa-exclamation-triangle" style="color:#ef4444"></i> 
-            Error: ${error.message}
-          </td></tr>`;
-        toast('Sync error: ' + error.message, 'error');
-      });
-  }
 
   // ==================== PDF EXPORT ====================
   document.getElementById('pdfBtn').addEventListener('click', () => {
@@ -692,9 +718,15 @@
       const selectedBranch = branchFilter.value;
       
       let filtered = [...allSales];
+      
       if (selectedBranch !== 'all') {
-        filtered = filtered.filter(t => t.branchId === selectedBranch);
+        if (selectedBranch === 'marketing') {
+          filtered = filtered.filter(t => t.source === 'marketing');
+        } else {
+          filtered = filtered.filter(t => t.branchId === selectedBranch && t.source !== 'marketing');
+        }
       }
+      
       if (filterMode === 'month' && selectedMonth) {
         filtered = filtered.filter(t => t.date && t.date.substring(0,7) === selectedMonth);
       } else if (filterMode === 'year' && selectedYear) {
@@ -740,7 +772,8 @@
       const periodLabel = filterMode === 'month' 
         ? (selectedMonth || 'All Time') 
         : (selectedYear || 'All Time');
-      const branchDisplay = selectedBranch === 'all' ? 'All Branches' : selectedBranch;
+      const branchDisplay = selectedBranch === 'all' ? 'All Branches' : 
+                           selectedBranch === 'marketing' ? 'Marketing Department' : selectedBranch;
       doc.text(`Period: ${periodLabel} (${filterMode}) | Branch: ${branchDisplay}`, pageWidth/2, 80, { align: 'center' });
       doc.text(`Generated: ${new Date().toLocaleDateString('en-GB')}`, pageWidth/2, 92, { align: 'center' });
       
@@ -869,7 +902,6 @@
 
   // ==================== INITIAL SETUP ====================
   document.addEventListener('DOMContentLoaded', () => {
-    // Restore filter mode
     const savedMode = localStorage.getItem('sales_filter_mode') || 'month';
     setFilterMode(savedMode);
     setupListener();
@@ -877,9 +909,8 @@
 
   // ==================== CLEANUP ====================
   window.addEventListener('beforeunload', () => {
-    if (unsubscribeListener) {
-      unsubscribeListener();
-    }
+    if (unsubscribeListener) unsubscribeListener();
+    if (unsubscribeMarketing) unsubscribeMarketing();
   });
 </script>
 </body>
