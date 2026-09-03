@@ -156,6 +156,40 @@
         .btn-outline { background: transparent; border: 1px solid #e2e6ef; color: #6b7490; }
         .btn-outline:hover { border-color: #4361ee; color: #4361ee; }
         .btn-sm { padding: 4px 10px; font-size: 0.6rem; }
+        .btn-purple { background: #7c3aed; color: white; }
+        .btn-purple:hover { background: #6d28d9; }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 4px;
+            background: white;
+            border: 1px solid #e2e6ef;
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 16px;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.75rem;
+            cursor: pointer;
+            background: transparent;
+            color: #6b7490;
+            transition: all 0.15s;
+            font-family: 'DM Sans', sans-serif;
+        }
+        .tab-btn.active {
+            background: #4361ee;
+            color: white;
+            box-shadow: 0 2px 8px rgba(67,97,238,0.2);
+        }
+        .tab-btn:hover:not(.active) {
+            background: #f1f3f5;
+        }
 
         /* Table Wrapper */
         .table-wrapper {
@@ -192,15 +226,6 @@
             z-index: 10;
         }
         thead th.center { text-align: center; }
-        thead th .currency-badge {
-            display: inline-block;
-            font-size: 0.5rem;
-            background: #eef2ff;
-            color: #4361ee;
-            padding: 0px 6px;
-            border-radius: 3px;
-            margin-left: 2px;
-        }
         tbody td {
             padding: 5px 5px;
             border-bottom: 1px solid #f0f2f8;
@@ -209,7 +234,7 @@
         tbody tr:last-child td { border-bottom: none; }
         tbody tr:hover td { background: #f8f9ff; }
 
-        /* Inputs in table */
+        /* Inputs in table - FIXED for continuous input */
         .td-input {
             border: none;
             background: transparent;
@@ -366,7 +391,7 @@
             to { opacity: 1; transform: translateX(0); }
         }
 
-        /* Save indicator */
+        /* Auto-save indicator */
         .save-status {
             font-size: 0.6rem;
             color: #6b7490;
@@ -379,9 +404,86 @@
         }
         .save-status .saving {
             color: #f59e0b;
+            animation: pulse 1s infinite;
         }
         .save-status .error {
             color: #ef4444;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        /* Consignments List */
+        .consignment-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            border-bottom: 1px solid #f0f2f8;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .consignment-item:hover {
+            background: #f8f9ff;
+        }
+        .consignment-item .info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .consignment-item .info .title {
+            font-weight: 700;
+            font-size: 0.8rem;
+        }
+        .consignment-item .info .meta {
+            font-size: 0.65rem;
+            color: #6b7490;
+        }
+        .consignment-item .amounts {
+            text-align: right;
+        }
+        .consignment-item .amounts .total {
+            font-weight: 800;
+            color: #4361ee;
+            font-family: 'DM Mono', monospace;
+            font-size: 0.85rem;
+        }
+        .consignment-item .amounts .items {
+            font-size: 0.6rem;
+            color: #6b7490;
+        }
+        .consignment-item .delete-consignment {
+            background: none;
+            border: none;
+            color: #ef4444;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+        }
+        .consignment-item .delete-consignment:hover {
+            background: #ef4444;
+            color: white;
+        }
+        .empty-consignments {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6b7490;
+        }
+        .empty-consignments i {
+            font-size: 2rem;
+            color: #d1d5db;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        /* Tab content */
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
         }
 
         @media (max-width: 640px) {
@@ -394,6 +496,7 @@
             tbody td { padding: 4px 4px; }
             .td-input { font-size: 0.6rem; padding: 2px 4px; min-width: 25px; }
             .summary-grid { grid-template-columns: 1fr 1fr; }
+            .tabs { flex-direction: column; }
         }
     </style>
 </head>
@@ -444,73 +547,103 @@
         </div>
 
         <button class="btn btn-primary" onclick="addRow()"><i class="fas fa-plus"></i> Add Item</button>
-        <button class="btn btn-success" onclick="saveToFirestore()"><i class="fas fa-cloud-upload-alt"></i> Save</button>
         <button class="btn btn-warning" onclick="exportPDF()"><i class="fas fa-file-pdf"></i> PDF</button>
         <button class="btn btn-warning" onclick="exportExcel()"><i class="fas fa-file-excel"></i> Excel</button>
-        <button class="btn btn-outline" onclick="loadFromFirestore()"><i class="fas fa-cloud-download-alt"></i> Load</button>
         <button class="btn btn-danger btn-sm" onclick="clearAll()"><i class="fas fa-trash"></i> Clear</button>
         
         <span class="save-status" id="saveStatus">
-            <i class="fas fa-circle saved"></i> <span id="statusText">Ready</span>
+            <i class="fas fa-circle saved"></i> <span id="statusText">Auto-saving</span>
         </span>
     </div>
 
-    <!-- SUMMARY CARDS -->
-    <div class="summary-grid">
-        <div class="summary-card">
-            <div class="label">Total Order Value (ZMW)</div>
-            <div class="value" id="totalOrderValue">K0.00</div>
+    <!-- TABS -->
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="calculator" onclick="switchTab('calculator')">
+            <i class="fas fa-calculator"></i> Calculator
+        </button>
+        <button class="tab-btn" data-tab="consignments" onclick="switchTab('consignments')">
+            <i class="fas fa-boxes"></i> Consignments
+        </button>
+    </div>
+
+    <!-- TAB 1: CALCULATOR -->
+    <div class="tab-content active" id="tab-calculator">
+        <!-- SUMMARY CARDS -->
+        <div class="summary-grid">
+            <div class="summary-card">
+                <div class="label">Total Order Value (ZMW)</div>
+                <div class="value" id="totalOrderValue">K0.00</div>
+            </div>
+            <div class="summary-card">
+                <div class="label">Total Estimated Profit</div>
+                <div class="value green" id="totalProfit">K0.00</div>
+            </div>
+            <div class="summary-card">
+                <div class="label">Avg Profit Margin</div>
+                <div class="value orange" id="avgMargin">0%</div>
+            </div>
+            <div class="summary-card">
+                <div class="label">Total Items</div>
+                <div class="value purple" id="totalItems">0</div>
+            </div>
+            <div class="summary-card">
+                <div class="label">Total Qty Ordered</div>
+                <div class="value" id="totalQty">0</div>
+            </div>
         </div>
-        <div class="summary-card">
-            <div class="label">Total Estimated Profit</div>
-            <div class="value green" id="totalProfit">K0.00</div>
-        </div>
-        <div class="summary-card">
-            <div class="label">Avg Profit Margin</div>
-            <div class="value orange" id="avgMargin">0%</div>
-        </div>
-        <div class="summary-card">
-            <div class="label">Total Items</div>
-            <div class="value purple" id="totalItems">0</div>
-        </div>
-        <div class="summary-card">
-            <div class="label">Total Qty Ordered</div>
-            <div class="value" id="totalQty">0</div>
+
+        <!-- TABLE -->
+        <div class="table-wrapper">
+            <div class="table-scroll">
+                <table id="orderTable">
+                    <thead>
+                        <tr>
+                            <th style="width:25px;">#</th>
+                            <th style="min-width:100px;">Item Name</th>
+                            <th style="min-width:80px;">Supplier</th>
+                            <th style="min-width:45px;text-align:center;">Qty</th>
+                            <th style="min-width:60px;text-align:center;">Currency</th>
+                            <th style="min-width:60px;text-align:center;">Unit Price (FC)</th>
+                            <th style="min-width:65px;text-align:center;">Order Price (K)</th>
+                            <th style="min-width:65px;text-align:center;">Total Price (K)</th>
+                            <th style="min-width:65px;text-align:center;">Market Price (K)</th>
+                            <th style="min-width:65px;text-align:center;">Selling Price (K)</th>
+                            <th style="min-width:65px;text-align:center;">Profit/Unit (K)</th>
+                            <th style="min-width:65px;text-align:center;">Profit/Total (K)</th>
+                            <th style="min-width:75px;">Lead Period</th>
+                            <th style="width:35px;"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <tr class="empty-row">
+                            <td colspan="14">
+                                <i class="fas fa-box-open"></i>
+                                No items added yet. Click "Add Item" to start.
+                            </td>
+                        </tr>
+                    </tbody>
+                    <tfoot id="tableFoot" style="display:none;"></tfoot>
+                </table>
+            </div>
         </div>
     </div>
 
-    <!-- TABLE -->
-    <div class="table-wrapper">
-        <div class="table-scroll">
-            <table id="orderTable">
-                <thead>
-                    <tr>
-                        <th style="width:25px;">#</th>
-                        <th style="min-width:100px;">Item Name</th>
-                        <th style="min-width:80px;">Supplier</th>
-                        <th style="min-width:45px;text-align:center;">Qty</th>
-                        <th style="min-width:60px;text-align:center;">Currency</th>
-                        <th style="min-width:60px;text-align:center;">Unit Price (FC)</th>
-                        <th style="min-width:65px;text-align:center;">Order Price (K)</th>
-                        <th style="min-width:65px;text-align:center;">Total Price (K)</th>
-                        <th style="min-width:65px;text-align:center;">Market Price (K)</th>
-                        <th style="min-width:65px;text-align:center;">Selling Price (K)</th>
-                        <th style="min-width:65px;text-align:center;">Profit/Unit (K)</th>
-                        <th style="min-width:65px;text-align:center;">Profit/Total (K)</th>
-                        <th style="min-width:75px;">Lead Period</th>
-                        <th style="width:35px;"></th>
-                    </tr>
-                </thead>
-                <tbody id="tableBody">
-                    <tr class="empty-row">
-                        <td colspan="14">
-                            <i class="fas fa-box-open"></i>
-                            No items added yet. Click "Add Item" to start.
-                        </td>
-                    </tr>
-                </tbody>
-                <tfoot id="tableFoot" style="display:none;"></tfoot>
-            </table>
+    <!-- TAB 2: CONSIGNMENTS -->
+    <div class="tab-content" id="tab-consignments">
+        <div class="table-wrapper">
+            <div style="padding:12px 16px;border-bottom:1px solid #e2e6ef;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+                <div>
+                    <h3 style="font-size:0.85rem;font-weight:700;"><i class="fas fa-boxes" style="color:#4361ee;"></i> Saved Consignments</h3>
+                    <span style="font-size:0.6rem;color:#6b7490;">Click any consignment to load it</span>
+                </div>
+                <button class="btn btn-outline btn-sm" onclick="loadConsignments()"><i class="fas fa-sync-alt"></i> Refresh</button>
+            </div>
+            <div id="consignmentsList">
+                <div class="empty-consignments">
+                    <i class="fas fa-inbox"></i>
+                    <p>Loading consignments...</p>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -538,6 +671,7 @@
     let items = [];
     let isSaving = false;
     let currentDocId = null;
+    let saveTimeout = null;
 
     // Sample data
     const sampleItems = [
@@ -610,7 +744,8 @@
         const rate = getRate(item.currency);
         const orderPriceK = item.unitPriceFC * rate;
         const totalPriceK = orderPriceK * item.qty;
-        const profitPerUnit = item.sellingPrice - item.marketPrice;
+        // FIXED: Profit = Selling Price - Order Price (not market price)
+        const profitPerUnit = item.sellingPrice - orderPriceK;
         const profitTotal = profitPerUnit * item.qty;
         
         return {
@@ -637,6 +772,8 @@
             `;
             tfoot.style.display = 'none';
             updateSummary();
+            // Auto-save empty state
+            autoSave();
             return;
         }
 
@@ -736,6 +873,8 @@
         tfoot.style.display = 'table-footer-group';
 
         updateSummary();
+        // Auto-save after render
+        autoSave();
     }
 
     // ==================== UPDATE ITEM ====================
@@ -767,9 +906,10 @@
         items.push(newItem);
         renderTable();
         toast('Item added!', 'success');
+        // Focus the new row's first input after render
         setTimeout(() => {
-            const tbody = document.getElementById('tableBody');
-            if (tbody) tbody.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            const inputs = document.querySelectorAll('#tableBody tr:last-child .td-input');
+            if (inputs.length) inputs[0].focus();
         }, 100);
     }
 
@@ -824,23 +964,31 @@
         document.getElementById('totalQty').textContent = totalQty;
     }
 
-    // ==================== SAVE TO FIRESTORE ====================
-    async function saveToFirestore() {
-        if (isSaving) return;
-        if (items.length === 0) {
-            toast('No items to save!', 'warning');
-            return;
-        }
+    // ==================== AUTO-SAVE TO FIRESTORE ====================
+    function autoSave() {
+        clearTimeout(saveTimeout);
+        saveTimeout = setTimeout(() => {
+            if (items.length === 0) {
+                // If empty, delete the current doc if it exists
+                if (currentDocId) {
+                    db.collection('orders').doc(currentDocId).delete().catch(() => {});
+                    currentDocId = null;
+                }
+                updateSaveStatus('Ready', 'saved');
+                return;
+            }
+            performSave();
+        }, 2000); // Save 2 seconds after last change
+    }
 
+    function performSave() {
+        if (isSaving) return;
         isSaving = true;
-        const statusText = document.getElementById('statusText');
-        const statusIcon = document.querySelector('#saveStatus i');
-        statusText.textContent = 'Saving...';
-        statusIcon.className = 'fas fa-circle saving';
+        updateSaveStatus('Saving...', 'saving');
 
         try {
             const data = {
-                items: items,
+                items: items.map(item => ({ ...item })),
                 usdRate: parseFloat(document.getElementById('usdRate').value) || usdRate,
                 eurRate: parseFloat(document.getElementById('eurRate').value) || eurRate,
                 totalOrderValue: parseFloat(document.getElementById('totalOrderValue').textContent.replace('K', '')) || 0,
@@ -850,48 +998,114 @@
             };
 
             if (currentDocId) {
-                await db.collection('orders').doc(currentDocId).update(data);
-                toast('Order updated successfully!', 'success');
+                db.collection('orders').doc(currentDocId).update(data)
+                    .then(() => {
+                        isSaving = false;
+                        updateSaveStatus('Saved ✓', 'saved');
+                    })
+                    .catch(err => {
+                        console.error('Update error:', err);
+                        isSaving = false;
+                        updateSaveStatus('Error!', 'error');
+                    });
             } else {
-                const docRef = await db.collection('orders').add(data);
-                currentDocId = docRef.id;
-                toast('Order saved successfully! ID: ' + currentDocId, 'success');
+                db.collection('orders').add(data)
+                    .then(docRef => {
+                        currentDocId = docRef.id;
+                        isSaving = false;
+                        updateSaveStatus('Saved ✓', 'saved');
+                    })
+                    .catch(err => {
+                        console.error('Add error:', err);
+                        isSaving = false;
+                        updateSaveStatus('Error!', 'error');
+                    });
             }
-
-            statusText.textContent = 'Saved ✓';
-            statusIcon.className = 'fas fa-circle saved';
-        } catch (error) {
-            console.error('Save error:', error);
-            toast('Error saving: ' + error.message, 'error');
-            statusText.textContent = 'Error!';
-            statusIcon.className = 'fas fa-circle error';
+        } catch (err) {
+            console.error('Save error:', err);
+            isSaving = false;
+            updateSaveStatus('Error!', 'error');
         }
-
-        isSaving = false;
     }
 
-    // ==================== LOAD FROM FIRESTORE ====================
-    async function loadFromFirestore() {
-        if (items.length > 0) {
-            if (!confirm('Loading will replace current data. Continue?')) return;
-        }
+    function updateSaveStatus(text, type) {
+        const statusText = document.getElementById('statusText');
+        const icon = document.querySelector('#saveStatus i');
+        statusText.textContent = text;
+        icon.className = `fas fa-circle ${type}`;
+    }
+
+    // ==================== LOAD CONSIGNMENTS ====================
+    async function loadConsignments() {
+        const list = document.getElementById('consignmentsList');
+        list.innerHTML = '<div class="empty-consignments"><i class="fas fa-spinner fa-spin"></i><p>Loading consignments...</p></div>';
 
         try {
-            // Get the most recent order
             const snapshot = await db.collection('orders')
                 .orderBy('timestamp', 'desc')
-                .limit(1)
                 .get();
 
             if (snapshot.empty) {
-                toast('No saved orders found.', 'warning');
+                list.innerHTML = `
+                    <div class="empty-consignments">
+                        <i class="fas fa-inbox"></i>
+                        <p>No saved consignments found.</p>
+                        <p style="font-size:0.7rem;color:#6b7490;">Create an order in the Calculator tab and it will auto-save.</p>
+                    </div>
+                `;
                 return;
             }
 
-            const doc = snapshot.docs[0];
-            const data = doc.data();
-            currentDocId = doc.id;
+            let html = '';
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                const itemCount = data.items ? data.items.length : 0;
+                const totalValue = data.totalOrderValue || 0;
+                const date = data.updatedAt ? new Date(data.updatedAt).toLocaleString() : 'Unknown date';
+                
+                html += `
+                    <div class="consignment-item" onclick="loadConsignment('${doc.id}')">
+                        <div class="info">
+                            <div class="title">${itemCount} items · ${data.usdRate ? '$1 = K' + data.usdRate.toFixed(2) : ''}</div>
+                            <div class="meta">${date} · ID: ${doc.id.substring(0, 8)}</div>
+                        </div>
+                        <div class="amounts">
+                            <div class="total">K${totalValue.toFixed(2)}</div>
+                            <div class="items">${itemCount} items</div>
+                        </div>
+                        <button class="delete-consignment" onclick="event.stopPropagation();deleteConsignment('${doc.id}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+            });
 
+            list.innerHTML = html;
+            toast('Consignments loaded!', 'success');
+
+        } catch (error) {
+            console.error('Load error:', error);
+            list.innerHTML = `
+                <div class="empty-consignments">
+                    <i class="fas fa-exclamation-triangle" style="color:#ef4444;"></i>
+                    <p>Error loading consignments: ${error.message}</p>
+                </div>
+            `;
+            toast('Error loading consignments', 'error');
+        }
+    }
+
+    // ==================== LOAD A SINGLE CONSIGNMENT ====================
+    async function loadConsignment(docId) {
+        try {
+            const doc = await db.collection('orders').doc(docId).get();
+            if (!doc.exists) {
+                toast('Consignment not found', 'error');
+                return;
+            }
+
+            const data = doc.data();
+            currentDocId = docId;
             items = data.items || [];
             
             if (data.usdRate) {
@@ -906,15 +1120,47 @@
             }
 
             renderTable();
-            toast('Order loaded successfully! ID: ' + currentDocId, 'success');
+            toast('Consignment loaded!', 'success');
             
-            const statusText = document.getElementById('statusText');
-            statusText.textContent = 'Loaded ✓';
-            document.querySelector('#saveStatus i').className = 'fas fa-circle saved';
+            // Switch to calculator tab
+            switchTab('calculator');
             
         } catch (error) {
             console.error('Load error:', error);
             toast('Error loading: ' + error.message, 'error');
+        }
+    }
+
+    // ==================== DELETE CONSIGNMENT ====================
+    async function deleteConsignment(docId) {
+        if (!confirm('Delete this consignment?')) return;
+        
+        try {
+            await db.collection('orders').doc(docId).delete();
+            if (currentDocId === docId) {
+                currentDocId = null;
+                items = [];
+                renderTable();
+            }
+            toast('Consignment deleted!', 'success');
+            loadConsignments();
+        } catch (error) {
+            console.error('Delete error:', error);
+            toast('Error deleting: ' + error.message, 'error');
+        }
+    }
+
+    // ==================== SWITCH TABS ====================
+    function switchTab(tab) {
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.tab === tab);
+        });
+        document.querySelectorAll('.tab-content').forEach(content => {
+            content.classList.toggle('active', content.id === 'tab-' + tab);
+        });
+        
+        if (tab === 'consignments') {
+            loadConsignments();
         }
     }
 
@@ -928,7 +1174,6 @@
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
         
-        // Header
         doc.setFontSize(16);
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(67, 97, 238);
@@ -945,7 +1190,6 @@
         doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 38);
         doc.text(`USD Rate: K${getRate('USD').toFixed(2)} | EUR Rate: K${getRate('EUR').toFixed(2)}`, 14, 44);
 
-        // Table
         const tableData = items.map((item, index) => {
             const calc = calculateItem(item);
             return [
@@ -965,7 +1209,6 @@
             ];
         });
 
-        // Totals
         let totalOrderValue = 0;
         let totalProfit = 0;
         let totalQty = 0;
@@ -976,9 +1219,7 @@
             totalQty += item.qty;
         });
 
-        tableData.push([
-            '', '', '', '', '', '', '', '', '', '', '', '', ''
-        ]);
+        tableData.push(['', '', '', '', '', '', '', '', '', '', '', '', '']);
         tableData.push([
             'TOTALS', '', '', totalQty, '', '', 
             totalOrderValue.toFixed(2), '', '', 
@@ -1036,7 +1277,6 @@
             };
         });
 
-        // Totals
         let totalOrderValue = 0;
         let totalProfit = 0;
         let totalQty = 0;
@@ -1067,7 +1307,6 @@
         const ws = XLSX.utils.json_to_sheet(data);
         XLSX.utils.book_append_sheet(wb, ws, 'Order Calculator');
         
-        // Column widths
         ws['!cols'] = [
             { wch: 5 }, { wch: 18 }, { wch: 16 }, { wch: 6 },
             { wch: 8 }, { wch: 14 }, { wch: 14 }, { wch: 14 },
@@ -1082,13 +1321,11 @@
     // ==================== CLEAR ALL ====================
     function clearAll() {
         if (items.length === 0) return;
-        if (!confirm('Delete all items?')) return;
+        if (!confirm('Delete all items from current order?')) return;
         items = [];
         currentDocId = null;
         renderTable();
         toast('All items cleared', 'warning');
-        document.getElementById('statusText').textContent = 'Ready';
-        document.querySelector('#saveStatus i').className = 'fas fa-circle saved';
     }
 
     // ==================== HELPERS ====================
@@ -1102,24 +1339,6 @@
             return m;
         });
     }
-
-    // ==================== AUTO-SAVE ====================
-    let autoSaveTimeout = null;
-    function autoSave() {
-        clearTimeout(autoSaveTimeout);
-        autoSaveTimeout = setTimeout(() => {
-            if (items.length > 0) {
-                saveToFirestore();
-            }
-        }, 5000);
-    }
-
-    // Override renderTable to auto-save
-    const originalRenderTable = renderTable;
-    renderTable = function() {
-        originalRenderTable();
-        autoSave();
-    };
 
     // ==================== INIT ====================
     document.addEventListener('DOMContentLoaded', function() {
@@ -1140,6 +1359,7 @@
             if (!isNaN(rate) && rate > 0) {
                 usdRate = rate;
                 document.getElementById('liveRateUSD').textContent = rate.toFixed(2);
+                calculateAll();
             }
         });
         document.getElementById('eurRate').addEventListener('change', calculateAll);
@@ -1148,18 +1368,20 @@
             if (!isNaN(rate) && rate > 0) {
                 eurRate = rate;
                 document.getElementById('liveRateEUR').textContent = rate.toFixed(2);
+                calculateAll();
             }
         });
 
+        // Keyboard shortcut: Ctrl+Enter to add row
         document.addEventListener('keydown', function(e) {
-            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
                 e.preventDefault();
-                saveToFirestore();
+                addRow();
             }
         });
 
         setTimeout(fetchRates, 1000);
-        toast('📊 Order calculator ready!', 'info');
+        toast('📊 Order calculator ready! Auto-saving enabled.', 'info');
     });
 </script>
 </body>
