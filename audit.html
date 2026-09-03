@@ -26,7 +26,6 @@
             margin: 0 auto;
         }
 
-        /* Header */
         .header {
             background: linear-gradient(135deg, #4361ee, #00b4d8);
             color: white;
@@ -82,7 +81,6 @@
             50% { opacity: 0.3; transform: scale(0.8); }
         }
 
-        /* Controls */
         .controls {
             background: white;
             border: 1px solid #e2e6ef;
@@ -156,10 +154,7 @@
         .btn-outline { background: transparent; border: 1px solid #e2e6ef; color: #6b7490; }
         .btn-outline:hover { border-color: #4361ee; color: #4361ee; }
         .btn-sm { padding: 4px 10px; font-size: 0.6rem; }
-        .btn-purple { background: #7c3aed; color: white; }
-        .btn-purple:hover { background: #6d28d9; }
 
-        /* Tabs */
         .tabs {
             display: flex;
             gap: 4px;
@@ -191,7 +186,6 @@
             background: #f1f3f5;
         }
 
-        /* Table Wrapper */
         .table-wrapper {
             background: white;
             border: 1px solid #e2e6ef;
@@ -234,7 +228,6 @@
         tbody tr:last-child td { border-bottom: none; }
         tbody tr:hover td { background: #f8f9ff; }
 
-        /* Inputs in table */
         .td-input {
             border: none;
             background: transparent;
@@ -301,7 +294,6 @@
             color: white;
         }
 
-        /* Totals Row - FIXED with proper columns */
         .totals-row td {
             background: #eef2ff !important;
             font-weight: 800;
@@ -314,7 +306,6 @@
             font-size: 0.85rem;
         }
 
-        /* Summary Cards */
         .summary-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
@@ -345,7 +336,6 @@
         .summary-card .value.orange { color: #f59e0b; }
         .summary-card .value.purple { color: #7c3aed; }
 
-        /* Empty state */
         .empty-row td {
             text-align: center;
             padding: 40px 20px;
@@ -359,7 +349,6 @@
             margin-bottom: 8px;
         }
 
-        /* Toast */
         .toast-wrap {
             position: fixed;
             bottom: 20px;
@@ -390,7 +379,6 @@
             to { opacity: 1; transform: translateX(0); }
         }
 
-        /* Auto-save indicator */
         .save-status {
             font-size: 0.6rem;
             color: #6b7490;
@@ -398,22 +386,14 @@
             align-items: center;
             gap: 6px;
         }
-        .save-status .saved {
-            color: #10b981;
-        }
-        .save-status .saving {
-            color: #f59e0b;
-            animation: pulse 1s infinite;
-        }
-        .save-status .error {
-            color: #ef4444;
-        }
+        .save-status .saved { color: #10b981; }
+        .save-status .saving { color: #f59e0b; animation: pulse 1s infinite; }
+        .save-status .error { color: #ef4444; }
         @keyframes pulse {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.3; }
         }
 
-        /* Consignments List */
         .consignment-item {
             display: flex;
             align-items: center;
@@ -477,13 +457,8 @@
             margin-bottom: 10px;
         }
 
-        /* Tab content */
-        .tab-content {
-            display: none;
-        }
-        .tab-content.active {
-            display: block;
-        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
 
         @media (max-width: 640px) {
             body { padding: 10px; }
@@ -503,7 +478,6 @@
 
 <div class="container">
 
-    <!-- HEADER -->
     <div class="header">
         <div>
             <h1><i class="fas fa-globe"></i> Foreign Currency Order Calculator</h1>
@@ -527,7 +501,6 @@
         </div>
     </div>
 
-    <!-- CONTROLS -->
     <div class="controls">
         <label><i class="fas fa-exchange-alt"></i> Exchange Rates:</label>
         
@@ -555,7 +528,6 @@
         </span>
     </div>
 
-    <!-- TABS -->
     <div class="tabs">
         <button class="tab-btn active" data-tab="calculator" onclick="switchTab('calculator')">
             <i class="fas fa-calculator"></i> Calculator
@@ -565,9 +537,7 @@
         </button>
     </div>
 
-    <!-- TAB 1: CALCULATOR -->
     <div class="tab-content active" id="tab-calculator">
-        <!-- SUMMARY CARDS -->
         <div class="summary-grid">
             <div class="summary-card">
                 <div class="label">Total Order Value (ZMW)</div>
@@ -591,7 +561,6 @@
             </div>
         </div>
 
-        <!-- TABLE -->
         <div class="table-wrapper">
             <div class="table-scroll">
                 <table id="orderTable">
@@ -627,7 +596,6 @@
         </div>
     </div>
 
-    <!-- TAB 2: CONSIGNMENTS -->
     <div class="tab-content" id="tab-consignments">
         <div class="table-wrapper">
             <div style="padding:12px 16px;border-bottom:1px solid #e2e6ef;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
@@ -648,7 +616,6 @@
 
 </div>
 
-<!-- Toast -->
 <div class="toast-wrap" id="toastWrap"></div>
 
 <script>
@@ -671,16 +638,6 @@
     let isSaving = false;
     let currentDocId = null;
     let saveTimeout = null;
-    let isUpdating = false;
-
-    // Sample data
-    const sampleItems = [
-        { name: 'Ethernet network cable', supplier: 'Tech Supplier Ltd', qty: 5, currency: 'USD', unitPriceFC: 5, marketPrice: 1900, sellingPrice: 1600, leadPeriod: '2 months' },
-        { name: 'USB-C Charger 65W', supplier: 'PowerTech', qty: 10, currency: 'EUR', unitPriceFC: 7.50, marketPrice: 3500, sellingPrice: 3000, leadPeriod: '1 month' },
-        { name: 'HDMI Cable 2m', supplier: 'CableMaster', qty: 8, currency: 'USD', unitPriceFC: 3, marketPrice: 1200, sellingPrice: 950, leadPeriod: '2 weeks' },
-        { name: 'Bluetooth Speaker', supplier: 'AudioWorld', qty: 4, currency: 'EUR', unitPriceFC: 12, marketPrice: 8500, sellingPrice: 7200, leadPeriod: '3 months' },
-        { name: 'Wireless Mouse', supplier: 'Tech Supplier Ltd', qty: 12, currency: 'USD', unitPriceFC: 6, marketPrice: 2800, sellingPrice: 2300, leadPeriod: '1 month' }
-    ];
 
     // ==================== TOAST ====================
     function toast(message, type = 'success') {
@@ -729,7 +686,7 @@
         }
     }
 
-    // ==================== GET RATE BY CURRENCY ====================
+    // ==================== GET RATE ====================
     function getRate(currency) {
         if (currency === 'USD') {
             return parseFloat(document.getElementById('usdRate').value) || usdRate;
@@ -739,7 +696,7 @@
         return 0;
     }
 
-    // ==================== CALCULATE ITEM TOTALS ====================
+    // ==================== CALCULATE ITEM ====================
     function calculateItem(item) {
         const rate = getRate(item.currency);
         const orderPriceK = item.unitPriceFC * rate;
@@ -747,17 +704,11 @@
         const profitPerUnit = item.sellingPrice - orderPriceK;
         const profitTotal = profitPerUnit * item.qty;
         
-        return {
-            orderPriceK,
-            totalPriceK,
-            profitPerUnit,
-            profitTotal
-        };
+        return { orderPriceK, totalPriceK, profitPerUnit, profitTotal };
     }
 
     // ==================== UPDATE ITEM ====================
     function updateItem(index, field, value) {
-        if (isUpdating) return;
         if (index >= 0 && index < items.length) {
             if (field === 'qty') {
                 items[index][field] = Math.max(1, parseInt(value) || 1);
@@ -773,7 +724,7 @@
         }
     }
 
-    // ==================== UPDATE CALCULATED FIELDS ONLY ====================
+    // ==================== UPDATE CALCULATED FIELDS ====================
     function updateCalculatedFields(index) {
         const item = items[index];
         const calc = calculateItem(item);
@@ -782,27 +733,20 @@
 
         const cells = row.querySelectorAll('td');
         
-        // Order Price (K) - column 7 (index 6)
         if (cells[6]) {
             cells[6].innerHTML = `K${calc.orderPriceK.toFixed(2)}`;
             cells[6].style.cssText = 'text-align:center;font-family:DM Mono,monospace;font-weight:600;color:#4361ee;background:#f8f9ff;border-radius:4px;padding:4px 6px;';
         }
-
-        // Total Price (K) - column 8 (index 7)
         if (cells[7]) {
             cells[7].innerHTML = `K${calc.totalPriceK.toFixed(2)}`;
             cells[7].style.cssText = 'text-align:center;font-family:DM Mono,monospace;font-weight:700;color:#4361ee;background:#eef2ff;border-radius:4px;padding:4px 6px;';
         }
-
-        // Profit/Unit (K) - column 11 (index 10)
         if (cells[10]) {
             const profitClass = calc.profitPerUnit >= 0 ? 'profit-pos' : 'profit-neg';
             cells[10].className = profitClass;
             cells[10].style.cssText = 'text-align:center;font-family:DM Mono,monospace;font-weight:700;font-size:0.75rem;';
             cells[10].textContent = `${calc.profitPerUnit >= 0 ? '+' : ''}K${calc.profitPerUnit.toFixed(2)}`;
         }
-
-        // Profit/Total (K) - column 12 (index 11)
         if (cells[11]) {
             const profitClass = calc.profitTotal >= 0 ? 'profit-pos' : 'profit-neg';
             cells[11].className = profitClass;
@@ -811,7 +755,7 @@
         }
     }
 
-    // ==================== UPDATE TOTALS ONLY ====================
+    // ==================== UPDATE TOTALS ====================
     function updateTotals() {
         let totalUnitPriceFC = 0;
         let totalOrderPriceK = 0;
@@ -834,42 +778,30 @@
 
         const margin = totalPriceK > 0 ? (totalProfitTotal / totalPriceK * 100) : 0;
 
-        // Update summary cards
         document.getElementById('totalOrderValue').textContent = `K${totalPriceK.toFixed(2)}`;
         document.getElementById('totalProfit').textContent = `K${totalProfitTotal.toFixed(2)}`;
         document.getElementById('avgMargin').textContent = `${margin.toFixed(1)}%`;
         document.getElementById('totalItems').textContent = totalItems;
         document.getElementById('totalQty').textContent = totalQty;
 
-        // Update table footer - proper totals for each column
         const tfoot = document.getElementById('tableFoot');
         if (items.length > 0) {
             tfoot.style.display = 'table-footer-group';
             const tds = tfoot.querySelectorAll('td');
             if (tds.length >= 12) {
-                // Column 0: # - leave blank
-                // Column 1-3: leave blank
-                // Column 4: Total Items (index 4)
                 tds[4].textContent = totalItems;
-                // Column 5: Unit Price (FC) TOTAL (index 5)
                 tds[5].textContent = totalUnitPriceFC.toFixed(2);
-                // Column 6: Order Price (K) TOTAL (index 6)
                 tds[6].textContent = `K${totalOrderPriceK.toFixed(2)}`;
-                // Column 7: Total Price (K) TOTAL (index 7)
                 tds[7].textContent = `K${totalPriceK.toFixed(2)}`;
-                // Column 8-9: leave blank
-                // Column 10: Profit/Unit (K) TOTAL (index 10)
                 tds[10].textContent = `+K${totalProfitUnit.toFixed(2)}`;
-                // Column 11: Profit/Total (K) TOTAL (index 11)
                 tds[11].textContent = `+K${totalProfitTotal.toFixed(2)}`;
-                // Column 12-13: leave blank
             }
         } else {
             tfoot.style.display = 'none';
         }
     }
 
-    // ==================== FULL RENDER ====================
+    // ==================== RENDER TABLE ====================
     function renderTable() {
         const tbody = document.getElementById('tableBody');
         const tfoot = document.getElementById('tableFoot');
@@ -890,12 +822,8 @@
         }
 
         let html = '';
-        let totalUnitPriceFC = 0;
-        let totalOrderPriceK = 0;
-        let totalPriceK = 0;
-        let totalProfitUnit = 0;
-        let totalProfitTotal = 0;
-        let totalQty = 0;
+        let totalUnitPriceFC = 0, totalOrderPriceK = 0, totalPriceK = 0;
+        let totalProfitUnit = 0, totalProfitTotal = 0;
 
         items.forEach((item, index) => {
             const calc = calculateItem(item);
@@ -905,7 +833,6 @@
             totalPriceK += calc.totalPriceK;
             totalProfitUnit += calc.profitPerUnit;
             totalProfitTotal += calc.profitTotal;
-            totalQty += item.qty;
 
             const profitClass = calc.profitPerUnit >= 0 ? 'profit-pos' : 'profit-neg';
             
@@ -967,7 +894,6 @@
 
         tbody.innerHTML = html;
         
-        // Totals row with ALL column totals
         const margin = totalPriceK > 0 ? (totalProfitTotal / totalPriceK * 100) : 0;
         tfoot.innerHTML = `
             <tr class="totals-row">
@@ -1061,8 +987,16 @@
                     currentDocId = null;
                 }
                 updateSaveStatus('Ready', 'saved');
+                // Also clear localStorage
+                localStorage.removeItem('order_items');
                 return;
             }
+            // Save to localStorage for persistence
+            try {
+                localStorage.setItem('order_items', JSON.stringify(items));
+                localStorage.setItem('order_usdRate', document.getElementById('usdRate').value);
+                localStorage.setItem('order_eurRate', document.getElementById('eurRate').value);
+            } catch (e) {}
             performSave();
         }, 2000);
     }
@@ -1119,6 +1053,34 @@
         const icon = document.querySelector('#saveStatus i');
         statusText.textContent = text;
         icon.className = `fas fa-circle ${type}`;
+    }
+
+    // ==================== LOAD FROM LOCALSTORAGE ====================
+    function loadFromLocalStorage() {
+        try {
+            const savedItems = localStorage.getItem('order_items');
+            const savedUsd = localStorage.getItem('order_usdRate');
+            const savedEur = localStorage.getItem('order_eurRate');
+            
+            if (savedItems) {
+                const parsed = JSON.parse(savedItems);
+                if (parsed && parsed.length > 0) {
+                    items = parsed;
+                }
+            }
+            if (savedUsd) {
+                document.getElementById('usdRate').value = savedUsd;
+                usdRate = parseFloat(savedUsd);
+                document.getElementById('liveRateUSD').textContent = usdRate.toFixed(2);
+            }
+            if (savedEur) {
+                document.getElementById('eurRate').value = savedEur;
+                eurRate = parseFloat(savedEur);
+                document.getElementById('liveRateEUR').textContent = eurRate.toFixed(2);
+            }
+        } catch (e) {
+            console.log('No saved data found');
+        }
     }
 
     // ==================== LOAD CONSIGNMENTS ====================
@@ -1205,6 +1167,11 @@
                 document.getElementById('liveRateEUR').textContent = data.eurRate.toFixed(2);
             }
 
+            // Save to localStorage
+            localStorage.setItem('order_items', JSON.stringify(items));
+            localStorage.setItem('order_usdRate', data.usdRate);
+            localStorage.setItem('order_eurRate', data.eurRate);
+
             renderTable();
             toast('Consignment loaded!', 'success');
             switchTab('calculator');
@@ -1224,6 +1191,7 @@
             if (currentDocId === docId) {
                 currentDocId = null;
                 items = [];
+                localStorage.removeItem('order_items');
                 renderTable();
             }
             toast('Consignment deleted!', 'success');
@@ -1293,7 +1261,6 @@
             ];
         });
 
-        // Totals row for PDF
         let totalUnitPriceFC = 0, totalOrderPriceK = 0, totalPriceK = 0, totalProfitUnit = 0, totalProfitTotal = 0, totalQty = 0;
         items.forEach(item => {
             const calc = calculateItem(item);
@@ -1368,7 +1335,6 @@
             };
         });
 
-        // Totals
         let totalUnitPriceFC = 0, totalOrderPriceK = 0, totalPriceK = 0, totalProfitUnit = 0, totalProfitTotal = 0, totalQty = 0;
         items.forEach(item => {
             const calc = calculateItem(item);
@@ -1417,6 +1383,7 @@
         if (!confirm('Delete all items from current order?')) return;
         items = [];
         currentDocId = null;
+        localStorage.removeItem('order_items');
         renderTable();
         toast('All items cleared', 'warning');
     }
@@ -1435,14 +1402,13 @@
 
     // ==================== INIT ====================
     document.addEventListener('DOMContentLoaded', function() {
-        document.getElementById('usdRate').value = usdRate;
-        document.getElementById('eurRate').value = eurRate;
-        document.getElementById('liveRateUSD').textContent = usdRate.toFixed(2);
-        document.getElementById('liveRateEUR').textContent = eurRate.toFixed(2);
+        // Load saved data from localStorage first
+        loadFromLocalStorage();
         
-        sampleItems.forEach(item => {
-            items.push({ ...item });
-        });
+        // If no saved data, start empty
+        if (items.length === 0) {
+            items = [];
+        }
         
         renderTable();
         
@@ -1473,7 +1439,7 @@
         });
 
         setTimeout(fetchRates, 1000);
-        toast('📊 Order calculator ready! Auto-saving enabled.', 'info');
+        toast('📊 Order calculator ready! Data auto-saves.', 'info');
     });
 </script>
 </body>
